@@ -17,11 +17,11 @@ A keyboard-first todo app for macOS.
 - [x] Basic main/renderer process structure
 - [x] Verify `npm run dev` works
 
-### Phase 2: Database Layer
+### Phase 2: Database Layer ✓
 
-- [ ] SQLite schema (lists, tasks with fractional sort_key)
-- [ ] Seed data (Inbox, First Project, sample tasks)
-- [ ] DB helper functions (CRUD, reorder, move)
+- [x] SQLite schema (lists, tasks with fractional sort_key)
+- [x] Seed data (Inbox, First Project, sample tasks)
+- [x] DB helper functions (CRUD, reorder, move)
 
 ### Phase 3: Core UI
 
