@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "Running tests with coverage before commit..."
+npm run test:coverage || exit 1
+echo "Tests passed!"

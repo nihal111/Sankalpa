@@ -1,0 +1,23 @@
+# <type>: <short summary>
+#
+# <detailed explanation of what changed and why>
+#
+# <technical details, root cause analysis, or context>
+#
+# <any relevant metrics, performance data, or examples>
+#
+# ─────────────────────────────────────────────────────────
+# Type Prefixes:
+#   feat:     New feature
+#   fix:      Bug fix
+#   perf:     Performance improvement
+#   refactor: Code refactoring
+#   docs:     Documentation changes
+#   test:     Test additions or modifications
+#   chore:    Build, tooling, or maintenance tasks
+#
+# Guidelines:
+#   - Short summary: imperative mood, lowercase, no period
+#   - Explain WHAT and WHY, not just HOW
+#   - Include metrics for performance changes
+# ─────────────────────────────────────────────────────────
