@@ -9,7 +9,7 @@ import {
 
 let mainWindow: BrowserWindow | null = null;
 
-function createWindow() {
+function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -29,7 +29,7 @@ function createWindow() {
   }
 }
 
-function toggleWindow() {
+function toggleWindow(): void {
   if (!mainWindow) return;
   if (mainWindow.isVisible()) {
     mainWindow.hide();
@@ -39,7 +39,7 @@ function toggleWindow() {
   }
 }
 
-function showQuickAdd() {
+function showQuickAdd(): void {
   if (!mainWindow) return;
   mainWindow.show();
   mainWindow.focus();
@@ -47,22 +47,22 @@ function showQuickAdd() {
 }
 
 app.whenReady().then(() => {
-  getDb(); // Initialize database
+  const db = getDb();
   createWindow();
 
   // IPC handlers
-  ipcMain.handle('lists:getAll', () => getAllLists());
-  ipcMain.handle('lists:create', (_, id: string, name: string) => createList(id, name));
-  ipcMain.handle('lists:update', (_, id: string, name: string) => updateList(id, name));
-  ipcMain.handle('lists:delete', (_, id: string) => deleteList(id));
-  ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => reorderList(id, sortKey));
+  ipcMain.handle('lists:getAll', () => getAllLists(db));
+  ipcMain.handle('lists:create', (_, id: string, name: string) => createList(db, id, name));
+  ipcMain.handle('lists:update', (_, id: string, name: string) => updateList(db, id, name));
+  ipcMain.handle('lists:delete', (_, id: string) => deleteList(db, id));
+  ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => reorderList(db, id, sortKey));
 
-  ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(listId));
-  ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => createTask(id, listId, title));
-  ipcMain.handle('tasks:update', (_, id: string, title: string) => updateTask(id, title));
-  ipcMain.handle('tasks:delete', (_, id: string) => deleteTask(id));
-  ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => reorderTask(id, sortKey));
-  ipcMain.handle('tasks:move', (_, id: string, newListId: string) => moveTask(id, newListId));
+  ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
+  ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => createTask(db, id, listId, title));
+  ipcMain.handle('tasks:update', (_, id: string, title: string) => updateTask(db, id, title));
+  ipcMain.handle('tasks:delete', (_, id: string) => deleteTask(db, id));
+  ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => reorderTask(db, id, sortKey));
+  ipcMain.handle('tasks:move', (_, id: string, newListId: string) => moveTask(db, id, newListId));
 
   ipcMain.handle('util:calcSortKey', (_, before: number | null, after: number | null) => calcSortKeyBetween(before, after));
 
