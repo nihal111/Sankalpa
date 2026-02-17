@@ -1023,4 +1023,61 @@ describe('App', () => {
     const task1 = screen.getByText('Task 1').closest('.item');
     expect(task1?.classList.contains('multi-selected')).toBe(false);
   });
+
+  it('Cmd+, opens settings modal', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    expect(screen.getByText('Settings')).toBeDefined();
+    expect(screen.getByText('Theme')).toBeDefined();
+  });
+
+  it('Esc closes settings modal', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    expect(screen.getByText('Settings')).toBeDefined();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByText('Settings')).toBeNull();
+  });
+
+  it('arrow keys navigate theme options in settings', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+
+    // System is selected by default (index 2, since order is Light, Dark, System)
+    const cards = document.querySelectorAll('.theme-card');
+    expect(cards[2]?.classList.contains('selected')).toBe(true);
+
+    // Move left to Dark
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(cards[1]?.classList.contains('selected')).toBe(true);
+
+    // Move left to Light
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(cards[0]?.classList.contains('selected')).toBe(true);
+
+    // Move right back to Dark
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(cards[1]?.classList.contains('selected')).toBe(true);
+  });
+
+  it('Enter applies selected theme and closes settings', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    // Default is System (index 2), move left twice to Light
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+
+    expect(screen.queryByText('Settings')).toBeNull();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+  });
 });
