@@ -23,12 +23,12 @@ A keyboard-first todo app for macOS.
 - [x] Seed data (Inbox, First Project, sample tasks)
 - [x] DB helper functions (CRUD, reorder, move)
 
-### Phase 3: Core UI
+### Phase 3: Core UI ✓
 
-- [ ] Two-pane layout (Lists | Tasks)
-- [ ] Focus model (Tab to switch panes)
-- [ ] Selection with Up/Down arrows
-- [ ] Visual focus indicators
+- [x] Two-pane layout (Lists | Tasks)
+- [x] Focus model (Tab to switch panes)
+- [x] Selection with Up/Down arrows
+- [x] Visual focus indicators
 
 ### Phase 4: Keyboard Actions
 
