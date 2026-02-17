@@ -1,21 +1,7 @@
 import { Database, SqlValue } from 'sql.js';
+import type { List, Task } from '../../shared/types';
 
-export interface List {
-  id: string;
-  name: string;
-  sort_key: number;
-  created_at: number;
-  updated_at: number;
-}
-
-export interface Task {
-  id: string;
-  list_id: string;
-  title: string;
-  sort_key: number;
-  created_at: number;
-  updated_at: number;
-}
+export type { List, Task };
 
 function queryAll<T>(db: Database, sql: string, params: SqlValue[] = []): T[] {
   const stmt = db.prepare(sql);
