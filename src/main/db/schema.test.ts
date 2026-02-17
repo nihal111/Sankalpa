@@ -1,37 +1,46 @@
-import Database from 'better-sqlite3';
-import { describe, it, expect } from 'vitest';
+import initSqlJs, { Database } from 'sql.js';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { initSchema, seed } from './schema';
+
+let SQL: Awaited<ReturnType<typeof initSqlJs>>;
+
+beforeAll(async () => {
+  SQL = await initSqlJs();
+});
 
 describe('schema', () => {
   it('creates tables', () => {
-    const db = new Database(':memory:');
+    const db = new SQL.Database();
     initSchema(db);
 
-    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[];
-    const names = tables.map(t => t.name);
+    const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table'");
+    const names = tables[0].values.map(r => r[0]);
     expect(names).toContain('lists');
     expect(names).toContain('tasks');
+    db.close();
   });
 
   it('seeds default data', () => {
-    const db = new Database(':memory:');
+    const db = new SQL.Database();
     initSchema(db);
     seed(db);
 
-    const lists = db.prepare('SELECT * FROM lists').all();
-    expect(lists).toHaveLength(2);
+    const lists = db.exec('SELECT * FROM lists');
+    expect(lists[0].values).toHaveLength(2);
 
-    const tasks = db.prepare('SELECT * FROM tasks').all();
-    expect(tasks).toHaveLength(3);
+    const tasks = db.exec('SELECT * FROM tasks');
+    expect(tasks[0].values).toHaveLength(3);
+    db.close();
   });
 
   it('does not re-seed if data exists', () => {
-    const db = new Database(':memory:');
+    const db = new SQL.Database();
     initSchema(db);
     seed(db);
     seed(db);
 
-    const lists = db.prepare('SELECT * FROM lists').all();
-    expect(lists).toHaveLength(2);
+    const lists = db.exec('SELECT * FROM lists');
+    expect(lists[0].values).toHaveLength(2);
+    db.close();
   });
 });
