@@ -4,7 +4,7 @@ import {
   getDb, closeDb, saveDb,
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
-  getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
+  getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
   calcSortKeyBetween,
 } from './db';
 
@@ -67,8 +67,10 @@ app.whenReady().then(async () => {
   ipcMain.handle('lists:getTaskCount', (_, listId: string) => getTaskCount(db, listId));
 
   // Task IPC handlers
+  ipcMain.handle('tasks:getInbox', () => getInboxTasks(db));
+  ipcMain.handle('tasks:getInboxCount', () => getInboxTaskCount(db));
   ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
-  ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
+  ipcMain.handle('tasks:create', (_, id: string, listId: string | null, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
   ipcMain.handle('tasks:update', (_, id: string, title: string) => { updateTask(db, id, title); saveDb(); });
   ipcMain.handle('tasks:delete', (_, id: string) => { deleteTask(db, id); saveDb(); });
   ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => { reorderTask(db, id, sortKey); saveDb(); });

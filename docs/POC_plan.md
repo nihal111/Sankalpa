@@ -89,11 +89,12 @@ A keyboard-first todo app for macOS.
 - [x] Delete/Backspace key deletes selected task
 - [x] Task count badges refresh after deletion
 
-### Phase 5: Global Hotkeys
+### Phase 5: Global Hotkeys ✓
 
-- [ ] `Cmd+Option+Ctrl+Space` → toggle window
-- [ ] `Cmd+Option+Shift+Space` → quick-add modal
-- [ ] Register hotkeys system-wide (electron globalShortcut)
+- [x] `Cmd+Option+Ctrl+Space` → toggle window
+- [x] `Cmd+Option+Shift+Space` → quick-add to Inbox
+- [x] Register hotkeys system-wide (electron globalShortcut)
+- [x] Added real "Inbox" list (id: inbox-list) for quick-add target
 
 ### Phase 6: Hardcore Mode
 

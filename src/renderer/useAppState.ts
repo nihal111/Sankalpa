@@ -57,8 +57,25 @@ export function useAppState() {
   }, []);
 
   useEffect(() => {
+    return window.api.onQuickAdd(async () => {
+      // Navigate to smart Inbox
+      setSelectedSidebarIndex(0);
+      const id = crypto.randomUUID();
+      const newTask = await window.api.tasksCreate(id, null, '');
+      const newTasks = await window.api.tasksGetInbox();
+      const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
+      setTasks(newTasks);
+      setSelectedTaskIndex(newIndex);
+      setFocusedPane('tasks');
+      setEditMode({ type: 'task', index: newIndex });
+      setEditValue('');
+    });
+  }, []);
+
+  useEffect(() => {
     const loadCounts = async (): Promise<void> => {
       const counts: Record<string, number> = {};
+      counts['inbox'] = await window.api.tasksGetInboxCount();
       for (const list of lists) {
         counts[list.id] = await window.api.listsGetTaskCount(list.id);
       }
@@ -68,7 +85,12 @@ export function useAppState() {
   }, [lists, tasks.length]);
 
   useEffect(() => {
-    if (selectedListId && selectedSidebarItem?.type === 'list') {
+    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
+      window.api.tasksGetInbox().then((t) => {
+        setTasks(t);
+        setSelectedTaskIndex(0);
+      });
+    } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
         setTasks(t);
         setSelectedTaskIndex(0);
@@ -98,11 +120,14 @@ export function useAppState() {
   }, []);
 
   const reloadTasks = useCallback(async () => {
-    if (selectedListId && selectedSidebarItem?.type === 'list') {
+    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
+      const newTasks = await window.api.tasksGetInbox();
+      setTasks(newTasks);
+    } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       const newTasks = await window.api.tasksGetByList(selectedListId);
       setTasks(newTasks);
     }
-  }, [selectedListId, selectedSidebarItem?.type]);
+  }, [selectedListId, selectedSidebarItem]);
 
   const handleReorder = useCallback(async (direction: -1 | 1) => {
     if (focusedPane === 'tasks') {
@@ -172,17 +197,20 @@ export function useAppState() {
   }, [selectedSidebarItem, reloadData, selectedSidebarIndex]);
 
   const createTask = useCallback(async () => {
-    if (!selectedListId || selectedSidebarItem?.type !== 'list') return;
+    const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
+    const isList = selectedSidebarItem?.type === 'list';
+    if (!isInbox && !isList) return;
     const id = crypto.randomUUID();
-    const newTask = await window.api.tasksCreate(id, selectedListId, '');
-    const newTasks = await window.api.tasksGetByList(selectedListId);
+    const listId = isList ? selectedListId : null;
+    const newTask = await window.api.tasksCreate(id, listId, '');
+    const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(selectedListId!);
     const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
     setTasks(newTasks);
     setSelectedTaskIndex(newIndex);
     setFocusedPane('tasks');
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
-  }, [selectedListId, selectedSidebarItem?.type]);
+  }, [selectedListId, selectedSidebarItem]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;

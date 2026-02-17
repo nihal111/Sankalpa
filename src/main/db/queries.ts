@@ -92,12 +92,21 @@ export function getTaskCount(db: Database, listId: string): number {
 
 // Tasks
 
+export function getInboxTasks(db: Database): Task[] {
+  return queryAll<Task>(db, 'SELECT * FROM tasks WHERE list_id IS NULL ORDER BY sort_key', []);
+}
+
+export function getInboxTaskCount(db: Database): number {
+  const result = queryOne<{ count: number }>(db, 'SELECT COUNT(*) as count FROM tasks WHERE list_id IS NULL', []);
+  return result!.count;
+}
+
 export function getTasksByList(db: Database, listId: string): Task[] {
   return queryAll<Task>(db, 'SELECT * FROM tasks WHERE list_id = ? ORDER BY sort_key', [listId]);
 }
 
-export function createTask(db: Database, id: string, listId: string, title: string): Task {
-  const sortKey = getNextSortKey(db, 'tasks', listId);
+export function createTask(db: Database, id: string, listId: string | null, title: string): Task {
+  const sortKey = listId ? getNextSortKey(db, 'tasks', listId) : getNextSortKey(db, 'tasks');
   const now = Date.now();
   db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     [id, listId, title, sortKey, now, now]);

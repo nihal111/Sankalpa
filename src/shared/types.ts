@@ -18,7 +18,7 @@ export interface List {
 
 export interface Task {
   id: string;
-  list_id: string;
+  list_id: string | null;
   title: string;
   sort_key: number;
   created_at: number;
@@ -42,8 +42,10 @@ export interface Api {
   listsMove: (id: string, folderId: string | null) => Promise<void>;
   listsGetTaskCount: (listId: string) => Promise<number>;
 
+  tasksGetInbox: () => Promise<Task[]>;
+  tasksGetInboxCount: () => Promise<number>;
   tasksGetByList: (listId: string) => Promise<Task[]>;
-  tasksCreate: (id: string, listId: string, title: string) => Promise<Task>;
+  tasksCreate: (id: string, listId: string | null, title: string) => Promise<Task>;
   tasksUpdate: (id: string, title: string) => Promise<void>;
   tasksDelete: (id: string) => Promise<void>;
   tasksReorder: (id: string, sortKey: number) => Promise<void>;

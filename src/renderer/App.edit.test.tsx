@@ -149,6 +149,23 @@ describe('App edit mode', () => {
     expect(window.api.tasksDelete).not.toHaveBeenCalled();
   });
 
+  it('deletes task from inbox and reloads', async () => {
+    const inboxTasks = [
+      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', sort_key: 1, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({
+      tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),
+      tasksDelete: vi.fn().mockResolvedValue(undefined),
+    });
+    render(<App />);
+    // Smart Inbox is selected by default
+    await waitFor(() => expect(screen.getByText('Inbox Task')).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('inbox-t1'));
+    expect(window.api.tasksGetInbox).toHaveBeenCalled();
+  });
+
   it('Delete does nothing in lists pane', async () => {
     render(<App />);
     await navigateToUserList();
