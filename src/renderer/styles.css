@@ -17,6 +17,11 @@ body {
 
 .pane {
   padding: 16px;
+  opacity: 0.6;
+}
+
+.pane.focused {
+  opacity: 1;
 }
 
 .lists-pane {
@@ -35,4 +40,22 @@ h2 {
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.item-list {
+  list-style: none;
+}
+
+.item {
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.item.selected {
+  background: #333;
+}
+
+.pane.focused .item.selected {
+  background: #0066cc;
 }
