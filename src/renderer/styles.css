@@ -60,6 +60,16 @@ h2 {
   background: #0066cc;
 }
 
+.pane.focused .item.multi-selected {
+  background: #004499;
+}
+
+.pane.focused .item.boundary-cursor {
+  outline: 2px dashed #0066cc;
+  outline-offset: -2px;
+  background: transparent;
+}
+
 .item.move-target {
   outline: 2px solid #ffcc00;
   outline-offset: -2px;

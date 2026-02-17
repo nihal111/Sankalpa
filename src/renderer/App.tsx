@@ -15,6 +15,13 @@ export default function App(): JSX.Element {
   const [moveMode, setMoveMode] = useState(false);
   const [moveTargetIndex, setMoveTargetIndex] = useState(0);
 
+  // Multi-select state
+  const [selectedTaskIndices, setSelectedTaskIndices] = useState<Set<number>>(new Set());
+  const [selectionAnchor, setSelectionAnchor] = useState<number | null>(null);
+  const [boundaryCursor, setBoundaryCursor] = useState<number | null>(null);
+  const [shiftHeld, setShiftHeld] = useState(false);
+  const [cmdHeld, setCmdHeld] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedList = lists[selectedListIndex];
 
@@ -129,24 +136,66 @@ export default function App(): JSX.Element {
   }, [selectedList, reloadTasks]);
 
   const startMove = useCallback(() => {
-    if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
+    if (focusedPane === 'tasks' && (tasks[selectedTaskIndex] || selectedTaskIndices.size > 0)) {
       setMoveMode(true);
       setMoveTargetIndex(selectedListIndex);
     }
-  }, [focusedPane, tasks, selectedTaskIndex, selectedListIndex]);
+  }, [focusedPane, tasks, selectedTaskIndex, selectedListIndex, selectedTaskIndices.size]);
 
   const commitMove = useCallback(async () => {
-    const task = tasks[selectedTaskIndex];
     const targetList = lists[moveTargetIndex];
-    if (task && targetList && targetList.id !== selectedList?.id) {
-      await window.api.tasksMove(task.id, targetList.id);
-      await reloadTasks();
+    if (!targetList || targetList.id === selectedList?.id) {
+      setMoveMode(false);
+      return;
     }
+
+    // Get indices to move: either multi-selection or single selected task
+    const indicesToMove = selectedTaskIndices.size > 0
+      ? Array.from(selectedTaskIndices).sort((a, b) => a - b)
+      : [selectedTaskIndex];
+
+    // Move tasks in order to preserve relative ordering
+    for (const idx of indicesToMove) {
+      const task = tasks[idx];
+      if (task) {
+        await window.api.tasksMove(task.id, targetList.id);
+      }
+    }
+
+    // Clear selection and switch focus to destination list
+    setSelectedTaskIndices(new Set());
+    setSelectionAnchor(null);
+    setBoundaryCursor(null);
+    setSelectedListIndex(moveTargetIndex);
+    setFocusedPane('lists');
     setMoveMode(false);
-  }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, reloadTasks]);
+  }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, selectedTaskIndices]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Track modifier keys
+    if (e.key === 'Shift' && focusedPane === 'tasks' && !editMode && !moveMode) {
+      if (!shiftHeld) {
+        setShiftHeld(true);
+        // Add current item to selection and set anchor
+        setSelectedTaskIndices((prev) => new Set(prev).add(selectedTaskIndex));
+        if (selectionAnchor === null) {
+          setSelectionAnchor(selectedTaskIndex);
+        }
+      }
+      return;
+    }
+
+    if (e.key === 'Meta' && focusedPane === 'tasks' && !editMode && !moveMode) {
+      if (!cmdHeld) {
+        setCmdHeld(true);
+        // Add current item to selection and show boundary cursor
+        setSelectedTaskIndices((prev) => new Set(prev).add(selectedTaskIndex));
+        setBoundaryCursor(selectedTaskIndex);
+      }
+      return;
+    }
+
     // Handle edit mode input
     if (editMode) {
       if (e.key === 'Escape') {
@@ -177,6 +226,30 @@ export default function App(): JSX.Element {
       return;
     }
 
+    // Cmd+Space: toggle selection at boundary cursor
+    if (cmdHeld && e.key === ' ') {
+      e.preventDefault();
+      setSelectedTaskIndices((prev) => {
+        const next = new Set(prev);
+        if (next.has(boundaryCursor!)) {
+          next.delete(boundaryCursor!);
+        } else {
+          next.add(boundaryCursor!);
+        }
+        return next;
+      });
+      return;
+    }
+
+    // Space without Cmd: clear selection and focus item
+    if (e.key === ' ' && !cmdHeld && focusedPane === 'tasks') {
+      e.preventDefault();
+      setSelectedTaskIndices(new Set());
+      setSelectionAnchor(null);
+      setBoundaryCursor(null);
+      return;
+    }
+
     // Reorder: Cmd+Shift+Up/Down
     if (e.metaKey && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       e.preventDefault();
@@ -204,11 +277,35 @@ export default function App(): JSX.Element {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
       const delta = e.key === 'ArrowUp' ? -1 : 1;
+
       if (focusedPane === 'lists') {
         setSelectedListIndex((i) => Math.max(0, Math.min(lists.length - 1, i + delta)));
-      } else {
-        setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
+        return;
       }
+
+      // Tasks pane with Cmd held: move boundary cursor only
+      if (cmdHeld) {
+        setBoundaryCursor((i) => Math.max(0, Math.min(tasks.length - 1, (i ?? selectedTaskIndex) + delta)));
+        return;
+      }
+
+      // Tasks pane with Shift held: extend/contract selection
+      if (shiftHeld && selectionAnchor !== null) {
+        const newIndex = Math.max(0, Math.min(tasks.length - 1, selectedTaskIndex + delta));
+        setSelectedTaskIndex(newIndex);
+        // Build selection from anchor to new index
+        const minIdx = Math.min(selectionAnchor, newIndex);
+        const maxIdx = Math.max(selectionAnchor, newIndex);
+        const newSelection = new Set<number>();
+        for (let i = minIdx; i <= maxIdx; i++) {
+          newSelection.add(i);
+        }
+        setSelectedTaskIndices(newSelection);
+        return;
+      }
+
+      // Normal navigation
+      setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
       return;
     }
 
@@ -223,12 +320,37 @@ export default function App(): JSX.Element {
       startMove();
       return;
     }
-  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask]);
+  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, selectionAnchor, boundaryCursor]);
+
+  const handleKeyUp = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Shift') {
+      setShiftHeld(false);
+      return;
+    }
+
+    if (e.key === 'Meta') {
+      setCmdHeld(false);
+      setBoundaryCursor(null);
+      return;
+    }
+  }, []);
+
+  // Clear selection when releasing Shift/Cmd with only one item
+  useEffect(() => {
+    if (!shiftHeld && !cmdHeld && selectedTaskIndices.size === 1) {
+      setSelectedTaskIndices(new Set());
+      setSelectionAnchor(null);
+    }
+  }, [shiftHeld, cmdHeld, selectedTaskIndices.size]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -270,7 +392,7 @@ export default function App(): JSX.Element {
           {tasks.map((task, i) => (
             <li
               key={task.id}
-              className={`item ${i === selectedTaskIndex ? 'selected' : ''}`}
+              className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${cmdHeld && i === boundaryCursor ? 'boundary-cursor' : ''}`}
             >
               {editMode?.type === 'task' && editMode.index === i ? (
                 <input

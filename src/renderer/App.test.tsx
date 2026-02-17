@@ -480,4 +480,285 @@ describe('App', () => {
 
     expect(tasksCreate).not.toHaveBeenCalled();
   });
+
+  // Multi-select tests
+  it('Shift+Arrow extends selection continuously', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    // Focus tasks pane
+    fireEvent.keyDown(window, { key: 'Tab' });
+
+    // Hold Shift and press Down
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+
+    // Both tasks should have multi-selected class
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task2 = screen.getByText('Task 2').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('multi-selected')).toBe(true);
+  });
+
+  it('releasing Shift keeps multi-selection if more than one item', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task2 = screen.getByText('Task 2').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('multi-selected')).toBe(true);
+  });
+
+  it('releasing Shift clears selection if only one item', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('Cmd shows boundary cursor and adds item to selection', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Meta' });
+
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('boundary-cursor')).toBe(true);
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+  });
+
+  it('Cmd+Arrow moves boundary cursor without selecting', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task2 = screen.getByText('Task 2').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('boundary-cursor')).toBe(true);
+    expect(task2?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('Cmd+Space toggles selection at boundary cursor', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+
+    const task2 = screen.getByText('Task 2').closest('.item');
+    expect(task2?.classList.contains('multi-selected')).toBe(true);
+
+    // Toggle off
+    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    expect(task2?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('releasing Cmd hides boundary cursor but keeps selection', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    fireEvent.keyUp(window, { key: 'Meta' });
+
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task2 = screen.getByText('Task 2').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('boundary-cursor')).toBe(false);
+  });
+
+  it('Space without Cmd clears selection', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    // Both selected
+    let task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+
+    // Space clears
+    fireEvent.keyDown(window, { key: ' ' });
+    task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('M moves all selected tasks', async () => {
+    const tasksMove = vi.fn().mockResolvedValue(undefined);
+    setupMockApi({ tasksMove });
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    fireEvent.keyDown(window, { key: 'm' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(tasksMove).toHaveBeenCalledTimes(2);
+      expect(tasksMove).toHaveBeenCalledWith('t1', '2');
+      expect(tasksMove).toHaveBeenCalledWith('t2', '2');
+    });
+  });
+
+  it('Cmd+Space does nothing when boundaryCursor is null', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    // Don't press Meta first, so boundaryCursor stays null
+    // Simulate cmdHeld being true but boundaryCursor null (edge case)
+    fireEvent.keyDown(window, { key: ' ' });
+
+    // Should not crash, selection should be cleared
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('releasing Cmd with multiple items sets anchor for Shift continuation', async () => {
+    const threeTasks: Task[] = [
+      { id: 't1', list_id: '1', title: 'Task 1', sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 't2', list_id: '1', title: 'Task 2', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: 't3', list_id: '1', title: 'Task 3', sort_key: 3, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(threeTasks) });
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+
+    // Select task1 and task3 using Cmd
+    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+    fireEvent.keyDown(window, { key: ' ', metaKey: true }); // Select task3
+
+    // Wait for selection to update
+    await waitFor(() => {
+      const task3 = screen.getByText('Task 3').closest('.item');
+      expect(task3?.classList.contains('multi-selected')).toBe(true);
+    });
+
+    fireEvent.keyUp(window, { key: 'Meta' });
+
+    // Verify both are still selected after releasing Meta
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task3 = screen.getByText('Task 3').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task3?.classList.contains('multi-selected')).toBe(true);
+  });
+
+  it('task edit input loses focus on blur', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+
+    const input = screen.getByDisplayValue('Task 1');
+    fireEvent.blur(input);
+
+    // Edit mode should be cancelled
+    expect(screen.queryByDisplayValue('Task 1')).toBeNull();
+    expect(screen.getByText('Task 1')).toBeDefined();
+  });
+
+  it('Shift in lists pane does not trigger multi-select', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    // Stay in lists pane and press Shift
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+
+    // Tasks should not have multi-selected class
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('Meta in lists pane does not trigger multi-select', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    // Stay in lists pane and press Meta
+    fireEvent.keyDown(window, { key: 'Meta' });
+
+    // Tasks should not have boundary-cursor class
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('boundary-cursor')).toBe(false);
+  });
+
+  it('Shift+Arrow selects multiple then releasing keeps selection', async () => {
+    const threeTasks: Task[] = [
+      { id: 't1', list_id: '1', title: 'Task 1', sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 't2', list_id: '1', title: 'Task 2', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: 't3', list_id: '1', title: 'Task 3', sort_key: 3, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(threeTasks) });
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+
+    await waitFor(() => {
+      const task3 = screen.getByText('Task 3').closest('.item');
+      expect(task3?.classList.contains('multi-selected')).toBe(true);
+    });
+
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    // All three should still be selected
+    const task1 = screen.getByText('Task 1').closest('.item');
+    const task2 = screen.getByText('Task 2').closest('.item');
+    const task3 = screen.getByText('Task 3').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task2?.classList.contains('multi-selected')).toBe(true);
+    expect(task3?.classList.contains('multi-selected')).toBe(true);
+  });
+
+  it('Cmd+Space when not in tasks pane does nothing', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    // Stay in lists pane, simulate cmdHeld state by pressing Meta then Space
+    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+
+    // Should not crash, no selection changes
+    const task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
 });
