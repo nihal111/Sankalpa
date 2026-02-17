@@ -121,4 +121,38 @@ describe('App edit mode', () => {
     fireEvent.keyDown(window, { key: 'Enter' });
     expect(document.querySelector('.tasks-pane input')).toBeNull();
   });
+
+  it('deletes task on Delete key', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+  });
+
+  it('deletes task on Backspace key', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'Backspace' });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+  });
+
+  it('Delete does nothing when no tasks', async () => {
+    const emptyTasksMock = vi.fn().mockResolvedValue([]);
+    window.api.tasksGetByList = emptyTasksMock;
+    render(<App />);
+    await waitFor(() => expect(document.querySelectorAll('.lists-pane .item.list').length).toBeGreaterThan(0));
+    for (let i = 0; i < 5; i++) {
+      fireEvent.keyDown(window, { key: 'ArrowDown' });
+    }
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Delete' });
+    expect(window.api.tasksDelete).not.toHaveBeenCalled();
+  });
+
+  it('Delete does nothing in lists pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'Delete' });
+    expect(window.api.tasksDelete).not.toHaveBeenCalled();
+  });
 });

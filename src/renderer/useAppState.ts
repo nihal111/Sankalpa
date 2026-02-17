@@ -65,7 +65,7 @@ export function useAppState() {
       setTaskCounts(counts);
     };
     loadCounts();
-  }, [lists]);
+  }, [lists, tasks.length]);
 
   useEffect(() => {
     if (selectedListId && selectedSidebarItem?.type === 'list') {
@@ -82,6 +82,12 @@ export function useAppState() {
     if (editMode && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
+    } else if (editMode) {
+      // Input not yet rendered, retry after DOM update
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
     }
   }, [editMode]);
 
@@ -169,14 +175,23 @@ export function useAppState() {
     if (!selectedListId || selectedSidebarItem?.type !== 'list') return;
     const id = crypto.randomUUID();
     const newTask = await window.api.tasksCreate(id, selectedListId, '');
-    await reloadTasks();
     const newTasks = await window.api.tasksGetByList(selectedListId);
     const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
+    setTasks(newTasks);
     setSelectedTaskIndex(newIndex);
     setFocusedPane('tasks');
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
-  }, [selectedListId, selectedSidebarItem?.type, reloadTasks]);
+  }, [selectedListId, selectedSidebarItem?.type]);
+
+  const deleteTask = useCallback(async () => {
+    if (focusedPane !== 'tasks' || tasks.length === 0) return;
+    const task = tasks[selectedTaskIndex];
+    if (!task) return;
+    await window.api.tasksDelete(task.id);
+    await reloadTasks();
+    setSelectedTaskIndex((i) => Math.min(i, tasks.length - 2));
+  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks]);
 
   const startMove = useCallback(() => {
     if (focusedPane === 'tasks' && (tasks[selectedTaskIndex] || selectedTaskIndices.size > 0)) {
@@ -313,12 +328,13 @@ export function useAppState() {
     if (cmdHeld && e.key === 'Enter') { e.preventDefault(); multiSelectActions.toggleAtCursor(selectedTaskIndex); return; }
     if (e.key === ' ' && !cmdHeld && focusedPane === 'tasks') { e.preventDefault(); multiSelectActions.clear(); return; }
     if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) createList(); else createTask(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteTask(); return; }
     if (e.key === 'Tab') { e.preventDefault(); if (selectedTaskIndices.size > 0) multiSelectActions.clear(); setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists')); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (e.key === 'Enter') { e.preventDefault(); if (selectedTaskIndices.size > 0) return; if (selectedSidebarItem?.type === 'smart') return; startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); startMove(); return; }
-  }, [editMode, moveMode, focusedPane, sidebarItems.length, moveTargetIndex, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsOpen, settingsThemeIndex, theme, selectedSidebarItem, sidebarItems]);
+  }, [editMode, moveMode, focusedPane, sidebarItems.length, moveTargetIndex, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, startEdit, startMove, commitMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsOpen, settingsThemeIndex, theme, selectedSidebarItem, sidebarItems]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') { multiSelectActions.handleShiftUp(); return; }

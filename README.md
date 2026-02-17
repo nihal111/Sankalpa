@@ -18,6 +18,7 @@ A keyboard-first todo app for macOS. Fast, minimal, no mouse required.
 | `↑/↓` | Move selection |
 | `Enter` | Edit selected item |
 | `Esc` | Cancel / close / hide |
+| `Delete/Backspace` | Delete selected task |
 | `Cmd+Shift+↑/↓` | Reorder item |
 | `M` | Move task to another list |
 

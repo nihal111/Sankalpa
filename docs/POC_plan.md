@@ -84,6 +84,11 @@ A keyboard-first todo app for macOS.
   - Lists: bullet list icon
 - [x] Fixed icon vertical alignment with flexbox centering
 
+### Phase 4.5: Task Deletion ✓
+
+- [x] Delete/Backspace key deletes selected task
+- [x] Task count badges refresh after deletion
+
 ### Phase 5: Global Hotkeys
 
 - [ ] `Cmd+Option+Ctrl+Space` → toggle window

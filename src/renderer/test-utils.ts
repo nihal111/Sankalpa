@@ -29,6 +29,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     listsReorder: vi.fn().mockResolvedValue(undefined),
     tasksReorder: vi.fn().mockResolvedValue(undefined),
     tasksMove: vi.fn().mockResolvedValue(undefined),
+    tasksDelete: vi.fn().mockResolvedValue(undefined),
   };
   // Wrap any non-spy overrides with vi.fn()
   const wrappedOverrides: Record<string, unknown> = {};
