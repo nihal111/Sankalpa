@@ -64,6 +64,11 @@ h2 {
   background: #004499;
 }
 
+.pane.focused .item.cursor {
+  outline: 2px dashed #66aaff;
+  outline-offset: -2px;
+}
+
 .pane.focused .item.boundary-cursor {
   outline: 2px dashed #0066cc;
   outline-offset: -2px;

@@ -400,7 +400,7 @@ export default function App(): JSX.Element {
           {tasks.map((task, i) => (
             <li
               key={task.id}
-              className={`item ${i === selectedTaskIndex && !cmdHeld && !shiftHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${cmdHeld && i === boundaryCursor && !selectedTaskIndices.has(i) ? 'boundary-cursor' : ''}`}
+              className={`item ${i === selectedTaskIndex && !cmdHeld && !shiftHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${(cmdHeld || shiftHeld) && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor && !selectedTaskIndices.has(i) ? 'boundary-cursor' : ''}`}
             >
               {editMode?.type === 'task' && editMode.index === i ? (
                 <input
