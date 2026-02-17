@@ -7,12 +7,21 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener('quick-add', handler);
   },
 
+  // Folders
+  foldersGetAll: () => ipcRenderer.invoke('folders:getAll'),
+  foldersCreate: (id: string, name: string) => ipcRenderer.invoke('folders:create', id, name),
+  foldersUpdate: (id: string, name: string) => ipcRenderer.invoke('folders:update', id, name),
+  foldersDelete: (id: string) => ipcRenderer.invoke('folders:delete', id),
+  foldersToggleExpanded: (id: string) => ipcRenderer.invoke('folders:toggleExpanded', id),
+
   // Lists
   listsGetAll: () => ipcRenderer.invoke('lists:getAll'),
-  listsCreate: (id: string, name: string) => ipcRenderer.invoke('lists:create', id, name),
+  listsCreate: (id: string, name: string, folderId?: string) => ipcRenderer.invoke('lists:create', id, name, folderId),
   listsUpdate: (id: string, name: string) => ipcRenderer.invoke('lists:update', id, name),
   listsDelete: (id: string) => ipcRenderer.invoke('lists:delete', id),
   listsReorder: (id: string, sortKey: number) => ipcRenderer.invoke('lists:reorder', id, sortKey),
+  listsMove: (id: string, folderId: string | null) => ipcRenderer.invoke('lists:move', id, folderId),
+  listsGetTaskCount: (listId: string) => ipcRenderer.invoke('lists:getTaskCount', listId),
 
   // Tasks
   tasksGetByList: (listId: string) => ipcRenderer.invoke('tasks:getByList', listId),

@@ -62,6 +62,28 @@ A keyboard-first todo app for macOS.
 - [x] Dark palette: Charcoal, Dark Charcoal, Golden Brown, Cream, Bright Gold
 - [x] Keyboard navigation: ←→ select theme, Enter apply, Esc close
 
+### Phase 4.4: Sidebar Enhancements ✓
+
+- [x] Smart lists: Inbox, Overdue, Today, Upcoming, Completed (icons, non-editable)
+- [x] Folders: collapsible containers for lists (▶/▼ icons)
+- [x] Folder CRUD: create, rename, expand/collapse, nest lists inside
+- [x] Horizontal divider separating smart lists from user lists/folders
+- [x] Task count badges on lists
+- [x] Arrow navigation: →/← expand/collapse folders, move to children/parent
+- [x] Wider sidebar (240px), reduced indentation for nested items
+- [x] Renamed seed list from "Inbox" to "Tutorial" (smart Inbox already exists)
+- [x] Refactored App.tsx (~720 lines) into 7 focused modules (<400 lines each)
+- [x] Refactored App.test.tsx (~1640 lines) into 8 test files (<320 lines each)
+- [x] Replaced emoji icons with inline SVG icons (icons.ts)
+  - Inbox: tray with curved notch
+  - Overdue: bell notification
+  - Today: calendar with dot
+  - Upcoming: clock
+  - Completed: checkmark in circle
+  - Folders: open/closed folder icons
+  - Lists: bullet list icon
+- [x] Fixed icon vertical alignment with flexbox centering
+
 ### Phase 5: Global Hotkeys
 
 - [ ] `Cmd+Option+Ctrl+Space` → toggle window

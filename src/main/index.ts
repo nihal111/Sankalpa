@@ -2,7 +2,8 @@ import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import path from 'path';
 import {
   getDb, closeDb, saveDb,
-  getAllLists, createList, updateList, deleteList, reorderList,
+  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
+  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
   calcSortKeyBetween,
 } from './db';
@@ -49,13 +50,23 @@ app.whenReady().then(async () => {
   const db = await getDb();
   createWindow();
 
-  // IPC handlers
+  // Folder IPC handlers
+  ipcMain.handle('folders:getAll', () => getAllFolders(db));
+  ipcMain.handle('folders:create', (_, id: string, name: string) => { const r = createFolder(db, id, name); saveDb(); return r; });
+  ipcMain.handle('folders:update', (_, id: string, name: string) => { updateFolder(db, id, name); saveDb(); });
+  ipcMain.handle('folders:delete', (_, id: string) => { deleteFolder(db, id); saveDb(); });
+  ipcMain.handle('folders:toggleExpanded', (_, id: string) => { toggleFolderExpanded(db, id); saveDb(); });
+
+  // List IPC handlers
   ipcMain.handle('lists:getAll', () => getAllLists(db));
-  ipcMain.handle('lists:create', (_, id: string, name: string) => { const r = createList(db, id, name); saveDb(); return r; });
+  ipcMain.handle('lists:create', (_, id: string, name: string, folderId?: string) => { const r = createList(db, id, name, folderId); saveDb(); return r; });
   ipcMain.handle('lists:update', (_, id: string, name: string) => { updateList(db, id, name); saveDb(); });
   ipcMain.handle('lists:delete', (_, id: string) => { deleteList(db, id); saveDb(); });
   ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => { reorderList(db, id, sortKey); saveDb(); });
+  ipcMain.handle('lists:move', (_, id: string, folderId: string | null) => { moveList(db, id, folderId); saveDb(); });
+  ipcMain.handle('lists:getTaskCount', (_, listId: string) => getTaskCount(db, listId));
 
+  // Task IPC handlers
   ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
   ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
   ipcMain.handle('tasks:update', (_, id: string, title: string) => { updateTask(db, id, title); saveDb(); });

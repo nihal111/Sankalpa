@@ -55,7 +55,7 @@ export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
   }, [boundaryCursor]);
 
   const toggleAtCursor = useCallback((currentIndex: number) => {
-    const targetIdx = boundaryCursor ?? currentIndex;
+    const targetIdx = boundaryCursor !== null ? boundaryCursor : currentIndex;
     setSelectedIndices((prev) => {
       const next = new Set(prev);
       if (next.has(targetIdx)) {

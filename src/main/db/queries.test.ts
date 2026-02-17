@@ -2,7 +2,8 @@ import initSqlJs, { Database } from 'sql.js';
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { initSchema } from './schema';
 import {
-  getAllLists, createList, updateList, deleteList, reorderList,
+  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
+  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
 } from './queries';
 
@@ -17,6 +18,54 @@ function createTestDb(): Database {
   initSchema(db);
   return db;
 }
+
+describe('folders', () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = createTestDb();
+  });
+
+  it('creates and retrieves folders', () => {
+    createFolder(db, 'f1', 'Folder 1');
+    createFolder(db, 'f2', 'Folder 2');
+
+    const folders = getAllFolders(db);
+    expect(folders).toHaveLength(2);
+    expect(folders[0].name).toBe('Folder 1');
+    expect(folders[0].is_expanded).toBe(1);
+  });
+
+  it('updates folder name', () => {
+    createFolder(db, 'f1', 'Old');
+    updateFolder(db, 'f1', 'New');
+
+    const folders = getAllFolders(db);
+    expect(folders[0].name).toBe('New');
+  });
+
+  it('toggles folder expanded state', () => {
+    createFolder(db, 'f1', 'Folder');
+    toggleFolderExpanded(db, 'f1');
+
+    let folders = getAllFolders(db);
+    expect(folders[0].is_expanded).toBe(0);
+
+    toggleFolderExpanded(db, 'f1');
+    folders = getAllFolders(db);
+    expect(folders[0].is_expanded).toBe(1);
+  });
+
+  it('deletes folder and moves lists to top level', () => {
+    createFolder(db, 'f1', 'Folder');
+    createList(db, 'l1', 'List', 'f1');
+    deleteFolder(db, 'f1');
+
+    expect(getAllFolders(db)).toHaveLength(0);
+    const lists = getAllLists(db);
+    expect(lists[0].folder_id).toBeNull();
+  });
+});
 
 describe('lists', () => {
   let db: Database;
@@ -33,6 +82,14 @@ describe('lists', () => {
     expect(lists).toHaveLength(2);
     expect(lists[0].name).toBe('List 1');
     expect(lists[1].name).toBe('List 2');
+  });
+
+  it('creates list in folder', () => {
+    createFolder(db, 'f1', 'Folder');
+    createList(db, 'l1', 'List', 'f1');
+
+    const lists = getAllLists(db);
+    expect(lists[0].folder_id).toBe('f1');
   });
 
   it('assigns incrementing sort_keys', () => {
@@ -69,6 +126,27 @@ describe('lists', () => {
     const lists = getAllLists(db);
     expect(lists[0].id).toBe('l2');
     expect(lists[1].id).toBe('l1');
+  });
+
+  it('moves list to folder', () => {
+    createFolder(db, 'f1', 'Folder');
+    createList(db, 'l1', 'List');
+    moveList(db, 'l1', 'f1');
+
+    const lists = getAllLists(db);
+    expect(lists[0].folder_id).toBe('f1');
+  });
+
+  it('gets task count', () => {
+    createList(db, 'l1', 'List');
+    createTask(db, 't1', 'l1', 'Task 1');
+    createTask(db, 't2', 'l1', 'Task 2');
+
+    expect(getTaskCount(db, 'l1')).toBe(2);
+  });
+
+  it('returns 0 for non-existent list', () => {
+    expect(getTaskCount(db, 'nonexistent')).toBe(0);
   });
 });
 
