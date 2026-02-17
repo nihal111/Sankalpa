@@ -103,6 +103,31 @@ export default function App(): JSX.Element {
     setEditMode(null);
   }, [editMode, editValue, lists, tasks, reloadLists, reloadTasks]);
 
+  const createList = useCallback(async () => {
+    const id = crypto.randomUUID();
+    const newList = await window.api.listsCreate(id, '');
+    await reloadLists();
+    const newLists = await window.api.listsGetAll();
+    const newIndex = newLists.findIndex((l) => l.id === newList.id);
+    setSelectedListIndex(newIndex);
+    setFocusedPane('lists');
+    setEditMode({ type: 'list', index: newIndex });
+    setEditValue('');
+  }, [reloadLists]);
+
+  const createTask = useCallback(async () => {
+    if (!selectedList) return;
+    const id = crypto.randomUUID();
+    const newTask = await window.api.tasksCreate(id, selectedList.id, '');
+    await reloadTasks();
+    const newTasks = await window.api.tasksGetByList(selectedList.id);
+    const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
+    setSelectedTaskIndex(newIndex);
+    setFocusedPane('tasks');
+    setEditMode({ type: 'task', index: newIndex });
+    setEditValue('');
+  }, [selectedList, reloadTasks]);
+
   const startMove = useCallback(() => {
     if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
       setMoveMode(true);
@@ -159,6 +184,17 @@ export default function App(): JSX.Element {
       return;
     }
 
+    // Create: Cmd+N (task), Cmd+Shift+N (list)
+    if (e.metaKey && e.key === 'n') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        createList();
+      } else {
+        createTask();
+      }
+      return;
+    }
+
     if (e.key === 'Tab') {
       e.preventDefault();
       setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
@@ -187,7 +223,7 @@ export default function App(): JSX.Element {
       startMove();
       return;
     }
-  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove]);
+  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

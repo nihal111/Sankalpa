@@ -417,4 +417,67 @@ describe('App', () => {
 
     expect(screen.queryByText(/Move to:/)).toBeNull();
   });
+
+  // Create tests
+  it('creates new task with Cmd+N', async () => {
+    const newTask = { id: 'new', list_id: '1', title: '', sort_key: 3, created_at: 0, updated_at: 0 };
+    const updatedTasks = [...mockTasks, newTask];
+    const tasksGetByList = vi.fn()
+      .mockResolvedValueOnce(mockTasks)
+      .mockResolvedValueOnce(updatedTasks)
+      .mockResolvedValueOnce(updatedTasks);
+
+    setupMockApi({
+      tasksGetByList,
+      tasksCreate: vi.fn().mockResolvedValue(newTask),
+    });
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'n', metaKey: true });
+
+    await waitFor(() => {
+      expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), '1', '');
+    });
+  });
+
+  it('creates new list with Cmd+Shift+N', async () => {
+    const newList = { id: 'new', name: '', sort_key: 3, created_at: 0, updated_at: 0 };
+    const updatedLists = [...mockLists, newList];
+    const listsGetAll = vi.fn()
+      .mockResolvedValueOnce(mockLists)
+      .mockResolvedValueOnce(updatedLists)
+      .mockResolvedValueOnce(updatedLists);
+
+    setupMockApi({
+      listsGetAll,
+      listsCreate: vi.fn().mockResolvedValue(newList),
+    });
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'n', metaKey: true, shiftKey: true });
+
+    await waitFor(() => {
+      expect(window.api.listsCreate).toHaveBeenCalledWith(expect.any(String), '');
+    });
+  });
+
+  it('does not create task without selected list', async () => {
+    const tasksCreate = vi.fn();
+    setupMockApi({
+      listsGetAll: vi.fn().mockResolvedValue([]),
+      tasksGetByList: vi.fn().mockResolvedValue([]),
+      tasksCreate,
+    });
+
+    render(<App />);
+    await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
+
+    fireEvent.keyDown(window, { key: 'n', metaKey: true });
+
+    expect(tasksCreate).not.toHaveBeenCalled();
+  });
 });
