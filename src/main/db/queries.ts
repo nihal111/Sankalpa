@@ -19,6 +19,13 @@ function queryOne<T>(db: Database, sql: string, params: SqlValue[] = []): T | un
   return results[0];
 }
 
+function getNextSortKey(db: Database, table: 'lists' | 'tasks', listId?: string): number {
+  const whereClause = listId ? ' WHERE list_id = ?' : '';
+  const params = listId ? [listId] : [];
+  const result = queryOne<{ max: number | null }>(db, `SELECT MAX(sort_key) as max FROM ${table}${whereClause}`, params);
+  return (result?.max ?? 0) + 1;
+}
+
 // Lists
 
 export function getAllLists(db: Database): List[] {
@@ -26,8 +33,7 @@ export function getAllLists(db: Database): List[] {
 }
 
 export function createList(db: Database, id: string, name: string): List {
-  const maxKey = queryOne<{ max: number | null }>(db, 'SELECT MAX(sort_key) as max FROM lists');
-  const sortKey = (maxKey?.max ?? 0) + 1;
+  const sortKey = getNextSortKey(db, 'lists');
   const now = Date.now();
   db.run('INSERT INTO lists (id, name, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
     [id, name, sortKey, now, now]);
@@ -54,8 +60,7 @@ export function getTasksByList(db: Database, listId: string): Task[] {
 }
 
 export function createTask(db: Database, id: string, listId: string, title: string): Task {
-  const maxKey = queryOne<{ max: number | null }>(db, 'SELECT MAX(sort_key) as max FROM tasks WHERE list_id = ?', [listId]);
-  const sortKey = (maxKey?.max ?? 0) + 1;
+  const sortKey = getNextSortKey(db, 'tasks', listId);
   const now = Date.now();
   db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     [id, listId, title, sortKey, now, now]);
@@ -75,8 +80,7 @@ export function reorderTask(db: Database, id: string, newSortKey: number): void 
 }
 
 export function moveTask(db: Database, id: string, newListId: string): void {
-  const maxKey = queryOne<{ max: number | null }>(db, 'SELECT MAX(sort_key) as max FROM tasks WHERE list_id = ?', [newListId]);
-  const sortKey = (maxKey?.max ?? 0) + 1;
+  const sortKey = getNextSortKey(db, 'tasks', newListId);
   db.run('UPDATE tasks SET list_id = ?, sort_key = ?, updated_at = ? WHERE id = ?',
     [newListId, sortKey, Date.now(), id]);
 }
