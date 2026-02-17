@@ -189,9 +189,8 @@ export default function App(): JSX.Element {
     if (e.key === 'Meta' && focusedPane === 'tasks' && !editMode && !moveMode) {
       if (!cmdHeld) {
         setCmdHeld(true);
-        // Add current item to selection and show boundary cursor
+        // Add current item to selection (no boundary cursor on first item)
         setSelectedTaskIndices((prev) => new Set(prev).add(selectedTaskIndex));
-        setBoundaryCursor(selectedTaskIndex);
       }
       return;
     }
@@ -226,15 +225,24 @@ export default function App(): JSX.Element {
       return;
     }
 
-    // Cmd+Space: toggle selection at boundary cursor
-    if (cmdHeld && e.key === ' ') {
+    // Esc: clear selection
+    if (e.key === 'Escape' && selectedTaskIndices.size > 0) {
+      e.preventDefault();
+      setSelectedTaskIndices(new Set());
+      setSelectionAnchor(null);
+      setBoundaryCursor(null);
+      return;
+    }
+
+    // Cmd+Return: toggle selection at boundary cursor
+    if (cmdHeld && e.key === 'Enter' && boundaryCursor !== null) {
       e.preventDefault();
       setSelectedTaskIndices((prev) => {
         const next = new Set(prev);
-        if (next.has(boundaryCursor!)) {
-          next.delete(boundaryCursor!);
+        if (next.has(boundaryCursor)) {
+          next.delete(boundaryCursor);
         } else {
-          next.add(boundaryCursor!);
+          next.add(boundaryCursor);
         }
         return next;
       });
@@ -392,7 +400,7 @@ export default function App(): JSX.Element {
           {tasks.map((task, i) => (
             <li
               key={task.id}
-              className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${cmdHeld && i === boundaryCursor ? 'boundary-cursor' : ''}`}
+              className={`item ${i === selectedTaskIndex && !cmdHeld && !shiftHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${cmdHeld && i === boundaryCursor && !selectedTaskIndices.has(i) ? 'boundary-cursor' : ''}`}
             >
               {editMode?.type === 'task' && editMode.index === i ? (
                 <input

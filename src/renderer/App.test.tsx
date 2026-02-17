@@ -535,8 +535,9 @@ describe('App', () => {
     fireEvent.keyDown(window, { key: 'Meta' });
 
     const task1 = screen.getByText('Task 1').closest('.item');
-    expect(task1?.classList.contains('boundary-cursor')).toBe(true);
+    // First item shows multi-selected, not boundary cursor
     expect(task1?.classList.contains('multi-selected')).toBe(true);
+    expect(task1?.classList.contains('boundary-cursor')).toBe(false);
   });
 
   it('Cmd+Arrow moves boundary cursor without selecting', async () => {
@@ -554,20 +555,20 @@ describe('App', () => {
     expect(task2?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('Cmd+Space toggles selection at boundary cursor', async () => {
+  it('Cmd+Return toggles selection at boundary cursor', async () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
 
     fireEvent.keyDown(window, { key: 'Tab' });
     fireEvent.keyDown(window, { key: 'Meta' });
     fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
-    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
 
     const task2 = screen.getByText('Task 2').closest('.item');
     expect(task2?.classList.contains('multi-selected')).toBe(true);
 
     // Toggle off
-    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     expect(task2?.classList.contains('multi-selected')).toBe(false);
   });
 
@@ -578,7 +579,7 @@ describe('App', () => {
     fireEvent.keyDown(window, { key: 'Tab' });
     fireEvent.keyDown(window, { key: 'Meta' });
     fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
-    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     fireEvent.keyUp(window, { key: 'Meta' });
 
     const task1 = screen.getByText('Task 1').closest('.item');
@@ -603,6 +604,25 @@ describe('App', () => {
 
     // Space clears
     fireEvent.keyDown(window, { key: ' ' });
+    task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(false);
+  });
+
+  it('Esc clears selection', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyUp(window, { key: 'Shift' });
+
+    // Both selected
+    let task1 = screen.getByText('Task 1').closest('.item');
+    expect(task1?.classList.contains('multi-selected')).toBe(true);
+
+    // Esc clears
+    fireEvent.keyDown(window, { key: 'Escape' });
     task1 = screen.getByText('Task 1').closest('.item');
     expect(task1?.classList.contains('multi-selected')).toBe(false);
   });
@@ -661,7 +681,7 @@ describe('App', () => {
     fireEvent.keyDown(window, { key: 'Meta' });
     fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
     fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
-    fireEvent.keyDown(window, { key: ' ', metaKey: true }); // Select task3
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true }); // Select task3
 
     // Wait for selection to update
     await waitFor(() => {
@@ -750,12 +770,12 @@ describe('App', () => {
     expect(task3?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('Cmd+Space when not in tasks pane does nothing', async () => {
+  it('Cmd+Return when not in tasks pane does nothing', async () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
 
-    // Stay in lists pane, simulate cmdHeld state by pressing Meta then Space
-    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    // Stay in lists pane, simulate cmdHeld state by pressing Meta then Enter
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
 
     // Should not crash, no selection changes
     const task1 = screen.getByText('Task 1').closest('.item');
