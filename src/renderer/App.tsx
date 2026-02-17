@@ -235,6 +235,53 @@ export default function App(): JSX.Element {
     setMoveMode(false);
   }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, selectedTaskIndices]);
 
+  const clearSelection = useCallback(() => {
+    setSelectedTaskIndices(new Set());
+    setSelectionAnchor(null);
+    setBoundaryCursor(null);
+  }, []);
+
+  const handleArrowNavigation = useCallback((e: KeyboardEvent) => {
+    const delta = e.key === 'ArrowUp' ? -1 : 1;
+
+    // Reorder: Cmd+Shift+Arrow (works in both panes, clears any selection)
+    if (e.metaKey && e.shiftKey) {
+      if (selectedTaskIndices.size > 0) clearSelection();
+      handleReorder(delta);
+      return;
+    }
+
+    if (focusedPane === 'lists') {
+      setSelectedListIndex((i) => Math.max(0, Math.min(lists.length - 1, i + delta)));
+      return;
+    }
+
+    // Tasks pane with Cmd held: move boundary cursor only
+    if (cmdHeld) {
+      setBoundaryCursor((i) => Math.max(0, Math.min(tasks.length - 1, (i ?? selectedTaskIndex) + delta)));
+      return;
+    }
+
+    // Tasks pane with Shift held: extend/contract selection
+    if (shiftHeld && selectionAnchor !== null) {
+      const newIndex = Math.max(0, Math.min(tasks.length - 1, selectedTaskIndex + delta));
+      setSelectedTaskIndex(newIndex);
+      // Build selection from anchor to new index
+      const minIdx = Math.min(selectionAnchor, newIndex);
+      const maxIdx = Math.max(selectionAnchor, newIndex);
+      const newSelection = new Set<number>();
+      for (let i = minIdx; i <= maxIdx; i++) {
+        newSelection.add(i);
+      }
+      setSelectedTaskIndices(newSelection);
+      return;
+    }
+
+    // Normal navigation: clear any selection
+    if (selectedTaskIndices.size > 0) clearSelection();
+    setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
+  }, [focusedPane, lists.length, tasks.length, selectedTaskIndex, selectionAnchor, shiftHeld, cmdHeld, selectedTaskIndices.size, handleReorder, clearSelection]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Cmd+, opens settings
@@ -325,9 +372,7 @@ export default function App(): JSX.Element {
     // Esc: clear selection
     if (e.key === 'Escape' && selectedTaskIndices.size > 0) {
       e.preventDefault();
-      setSelectedTaskIndices(new Set());
-      setSelectionAnchor(null);
-      setBoundaryCursor(null);
+      clearSelection();
       return;
     }
 
@@ -350,9 +395,7 @@ export default function App(): JSX.Element {
     // Space without Cmd: clear selection and focus item
     if (e.key === ' ' && !cmdHeld && focusedPane === 'tasks') {
       e.preventDefault();
-      setSelectedTaskIndices(new Set());
-      setSelectionAnchor(null);
-      setBoundaryCursor(null);
+      clearSelection();
       return;
     }
 
@@ -370,63 +413,14 @@ export default function App(): JSX.Element {
     if (e.key === 'Tab') {
       e.preventDefault();
       // Clear selection when switching panes
-      if (selectedTaskIndices.size > 0) {
-        setSelectedTaskIndices(new Set());
-        setSelectionAnchor(null);
-        setBoundaryCursor(null);
-      }
+      if (selectedTaskIndices.size > 0) clearSelection();
       setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
       return;
     }
 
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
-      const delta = e.key === 'ArrowUp' ? -1 : 1;
-
-      // Reorder: Cmd+Shift+Arrow (works in both panes, clears any selection)
-      if (e.metaKey && e.shiftKey) {
-        if (selectedTaskIndices.size > 0) {
-          setSelectedTaskIndices(new Set());
-          setSelectionAnchor(null);
-          setBoundaryCursor(null);
-        }
-        handleReorder(delta);
-        return;
-      }
-
-      if (focusedPane === 'lists') {
-        setSelectedListIndex((i) => Math.max(0, Math.min(lists.length - 1, i + delta)));
-        return;
-      }
-
-      // Tasks pane with Cmd held: move boundary cursor only
-      if (cmdHeld) {
-        setBoundaryCursor((i) => Math.max(0, Math.min(tasks.length - 1, (i ?? selectedTaskIndex) + delta)));
-        return;
-      }
-
-      // Tasks pane with Shift held: extend/contract selection
-      if (shiftHeld && selectionAnchor !== null) {
-        const newIndex = Math.max(0, Math.min(tasks.length - 1, selectedTaskIndex + delta));
-        setSelectedTaskIndex(newIndex);
-        // Build selection from anchor to new index
-        const minIdx = Math.min(selectionAnchor, newIndex);
-        const maxIdx = Math.max(selectionAnchor, newIndex);
-        const newSelection = new Set<number>();
-        for (let i = minIdx; i <= maxIdx; i++) {
-          newSelection.add(i);
-        }
-        setSelectedTaskIndices(newSelection);
-        return;
-      }
-
-      // Normal navigation: clear any selection
-      if (selectedTaskIndices.size > 0) {
-        setSelectedTaskIndices(new Set());
-        setSelectionAnchor(null);
-        setBoundaryCursor(null);
-      }
-      setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
+      handleArrowNavigation(e);
       return;
     }
 
@@ -443,7 +437,7 @@ export default function App(): JSX.Element {
       startMove();
       return;
     }
-  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, selectionAnchor, boundaryCursor, settingsOpen, settingsThemeIndex, theme, themes]);
+  }, [editMode, moveMode, focusedPane, lists.length, selectedTaskIndices.size, handleArrowNavigation, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, boundaryCursor, clearSelection, settingsOpen, settingsThemeIndex, theme, themes]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') {
