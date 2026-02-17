@@ -56,8 +56,8 @@ describe('preload', () => {
     api.listsGetAll();
     expect(mockInvoke).toHaveBeenCalledWith('lists:getAll');
 
-    api.listsCreate('id1', 'name1');
-    expect(mockInvoke).toHaveBeenCalledWith('lists:create', 'id1', 'name1');
+    api.listsCreate('id1', 'name1', 'folder1');
+    expect(mockInvoke).toHaveBeenCalledWith('lists:create', 'id1', 'name1', 'folder1');
 
     api.listsUpdate('id1', 'newname');
     expect(mockInvoke).toHaveBeenCalledWith('lists:update', 'id1', 'newname');
@@ -67,6 +67,33 @@ describe('preload', () => {
 
     api.listsReorder('id1', 1.5);
     expect(mockInvoke).toHaveBeenCalledWith('lists:reorder', 'id1', 1.5);
+
+    api.listsMove('id1', 'folder2');
+    expect(mockInvoke).toHaveBeenCalledWith('lists:move', 'id1', 'folder2');
+
+    api.listsGetTaskCount('id1');
+    expect(mockInvoke).toHaveBeenCalledWith('lists:getTaskCount', 'id1');
+  });
+
+  it('folder methods invoke correct IPC channels', async () => {
+    await import('./preload');
+
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+
+    api.foldersGetAll();
+    expect(mockInvoke).toHaveBeenCalledWith('folders:getAll');
+
+    api.foldersCreate('f1', 'Folder');
+    expect(mockInvoke).toHaveBeenCalledWith('folders:create', 'f1', 'Folder');
+
+    api.foldersUpdate('f1', 'New Folder');
+    expect(mockInvoke).toHaveBeenCalledWith('folders:update', 'f1', 'New Folder');
+
+    api.foldersDelete('f1');
+    expect(mockInvoke).toHaveBeenCalledWith('folders:delete', 'f1');
+
+    api.foldersToggleExpanded('f1');
+    expect(mockInvoke).toHaveBeenCalledWith('folders:toggleExpanded', 'f1');
   });
 
   it('task methods invoke correct IPC channels', async () => {
