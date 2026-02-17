@@ -4,6 +4,48 @@ import type { SidebarItem, SmartList, EditMode, Pane } from './types';
 import { SMART_LISTS } from './types';
 import { Icons } from './icons';
 
+interface EditableItemNameProps {
+  isEditing: boolean;
+  name: string;
+  editValue: string;
+  setEditValue: (v: string) => void;
+  handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  setEditMode: (m: EditMode) => void;
+  inputRef: RefObject<HTMLInputElement>;
+  badge?: number;
+}
+
+function EditableItemName({
+  isEditing,
+  name,
+  editValue,
+  setEditValue,
+  handleInputKeyDown,
+  setEditMode,
+  inputRef,
+  badge,
+}: EditableItemNameProps): JSX.Element {
+  if (isEditing) {
+    return (
+      <input
+        ref={inputRef}
+        type="text"
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onKeyDown={handleInputKeyDown}
+        onBlur={() => setEditMode(null)}
+        className="edit-input"
+      />
+    );
+  }
+  return (
+    <>
+      <span className="item-name">{name}</span>
+      {badge !== undefined && badge > 0 && <span className="item-badge">{badge}</span>}
+    </>
+  );
+}
+
 interface SidebarProps {
   sidebarItems: SidebarItem[];
   selectedSidebarIndex: number;
@@ -66,19 +108,15 @@ export function Sidebar({
             return (
               <li key={item.folder.id} className={`item folder ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
                 <span className="item-icon" onClick={(e) => { e.stopPropagation(); onFolderToggle(item.folder.id); }} dangerouslySetInnerHTML={{ __html: folderIcon }} />
-                {isEditing ? (
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onKeyDown={handleInputKeyDown}
-                    onBlur={() => setEditMode(null)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span className="item-name">{item.folder.name}</span>
-                )}
+                <EditableItemName
+                  isEditing={isEditing}
+                  name={item.folder.name}
+                  editValue={editValue}
+                  setEditValue={setEditValue}
+                  handleInputKeyDown={handleInputKeyDown}
+                  setEditMode={setEditMode}
+                  inputRef={inputRef}
+                />
               </li>
             );
           }
@@ -90,22 +128,16 @@ export function Sidebar({
           return (
             <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
-              {isEditing ? (
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  onBlur={() => setEditMode(null)}
-                  className="edit-input"
-                />
-              ) : (
-                <>
-                  <span className="item-name">{listItem.list.name}</span>
-                  {count > 0 && <span className="item-badge">{count}</span>}
-                </>
-              )}
+              <EditableItemName
+                isEditing={isEditing}
+                name={listItem.list.name}
+                editValue={editValue}
+                setEditValue={setEditValue}
+                handleInputKeyDown={handleInputKeyDown}
+                setEditMode={setEditMode}
+                inputRef={inputRef}
+                badge={count}
+              />
             </li>
           );
         })}
