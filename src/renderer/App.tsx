@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { List, Task } from '../shared/types';
+import { useMultiSelect } from './useMultiSelect';
 
 type Pane = 'lists' | 'tasks';
 type EditMode = { type: 'list'; index: number } | { type: 'task'; index: number } | null;
@@ -69,11 +70,8 @@ export default function App(): JSX.Element {
   const [moveTargetIndex, setMoveTargetIndex] = useState(0);
 
   // Multi-select state
-  const [selectedTaskIndices, setSelectedTaskIndices] = useState<Set<number>>(new Set());
-  const [selectionAnchor, setSelectionAnchor] = useState<number | null>(null);
-  const [boundaryCursor, setBoundaryCursor] = useState<number | null>(null);
-  const [shiftHeld, setShiftHeld] = useState(false);
-  const [cmdHeld, setCmdHeld] = useState(false);
+  const [multiSelect, multiSelectActions] = useMultiSelect();
+  const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
 
   // Settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -227,26 +225,18 @@ export default function App(): JSX.Element {
     }
 
     // Clear selection and switch focus to destination list
-    setSelectedTaskIndices(new Set());
-    setSelectionAnchor(null);
-    setBoundaryCursor(null);
+    multiSelectActions.clear();
     setSelectedListIndex(moveTargetIndex);
     setFocusedPane('lists');
     setMoveMode(false);
-  }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, selectedTaskIndices]);
-
-  const clearSelection = useCallback(() => {
-    setSelectedTaskIndices(new Set());
-    setSelectionAnchor(null);
-    setBoundaryCursor(null);
-  }, []);
+  }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, selectedTaskIndices, multiSelectActions]);
 
   const handleArrowNavigation = useCallback((e: KeyboardEvent) => {
     const delta = e.key === 'ArrowUp' ? -1 : 1;
 
     // Reorder: Cmd+Shift+Arrow (works in both panes, clears any selection)
     if (e.metaKey && e.shiftKey) {
-      if (selectedTaskIndices.size > 0) clearSelection();
+      if (selectedTaskIndices.size > 0) multiSelectActions.clear();
       handleReorder(delta);
       return;
     }
@@ -258,7 +248,7 @@ export default function App(): JSX.Element {
 
     // Tasks pane with Cmd held: move boundary cursor only
     if (cmdHeld) {
-      setBoundaryCursor((i) => Math.max(0, Math.min(tasks.length - 1, (i ?? selectedTaskIndex) + delta)));
+      multiSelectActions.moveBoundaryCursor(Math.max(0, Math.min(tasks.length - 1, (boundaryCursor ?? selectedTaskIndex) + delta)));
       return;
     }
 
@@ -266,21 +256,14 @@ export default function App(): JSX.Element {
     if (shiftHeld && selectionAnchor !== null) {
       const newIndex = Math.max(0, Math.min(tasks.length - 1, selectedTaskIndex + delta));
       setSelectedTaskIndex(newIndex);
-      // Build selection from anchor to new index
-      const minIdx = Math.min(selectionAnchor, newIndex);
-      const maxIdx = Math.max(selectionAnchor, newIndex);
-      const newSelection = new Set<number>();
-      for (let i = minIdx; i <= maxIdx; i++) {
-        newSelection.add(i);
-      }
-      setSelectedTaskIndices(newSelection);
+      multiSelectActions.extendSelection(selectionAnchor, newIndex);
       return;
     }
 
     // Normal navigation: clear any selection
-    if (selectedTaskIndices.size > 0) clearSelection();
+    if (selectedTaskIndices.size > 0) multiSelectActions.clear();
     setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
-  }, [focusedPane, lists.length, tasks.length, selectedTaskIndex, selectionAnchor, shiftHeld, cmdHeld, selectedTaskIndices.size, handleReorder, clearSelection]);
+  }, [focusedPane, lists.length, tasks.length, selectedTaskIndex, selectionAnchor, shiftHeld, cmdHeld, selectedTaskIndices.size, handleReorder, multiSelectActions, boundaryCursor]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -321,20 +304,14 @@ export default function App(): JSX.Element {
     // Track modifier keys
     if (e.key === 'Shift' && focusedPane === 'tasks' && !editMode && !moveMode) {
       if (!shiftHeld) {
-        setShiftHeld(true);
-        if (selectionAnchor === null) {
-          setSelectionAnchor(selectedTaskIndex);
-        }
+        multiSelectActions.handleShiftDown(selectedTaskIndex);
       }
       return;
     }
 
     if (e.key === 'Meta' && focusedPane === 'tasks' && !editMode && !moveMode) {
       if (!cmdHeld) {
-        setCmdHeld(true);
-        setBoundaryCursor(selectedTaskIndex);
-        // Auto-add first item to selection
-        setSelectedTaskIndices((prev) => new Set(prev).add(selectedTaskIndex));
+        multiSelectActions.handleCmdDown(selectedTaskIndex);
       }
       return;
     }
@@ -372,30 +349,21 @@ export default function App(): JSX.Element {
     // Esc: clear selection
     if (e.key === 'Escape' && selectedTaskIndices.size > 0) {
       e.preventDefault();
-      clearSelection();
+      multiSelectActions.clear();
       return;
     }
 
     // Cmd+Enter: toggle selection at current position
     if (cmdHeld && e.key === 'Enter') {
       e.preventDefault();
-      const targetIdx = boundaryCursor ?? selectedTaskIndex;
-      setSelectedTaskIndices((prev) => {
-        const next = new Set(prev);
-        if (next.has(targetIdx)) {
-          next.delete(targetIdx);
-        } else {
-          next.add(targetIdx);
-        }
-        return next;
-      });
+      multiSelectActions.toggleAtCursor(selectedTaskIndex);
       return;
     }
 
     // Space without Cmd: clear selection and focus item
     if (e.key === ' ' && !cmdHeld && focusedPane === 'tasks') {
       e.preventDefault();
-      clearSelection();
+      multiSelectActions.clear();
       return;
     }
 
@@ -413,7 +381,7 @@ export default function App(): JSX.Element {
     if (e.key === 'Tab') {
       e.preventDefault();
       // Clear selection when switching panes
-      if (selectedTaskIndices.size > 0) clearSelection();
+      if (selectedTaskIndices.size > 0) multiSelectActions.clear();
       setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
       return;
     }
@@ -437,32 +405,23 @@ export default function App(): JSX.Element {
       startMove();
       return;
     }
-  }, [editMode, moveMode, focusedPane, lists.length, selectedTaskIndices.size, handleArrowNavigation, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, boundaryCursor, clearSelection, settingsOpen, settingsThemeIndex, theme, themes]);
+  }, [editMode, moveMode, focusedPane, lists.length, selectedTaskIndices.size, handleArrowNavigation, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsOpen, settingsThemeIndex, theme, themes]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') {
-      setShiftHeld(false);
+      multiSelectActions.handleShiftUp();
       return;
     }
 
     if (e.key === 'Meta') {
-      setCmdHeld(false);
+      const cursor = multiSelectActions.handleCmdUp();
       // Move cursor to where boundaryCursor was
-      if (boundaryCursor !== null) {
-        setSelectedTaskIndex(boundaryCursor);
+      if (cursor !== null) {
+        setSelectedTaskIndex(cursor);
       }
-      setBoundaryCursor(null);
       return;
     }
-  }, [boundaryCursor]);
-
-  // Clear selection when releasing Shift/Cmd with only one item
-  useEffect(() => {
-    if (!shiftHeld && !cmdHeld && selectedTaskIndices.size === 1) {
-      setSelectedTaskIndices(new Set());
-      setSelectionAnchor(null);
-    }
-  }, [shiftHeld, cmdHeld, selectedTaskIndices.size]);
+  }, [multiSelectActions]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
