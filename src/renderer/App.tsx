@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { List, Task } from '../shared/types';
 
 type Pane = 'lists' | 'tasks';
+type EditMode = { type: 'list'; index: number } | { type: 'task'; index: number } | null;
 
 export default function App(): JSX.Element {
   const [lists, setLists] = useState<List[]>([]);
@@ -9,7 +10,12 @@ export default function App(): JSX.Element {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
   const [selectedListIndex, setSelectedListIndex] = useState(0);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(0);
+  const [editMode, setEditMode] = useState<EditMode>(null);
+  const [editValue, setEditValue] = useState('');
+  const [moveMode, setMoveMode] = useState(false);
+  const [moveTargetIndex, setMoveTargetIndex] = useState(0);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const selectedList = lists[selectedListIndex];
 
   // Load lists on mount
@@ -29,8 +35,130 @@ export default function App(): JSX.Element {
     }
   }, [selectedList?.id]);
 
+  // Focus input when editing
+  useEffect(() => {
+    if (editMode && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editMode]);
+
+  const reloadLists = useCallback(async () => {
+    const newLists = await window.api.listsGetAll();
+    setLists(newLists);
+  }, []);
+
+  const reloadTasks = useCallback(async () => {
+    if (selectedList) {
+      const newTasks = await window.api.tasksGetByList(selectedList.id);
+      setTasks(newTasks);
+    }
+  }, [selectedList]);
+
+  const handleReorder = useCallback(async (direction: -1 | 1) => {
+    if (focusedPane === 'lists') {
+      const newIndex = selectedListIndex + direction;
+      if (newIndex < 0 || newIndex >= lists.length) return;
+      const item = lists[selectedListIndex];
+      const neighbor = lists[newIndex];
+      // Swap sort_keys
+      await window.api.listsReorder(item.id, neighbor.sort_key);
+      await window.api.listsReorder(neighbor.id, item.sort_key);
+      await reloadLists();
+      setSelectedListIndex(newIndex);
+    } else {
+      const newIndex = selectedTaskIndex + direction;
+      if (newIndex < 0 || newIndex >= tasks.length) return;
+      const item = tasks[selectedTaskIndex];
+      const neighbor = tasks[newIndex];
+      await window.api.tasksReorder(item.id, neighbor.sort_key);
+      await window.api.tasksReorder(neighbor.id, item.sort_key);
+      await reloadTasks();
+      setSelectedTaskIndex(newIndex);
+    }
+  }, [focusedPane, selectedListIndex, selectedTaskIndex, lists, tasks, reloadLists, reloadTasks]);
+
+  const startEdit = useCallback(() => {
+    if (focusedPane === 'lists' && lists[selectedListIndex]) {
+      setEditMode({ type: 'list', index: selectedListIndex });
+      setEditValue(lists[selectedListIndex].name);
+    } else if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
+      setEditMode({ type: 'task', index: selectedTaskIndex });
+      setEditValue(tasks[selectedTaskIndex].title);
+    }
+  }, [focusedPane, selectedListIndex, selectedTaskIndex, lists, tasks]);
+
+  const commitEdit = useCallback(async () => {
+    if (!editMode || !editValue.trim()) {
+      setEditMode(null);
+      return;
+    }
+    if (editMode.type === 'list') {
+      await window.api.listsUpdate(lists[editMode.index].id, editValue.trim());
+      await reloadLists();
+    } else {
+      await window.api.tasksUpdate(tasks[editMode.index].id, editValue.trim());
+      await reloadTasks();
+    }
+    setEditMode(null);
+  }, [editMode, editValue, lists, tasks, reloadLists, reloadTasks]);
+
+  const startMove = useCallback(() => {
+    if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
+      setMoveMode(true);
+      setMoveTargetIndex(selectedListIndex);
+    }
+  }, [focusedPane, tasks, selectedTaskIndex, selectedListIndex]);
+
+  const commitMove = useCallback(async () => {
+    const task = tasks[selectedTaskIndex];
+    const targetList = lists[moveTargetIndex];
+    if (task && targetList && targetList.id !== selectedList?.id) {
+      await window.api.tasksMove(task.id, targetList.id);
+      await reloadTasks();
+    }
+    setMoveMode(false);
+  }, [tasks, selectedTaskIndex, lists, moveTargetIndex, selectedList, reloadTasks]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Handle edit mode input
+    if (editMode) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setEditMode(null);
+      }
+      return; // Let input handle other keys
+    }
+
+    // Handle move mode
+    if (moveMode) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMoveMode(false);
+        return;
+      }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const delta = e.key === 'ArrowUp' ? -1 : 1;
+        setMoveTargetIndex((i) => Math.max(0, Math.min(lists.length - 1, i + delta)));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitMove();
+        return;
+      }
+      return;
+    }
+
+    // Reorder: Cmd+Shift+Up/Down
+    if (e.metaKey && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      handleReorder(e.key === 'ArrowUp' ? -1 : 1);
+      return;
+    }
+
     if (e.key === 'Tab') {
       e.preventDefault();
       setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
@@ -45,13 +173,33 @@ export default function App(): JSX.Element {
       } else {
         setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
       }
+      return;
     }
-  }, [focusedPane, lists.length, tasks.length]);
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      startEdit();
+      return;
+    }
+
+    if (e.key === 'm' || e.key === 'M') {
+      e.preventDefault();
+      startMove();
+      return;
+    }
+  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitEdit();
+    }
+  };
 
   return (
     <div className="app">
@@ -61,9 +209,21 @@ export default function App(): JSX.Element {
           {lists.map((list, i) => (
             <li
               key={list.id}
-              className={`item ${i === selectedListIndex ? 'selected' : ''}`}
+              className={`item ${i === selectedListIndex ? 'selected' : ''} ${moveMode && i === moveTargetIndex ? 'move-target' : ''}`}
             >
-              {list.name}
+              {editMode?.type === 'list' && editMode.index === i ? (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  onBlur={() => setEditMode(null)}
+                  className="edit-input"
+                />
+              ) : (
+                list.name
+              )}
             </li>
           ))}
         </ul>
@@ -76,11 +236,28 @@ export default function App(): JSX.Element {
               key={task.id}
               className={`item ${i === selectedTaskIndex ? 'selected' : ''}`}
             >
-              {task.title}
+              {editMode?.type === 'task' && editMode.index === i ? (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  onBlur={() => setEditMode(null)}
+                  className="edit-input"
+                />
+              ) : (
+                task.title
+              )}
             </li>
           ))}
         </ul>
       </div>
+      {moveMode && (
+        <div className="move-overlay">
+          <div className="move-hint">Move to: {lists[moveTargetIndex]?.name} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
+        </div>
+      )}
     </div>
   );
 }

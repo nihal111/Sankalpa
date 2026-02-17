@@ -2,7 +2,7 @@
   "name": "sankalpa",
   "version": "1.0.0",
   "description": "Keyboard-first todo app",
-  "main": "dist/main/index.js",
+  "main": "dist/main/main/index.js",
   "scripts": {
     "clean": "rm -rf dist",
     "dev": "npm run clean && npm run build:main && concurrently -k \"npm run dev:renderer\" \"npm run dev:main:watch\"",
