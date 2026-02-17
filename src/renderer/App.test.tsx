@@ -148,4 +148,34 @@ describe('App', () => {
 
     expect(document.querySelectorAll('.lists-pane .item').length).toBe(0);
   });
+
+  it('handles arrow navigation with empty tasks', async () => {
+    window.api = {
+      listsGetAll: vi.fn().mockResolvedValue(mockLists),
+      tasksGetByList: vi.fn().mockResolvedValue([]),
+    } as unknown as typeof window.api;
+
+    render(<App />);
+    await waitFor(() => expect(window.api.tasksGetByList).toHaveBeenCalled());
+
+    fireEvent.keyDown(window, { key: 'Tab' }); // Focus tasks pane
+
+    // Should not crash with empty tasks
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+
+    expect(document.querySelectorAll('.tasks-pane .item').length).toBe(0);
+  });
+
+  it('ignores unhandled keys', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+
+    const items = document.querySelectorAll('.lists-pane .item');
+    expect(items[0].classList.contains('selected')).toBe(true);
+
+    // Press unhandled key - selection should not change
+    fireEvent.keyDown(window, { key: 'x' });
+    expect(items[0].classList.contains('selected')).toBe(true);
+  });
 });
