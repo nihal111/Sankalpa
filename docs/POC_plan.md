@@ -42,6 +42,15 @@ A keyboard-first todo app for macOS.
 - [x] `Cmd+N` → new task (in current list, enters edit mode)
 - [x] `Cmd+Shift+N` → new list (enters edit mode)
 
+### Phase 4.2: Multi-Select Move ✓
+
+- [x] Shift selection (continuous): hold Shift + Up/Down extends/contracts selection
+- [x] Cmd selection (non-contiguous): Cmd changes highlight, arrow moves boundary cursor, Cmd+Space toggles selection
+- [x] Visual: selected items highlight differently from focused item
+- [x] Releasing Shift keeps multi-selection (unless single item)
+- [x] Releasing Cmd keeps selection; Space without Cmd clears selection and moves cursor
+- [x] `M` moves all selected tasks together
+
 ### Phase 5: Global Hotkeys
 
 - [ ] `Cmd+Option+Ctrl+Space` → toggle window
