@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
-import { setupMockApi, navigateToUserList, navigateToTasksPane } from './test-utils';
+import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -34,14 +34,15 @@ describe('App create and reorder', () => {
     });
   });
 
-  it('does not create task without selected list', async () => {
+  it('does not create task on non-inbox smart list', async () => {
     setupMockApi({
       listsGetAll: vi.fn().mockResolvedValue([]),
       foldersGetAll: vi.fn().mockResolvedValue([]),
     });
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    // Navigate to Overdue (second smart list)
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'n', metaKey: true });
     expect(window.api.tasksCreate).not.toHaveBeenCalled();
   });
@@ -74,6 +75,40 @@ describe('App create and reorder', () => {
     await waitFor(() => {
       taskItems = document.querySelectorAll('.tasks-pane .item');
       expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
+    });
+  });
+
+  it('quick-add creates task in inbox (list_id = null)', async () => {
+    let quickAddCallback: (() => void) | null = null;
+    setupMockApi({
+      onQuickAdd: vi.fn().mockImplementation((cb: () => void) => {
+        quickAddCallback = cb;
+        return () => {};
+      }),
+      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', sort_key: 1, created_at: 0, updated_at: 0 }),
+      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', sort_key: 1, created_at: 0, updated_at: 0 }]),
+    });
+    render(<App />);
+    await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 50));
+    expect(quickAddCallback).not.toBeNull();
+    quickAddCallback!();
+    await waitFor(() => {
+      expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), null, '');
+    });
+  });
+
+  it('Cmd+N creates task in inbox when smart Inbox selected', async () => {
+    setupMockApi({
+      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', sort_key: 1, created_at: 0, updated_at: 0 }),
+      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', sort_key: 1, created_at: 0, updated_at: 0 }]),
+    });
+    render(<App />);
+    await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
+    // Smart Inbox is selected by default (index 0)
+    fireEvent.keyDown(window, { key: 'n', metaKey: true });
+    await waitFor(() => {
+      expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), null, '');
     });
   });
 });

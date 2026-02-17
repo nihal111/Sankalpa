@@ -16,12 +16,15 @@ export const mockTasks: Task[] = [
 
 export function setupMockApi(overrides: Record<string, unknown> = {}): void {
   const defaultMocks = {
+    onQuickAdd: vi.fn().mockReturnValue(() => {}),
     foldersGetAll: vi.fn().mockResolvedValue(mockFolders),
     foldersToggleExpanded: vi.fn().mockResolvedValue(undefined),
     foldersUpdate: vi.fn().mockResolvedValue(undefined),
     listsGetAll: vi.fn().mockResolvedValue(mockLists),
     listsGetTaskCount: vi.fn().mockResolvedValue(2),
     listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: null, name: '', sort_key: 3, created_at: 0, updated_at: 0 }),
+    tasksGetInbox: vi.fn().mockResolvedValue([]),
+    tasksGetInboxCount: vi.fn().mockResolvedValue(0),
     tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
     tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', sort_key: 3, created_at: 0, updated_at: 0 }),
     listsUpdate: vi.fn().mockResolvedValue(undefined),

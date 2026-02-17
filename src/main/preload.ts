@@ -24,8 +24,10 @@ contextBridge.exposeInMainWorld('api', {
   listsGetTaskCount: (listId: string) => ipcRenderer.invoke('lists:getTaskCount', listId),
 
   // Tasks
+  tasksGetInbox: () => ipcRenderer.invoke('tasks:getInbox'),
+  tasksGetInboxCount: () => ipcRenderer.invoke('tasks:getInboxCount'),
   tasksGetByList: (listId: string) => ipcRenderer.invoke('tasks:getByList', listId),
-  tasksCreate: (id: string, listId: string, title: string) => ipcRenderer.invoke('tasks:create', id, listId, title),
+  tasksCreate: (id: string, listId: string | null, title: string) => ipcRenderer.invoke('tasks:create', id, listId, title),
   tasksUpdate: (id: string, title: string) => ipcRenderer.invoke('tasks:update', id, title),
   tasksDelete: (id: string) => ipcRenderer.invoke('tasks:delete', id),
   tasksReorder: (id: string, sortKey: number) => ipcRenderer.invoke('tasks:reorder', id, sortKey),

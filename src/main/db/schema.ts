@@ -27,7 +27,7 @@ export function initSchema(db: Database): void {
   db.run(`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
-      list_id TEXT NOT NULL,
+      list_id TEXT,
       title TEXT NOT NULL,
       sort_key REAL NOT NULL,
       created_at INTEGER NOT NULL,
@@ -53,7 +53,7 @@ export function seed(db: Database): void {
   db.run('INSERT INTO folders (id, name, sort_key, is_expanded, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     ['folder-1', 'Projects', 1, 1, now, now]);
 
-  // Inbox at top level (no folder)
+  // Tutorial at top level
   db.run('INSERT INTO lists (id, folder_id, name, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     ['tutorial', null, 'Tutorial', 1, now, now]);
 

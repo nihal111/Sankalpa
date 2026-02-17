@@ -91,8 +91,10 @@ describe('App folders', () => {
   it('shows task count badge on lists', async () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
-    const badges = document.querySelectorAll('.item-badge');
-    expect(badges.length).toBeGreaterThan(0);
+    await waitFor(() => {
+      const badges = document.querySelectorAll('.item-badge');
+      expect(badges.length).toBeGreaterThan(0);
+    });
   });
 
   it('enters edit mode on folder with Enter', async () => {

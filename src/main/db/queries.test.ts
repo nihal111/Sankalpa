@@ -4,7 +4,7 @@ import { initSchema } from './schema';
 import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
-  getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
+  getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -223,5 +223,20 @@ describe('tasks', () => {
     const tasks = getTasksByList(db, 'work');
     expect(tasks[1].id).toBe('t2');
     expect(tasks[1].sort_key).toBe(2);
+  });
+
+  it('creates inbox task with null list_id', () => {
+    createTask(db, 't1', null, 'Inbox Task');
+    const tasks = getInboxTasks(db);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].list_id).toBeNull();
+    expect(tasks[0].title).toBe('Inbox Task');
+  });
+
+  it('getInboxTaskCount returns count of inbox tasks', () => {
+    createTask(db, 't1', null, 'Inbox 1');
+    createTask(db, 't2', null, 'Inbox 2');
+    createTask(db, 't3', 'inbox', 'List Task');
+    expect(getInboxTaskCount(db)).toBe(2);
   });
 });
