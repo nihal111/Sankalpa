@@ -30,12 +30,12 @@ A keyboard-first todo app for macOS.
 - [x] Selection with Up/Down arrows
 - [x] Visual focus indicators
 
-### Phase 4: Keyboard Actions
+### Phase 4: Keyboard Actions ✓
 
-- [ ] Reorder: `Cmd+Shift+Up/Down` (swap sort_keys)
-- [ ] Move task: `M` → select list → `Enter`
-- [ ] Inline edit: `Enter` to edit, `Esc` to cancel
-- [ ] `Esc` priority: cancel edit → close modal → hide window
+- [x] Reorder: `Cmd+Shift+Up/Down` (swap sort_keys)
+- [x] Move task: `M` → select list → `Enter`
+- [x] Inline edit: `Enter` to edit, `Esc` to cancel
+- [x] `Esc` priority: cancel edit → close modal → hide window
 
 ### Phase 5: Global Hotkeys
 
