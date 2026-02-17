@@ -1,19 +1,25 @@
-import Database from 'better-sqlite3';
-import { describe, it, expect, beforeEach } from 'vitest';
+import initSqlJs, { Database } from 'sql.js';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { initSchema } from './schema';
 import {
   getAllLists, createList, updateList, deleteList, reorderList,
   getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
 } from './queries';
 
-function createTestDb(): Database.Database {
-  const db = new Database(':memory:');
+let SQL: Awaited<ReturnType<typeof initSqlJs>>;
+
+beforeAll(async () => {
+  SQL = await initSqlJs();
+});
+
+function createTestDb(): Database {
+  const db = new SQL.Database();
   initSchema(db);
   return db;
 }
 
 describe('lists', () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = createTestDb();
@@ -67,7 +73,7 @@ describe('lists', () => {
 });
 
 describe('tasks', () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = createTestDb();

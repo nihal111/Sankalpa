@@ -1,7 +1,7 @@
 import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import path from 'path';
 import {
-  getDb, closeDb,
+  getDb, closeDb, saveDb,
   getAllLists, createList, updateList, deleteList, reorderList,
   getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
   calcSortKeyBetween,
@@ -46,23 +46,23 @@ function showQuickAdd(): void {
   mainWindow.webContents.send('quick-add');
 }
 
-app.whenReady().then(() => {
-  const db = getDb();
+app.whenReady().then(async () => {
+  const db = await getDb();
   createWindow();
 
   // IPC handlers
   ipcMain.handle('lists:getAll', () => getAllLists(db));
-  ipcMain.handle('lists:create', (_, id: string, name: string) => createList(db, id, name));
-  ipcMain.handle('lists:update', (_, id: string, name: string) => updateList(db, id, name));
-  ipcMain.handle('lists:delete', (_, id: string) => deleteList(db, id));
-  ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => reorderList(db, id, sortKey));
+  ipcMain.handle('lists:create', (_, id: string, name: string) => { const r = createList(db, id, name); saveDb(); return r; });
+  ipcMain.handle('lists:update', (_, id: string, name: string) => { updateList(db, id, name); saveDb(); });
+  ipcMain.handle('lists:delete', (_, id: string) => { deleteList(db, id); saveDb(); });
+  ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => { reorderList(db, id, sortKey); saveDb(); });
 
   ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
-  ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => createTask(db, id, listId, title));
-  ipcMain.handle('tasks:update', (_, id: string, title: string) => updateTask(db, id, title));
-  ipcMain.handle('tasks:delete', (_, id: string) => deleteTask(db, id));
-  ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => reorderTask(db, id, sortKey));
-  ipcMain.handle('tasks:move', (_, id: string, newListId: string) => moveTask(db, id, newListId));
+  ipcMain.handle('tasks:create', (_, id: string, listId: string, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
+  ipcMain.handle('tasks:update', (_, id: string, title: string) => { updateTask(db, id, title); saveDb(); });
+  ipcMain.handle('tasks:delete', (_, id: string) => { deleteTask(db, id); saveDb(); });
+  ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => { reorderTask(db, id, sortKey); saveDb(); });
+  ipcMain.handle('tasks:move', (_, id: string, newListId: string) => { moveTask(db, id, newListId); saveDb(); });
 
   ipcMain.handle('util:calcSortKey', (_, before: number | null, after: number | null) => calcSortKeyBetween(before, after));
 
