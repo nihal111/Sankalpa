@@ -37,6 +37,11 @@ A keyboard-first todo app for macOS.
 - [x] Inline edit: `Enter` to edit, `Esc` to cancel
 - [x] `Esc` priority: cancel edit → close modal → hide window
 
+### Phase 4.1: Create Items ✓
+
+- [x] `Cmd+N` → new task (in current list, enters edit mode)
+- [x] `Cmd+Shift+N` → new list (enters edit mode)
+
 ### Phase 5: Global Hotkeys
 
 - [ ] `Cmd+Option+Ctrl+Space` → toggle window
