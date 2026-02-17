@@ -3,6 +3,59 @@ import type { List, Task } from '../shared/types';
 
 type Pane = 'lists' | 'tasks';
 type EditMode = { type: 'list'; index: number } | { type: 'task'; index: number } | null;
+type Theme = 'system' | 'light' | 'dark';
+
+const THEME_COLORS = {
+  dark: {
+    bgPrimary: '#2a2a28',
+    bgSecondary: '#232321',
+    bgSelected: '#98801f',
+    textPrimary: '#e8e6df',
+    border: '#3a3a38',
+  },
+  light: {
+    bgPrimary: '#ffffff',
+    bgSecondary: '#e0e0e0',
+    bgSelected: '#f5eaa3',
+    textPrimary: '#0d0d0d',
+    border: '#d0d0d0',
+  },
+};
+
+function ThemePreview({ themeKey }: { themeKey: 'light' | 'dark' }): JSX.Element {
+  const c = THEME_COLORS[themeKey];
+  return (
+    <div className="theme-preview" style={{ background: c.bgPrimary, border: `1px solid ${c.border}` }}>
+      <div className="theme-preview-sidebar" style={{ background: c.bgSecondary, borderRight: `1px solid ${c.border}` }}>
+        <div className="theme-preview-item" style={{ background: c.bgSelected }} />
+        <div className="theme-preview-item" style={{ background: c.bgSecondary }} />
+      </div>
+      <div className="theme-preview-main">
+        <div className="theme-preview-item" style={{ background: c.bgSelected }} />
+        <div className="theme-preview-item" style={{ background: c.bgPrimary }} />
+      </div>
+    </div>
+  );
+}
+
+function SystemThemePreview(): JSX.Element {
+  const dark = THEME_COLORS.dark;
+  const light = THEME_COLORS.light;
+  return (
+    <div className="theme-preview" style={{ overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: dark.bgPrimary, clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: light.bgPrimary, clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }} />
+      <div className="theme-preview-sidebar" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
+        <div className="theme-preview-item" style={{ background: `linear-gradient(135deg, ${dark.bgSelected} 50%, ${light.bgSelected} 50%)` }} />
+        <div className="theme-preview-item" style={{ background: `linear-gradient(135deg, ${dark.bgSecondary} 50%, ${light.bgSecondary} 50%)` }} />
+      </div>
+      <div className="theme-preview-main" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
+        <div className="theme-preview-item" style={{ background: `linear-gradient(135deg, ${dark.bgSelected} 50%, ${light.bgSelected} 50%)` }} />
+        <div className="theme-preview-item" style={{ background: `linear-gradient(135deg, ${dark.bgPrimary} 50%, ${light.bgPrimary} 50%)` }} />
+      </div>
+    </div>
+  );
+}
 
 export default function App(): JSX.Element {
   const [lists, setLists] = useState<List[]>([]);
@@ -22,8 +75,19 @@ export default function App(): JSX.Element {
   const [shiftHeld, setShiftHeld] = useState(false);
   const [cmdHeld, setCmdHeld] = useState(false);
 
+  // Settings state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>('system');
+  const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
+  const themes: Theme[] = ['light', 'dark', 'system'];
+
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedList = lists[selectedListIndex];
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Load lists on mount
   useEffect(() => {
@@ -173,6 +237,40 @@ export default function App(): JSX.Element {
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Cmd+, opens settings
+    if (e.metaKey && e.key === ',') {
+      e.preventDefault();
+      setSettingsOpen(true);
+      setSettingsThemeIndex(themes.indexOf(theme));
+      return;
+    }
+
+    // Handle settings modal
+    if (settingsOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSettingsOpen(false);
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setSettingsThemeIndex((i) => Math.max(0, i - 1));
+        return;
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setSettingsThemeIndex((i) => Math.min(themes.length - 1, i + 1));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        setTheme(themes[settingsThemeIndex]);
+        setSettingsOpen(false);
+        return;
+      }
+      return;
+    }
+
     // Track modifier keys
     if (e.key === 'Shift' && focusedPane === 'tasks' && !editMode && !moveMode) {
       if (!shiftHeld) {
@@ -345,7 +443,7 @@ export default function App(): JSX.Element {
       startMove();
       return;
     }
-  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, selectionAnchor, boundaryCursor]);
+  }, [editMode, moveMode, focusedPane, lists.length, tasks.length, handleReorder, startEdit, startMove, commitMove, createList, createTask, shiftHeld, cmdHeld, selectedTaskIndex, selectionAnchor, boundaryCursor, settingsOpen, settingsThemeIndex, theme, themes]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') {
@@ -443,6 +541,35 @@ export default function App(): JSX.Element {
       {moveMode && (
         <div className="move-overlay">
           <div className="move-hint">Move to: {lists[moveTargetIndex]?.name} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
+        </div>
+      )}
+      {settingsOpen && (
+        <div className="settings-overlay">
+          <div className="settings-modal">
+            <div className="settings-header">Settings</div>
+            <div className="settings-body">
+              <div className="settings-categories">
+                <div className="settings-category selected">Theme</div>
+              </div>
+              <div className="settings-content">
+                <div className="theme-options">
+                  <div className={`theme-card ${settingsThemeIndex === 0 ? 'selected' : ''}`}>
+                    <ThemePreview themeKey="light" />
+                    <div className="theme-label">Light</div>
+                  </div>
+                  <div className={`theme-card ${settingsThemeIndex === 1 ? 'selected' : ''}`}>
+                    <ThemePreview themeKey="dark" />
+                    <div className="theme-label">Dark</div>
+                  </div>
+                  <div className={`theme-card ${settingsThemeIndex === 2 ? 'selected' : ''}`}>
+                    <SystemThemePreview />
+                    <div className="theme-label">System</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="settings-footer">←→ select theme · Enter apply · Esc close</div>
+          </div>
         </div>
       )}
     </div>

@@ -51,6 +51,17 @@ A keyboard-first todo app for macOS.
 - [x] Releasing Cmd keeps selection; Space without Cmd clears selection and moves cursor
 - [x] `M` moves all selected tasks together
 
+### Phase 4.3: Settings & Themes ✓
+
+- [x] `Cmd+,` opens settings modal
+- [x] Two-pane settings layout (categories | options)
+- [x] Theme selector with visual previews (mini app mockups)
+- [x] Three themes: Light, Dark, System (follows OS preference)
+- [x] CSS variables for all colors (easy palette swaps)
+- [x] Light palette: White, Vanilla Custard, Golden Bronze, Alabaster Grey, Onyx
+- [x] Dark palette: Charcoal, Dark Charcoal, Golden Brown, Cream, Bright Gold
+- [x] Keyboard navigation: ←→ select theme, Enter apply, Esc close
+
 ### Phase 5: Global Hotkeys
 
 - [ ] `Cmd+Option+Ctrl+Space` → toggle window
