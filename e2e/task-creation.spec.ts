@@ -1,16 +1,17 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test';
-import { launchApp, closeApp, press, createList, createTask, getSelectedIndices } from './helpers';
+import { launchApp, closeApp, press, createList, createTask, getSelectedIndices, Recorder } from './helpers';
 
 let app: ElectronApplication;
 let page: Page;
 let dbPath: string;
+let recorder: Recorder;
 
 test.beforeAll(async () => {
-  ({ app, page, dbPath } = await launchApp('test-creation.db'));
+  ({ app, page, dbPath, recorder } = await launchApp('test-creation.db'));
 });
 
 test.afterAll(async () => {
-  await closeApp(app, dbPath);
+  await closeApp(app, dbPath, recorder);
 });
 
 test('Cmd+N from tasks pane moves selection to new task', async () => {

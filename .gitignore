@@ -7,3 +7,5 @@ coverage/
 src/**/*.js
 
 .kiro/test-results/
+test-recordings/
+test-results/

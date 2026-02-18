@@ -18,7 +18,8 @@
     "lint:hooks": "sh scripts/check-hook-size.sh",
     "test:e2e": "npm run build && playwright test",
     "test:e2e:dev": "playwright test",
-    "test:e2e:headless": "npm run build && HEADLESS=1 playwright test"
+    "test:e2e:headless": "npm run build && HEADLESS=1 playwright test",
+    "test:e2e:record": "npm run build && RECORD=1 playwright test"
   },
   "keywords": [],
   "author": "",
@@ -44,8 +45,10 @@
     "electron-builder": "^26.7.0",
     "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "gifenc": "^1.0.3",
     "jsdom": "^28.1.0",
     "playwright": "^1.58.2",
+    "pngjs": "^7.0.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18",
