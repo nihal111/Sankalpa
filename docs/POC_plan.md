@@ -102,6 +102,7 @@ A keyboard-first todo app for macOS.
 - [x] `hardcore_mode` setting (default: true)
 - [x] Hide cursor via CSS when enabled
 - [x] Settings persisted to SQLite
+- [x] Mouse interactions (click to select) when hardcore mode disabled
 
 ### Phase 7: Polish
 

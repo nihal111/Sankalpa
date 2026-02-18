@@ -17,6 +17,7 @@ interface TasksPaneProps {
   shiftHeld: boolean;
   cmdHeld: boolean;
   boundaryCursor: number | null;
+  onTaskClick: (index: number) => void;
 }
 
 export function TasksPane({
@@ -34,6 +35,7 @@ export function TasksPane({
   shiftHeld,
   cmdHeld,
   boundaryCursor,
+  onTaskClick,
 }: TasksPaneProps): JSX.Element {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
@@ -43,6 +45,7 @@ export function TasksPane({
           <li
             key={task.id}
             className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''}`}
+            onClick={() => onTaskClick(i)}
           >
             {editMode?.type === 'task' && editMode.index === i ? (
               <input

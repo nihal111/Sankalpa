@@ -21,6 +21,8 @@ export default function App(): JSX.Element {
         handleInputKeyDown={state.handleInputKeyDown}
         inputRef={state.inputRef}
         taskCounts={state.taskCounts}
+        onItemClick={state.handleSidebarClick}
+        onFolderToggle={state.handleFolderToggle}
       />
       <TasksPane
         tasks={state.tasks}
@@ -37,6 +39,7 @@ export default function App(): JSX.Element {
         shiftHeld={state.shiftHeld}
         cmdHeld={state.cmdHeld}
         boundaryCursor={state.boundaryCursor}
+        onTaskClick={state.handleTaskClick}
       />
       {state.moveMode && (
         <div className="move-overlay">
@@ -44,7 +47,11 @@ export default function App(): JSX.Element {
         </div>
       )}
       {state.settingsOpen && (
-        <SettingsModal settingsThemeIndex={state.settingsThemeIndex} />
+        <SettingsModal
+          settingsThemeIndex={state.settingsThemeIndex}
+          settingsCategory={state.settingsCategory}
+          hardcoreMode={state.hardcoreMode}
+        />
       )}
     </div>
   );
