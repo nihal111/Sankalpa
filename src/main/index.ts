@@ -9,12 +9,14 @@ import {
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
+const isTestHeadless = process.argv.includes('--test-headless');
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     center: true,
+    show: !isTestHeadless, // Don't show window in headless test mode
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
