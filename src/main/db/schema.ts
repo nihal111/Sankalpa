@@ -40,6 +40,13 @@ export function initSchema(db: Database): void {
   db.run(`CREATE INDEX IF NOT EXISTS idx_lists_folder ON lists(folder_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_tasks_list_sort ON tasks(list_id, sort_key)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_lists_sort ON lists(sort_key)`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
 }
 
 export function seed(db: Database): void {

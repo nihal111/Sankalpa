@@ -96,11 +96,12 @@ A keyboard-first todo app for macOS.
 - [x] Register hotkeys system-wide (electron globalShortcut)
 - [x] Added real "Inbox" list (id: inbox-list) for quick-add target
 
-### Phase 6: Hardcore Mode
+### Phase 6: Hardcore Mode ✓
 
-- [ ] `HARDCORE_MODE` constant
-- [ ] Disable mouse handlers when true
-- [ ] Hide cursor via CSS
+- [x] Settings table (key-value storage)
+- [x] `hardcore_mode` setting (default: true)
+- [x] Hide cursor via CSS when enabled
+- [x] Settings persisted to SQLite
 
 ### Phase 7: Polish
 

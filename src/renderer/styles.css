@@ -49,6 +49,11 @@
   box-sizing: border-box;
 }
 
+/* Hardcore mode - hide cursor */
+.hardcore, .hardcore * {
+  cursor: none !important;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);

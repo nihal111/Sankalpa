@@ -61,4 +61,11 @@ describe('App settings', () => {
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     expect(screen.getByText('Settings')).toBeDefined();
   });
+
+  it('loads persisted settings from DB on mount', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ theme: 'light', hardcore_mode: '0' }) });
+    render(<App />);
+    await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('light'));
+    expect(document.documentElement.classList.contains('hardcore')).toBe(false);
+  });
 });

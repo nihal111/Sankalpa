@@ -5,6 +5,7 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
+  getSetting, setSetting, getAllSettings,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -238,5 +239,36 @@ describe('tasks', () => {
     createTask(db, 't2', null, 'Inbox 2');
     createTask(db, 't3', 'inbox', 'List Task');
     expect(getInboxTaskCount(db)).toBe(2);
+  });
+});
+
+
+describe('settings', () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = createTestDb();
+  });
+
+  it('sets and gets a setting', () => {
+    setSetting(db, 'theme', 'dark');
+    expect(getSetting(db, 'theme')).toBe('dark');
+  });
+
+  it('returns undefined for missing setting', () => {
+    expect(getSetting(db, 'nonexistent')).toBeUndefined();
+  });
+
+  it('overwrites existing setting', () => {
+    setSetting(db, 'theme', 'light');
+    setSetting(db, 'theme', 'dark');
+    expect(getSetting(db, 'theme')).toBe('dark');
+  });
+
+  it('getAllSettings returns all settings as object', () => {
+    setSetting(db, 'theme', 'dark');
+    setSetting(db, 'hardcore_mode', '1');
+    const settings = getAllSettings(db);
+    expect(settings).toEqual({ theme: 'dark', hardcore_mode: '1' });
   });
 });

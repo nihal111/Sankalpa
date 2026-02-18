@@ -130,3 +130,19 @@ export function moveTask(db: Database, id: string, newListId: string): void {
   db.run('UPDATE tasks SET list_id = ?, sort_key = ?, updated_at = ? WHERE id = ?',
     [newListId, sortKey, Date.now(), id]);
 }
+
+// Settings
+
+export function getSetting(db: Database, key: string): string | undefined {
+  const result = queryOne<{ value: string }>(db, 'SELECT value FROM settings WHERE key = ?', [key]);
+  return result?.value;
+}
+
+export function setSetting(db: Database, key: string, value: string): void {
+  db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
+}
+
+export function getAllSettings(db: Database): Record<string, string> {
+  const rows = queryAll<{ key: string; value: string }>(db, 'SELECT key, value FROM settings');
+  return Object.fromEntries(rows.map(r => [r.key, r.value]));
+}
