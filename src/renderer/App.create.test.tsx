@@ -15,10 +15,6 @@ describe('App create and reorder', () => {
     await waitFor(() => {
       expect(window.api.tasksCreate).toHaveBeenCalled();
     });
-    await waitFor(() => {
-      const input = document.querySelector('.tasks-pane input');
-      expect(input).toBeDefined();
-    });
   });
 
   it('creates new list with Cmd+Shift+N', async () => {
