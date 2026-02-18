@@ -42,7 +42,7 @@ Capture screenshots at regular intervals during test execution and encode them i
 
 **Encode phase** — In `closeApp()`, stop the timer, decode PNG buffers to raw RGBA pixels using `pngjs`, quantize colors and encode frames into an animated GIF using `gifenc`.
 
-**Output** — One GIF per spec file, saved to `test-recordings/<spec-name>.gif`.
+**Output** — One GIF per spec file, saved to `test-recordings/<spec-name>.gif`. A configurable slowdown multiplier (`GIF_SLOWDOWN`) controls playback speed — frames are captured at 100ms intervals but displayed at `100ms × slowdown` per frame, making fast test interactions easy to follow.
 
 ```typescript
 // e2e/helpers.ts (simplified)
@@ -59,9 +59,19 @@ for (const buf of pngBuffers) {
   const { data, width, height } = PNG.sync.read(buf);
   const palette = quantize(data, 256);
   const index = applyPalette(data, palette);
-  gif.writeFrame(index, width, height, { palette, delay: 100 });
+  gif.writeFrame(index, width, height, { palette, delay: FRAME_INTERVAL_MS * GIF_SLOWDOWN });
 }
 ```
+
+### Keystroke overlay
+
+When recording, a floating overlay badge is injected into the page (bottom-right corner) that displays the current keystroke as it happens. This is implemented entirely in the test infrastructure with zero changes to app code:
+
+1. `launchApp()` injects a fixed-position `<div>` via `page.evaluate()` when `RECORD=1`
+2. `press()` updates the overlay text before dispatching the key event, using human-readable labels (e.g., `⌘ + ⇧ + N`, `↑`, `⏎`, `Esc`)
+3. The overlay fades out after the key sequence completes
+
+This makes GIF recordings self-documenting — a reviewer can see both the UI response and the exact keystrokes that triggered it.
 
 ### Dependencies
 

@@ -6,6 +6,7 @@ export type Recorder = { timer: ReturnType<typeof setInterval>; frames: Buffer[]
 
 const RECORDING_DIR = path.join(__dirname, '..', 'test-recordings');
 const FRAME_INTERVAL_MS = 100;
+const GIF_SLOWDOWN = 10;
 
 export async function launchApp(testDbName: string): Promise<{ app: ElectronApplication; page: Page; dbPath: string; recorder: Recorder }> {
   const { _electron: electron } = await import('@playwright/test');
@@ -30,6 +31,7 @@ export async function launchApp(testDbName: string): Promise<{ app: ElectronAppl
   let recorder: Recorder = null;
   if (process.env.RECORD === '1') {
     if (!fs.existsSync(RECORDING_DIR)) fs.mkdirSync(RECORDING_DIR, { recursive: true });
+    await injectKeystrokeOverlay(page);
     const frames: Buffer[] = [];
     const timer = setInterval(async () => {
       try { frames.push(await page.screenshot()); } catch {}
@@ -69,14 +71,51 @@ async function encodeGif(pngBuffers: Buffer[], outPath: string): Promise<void> {
     const { data, width, height } = PNG.sync.read(buf);
     const palette = quantize(data, 256);
     const index = applyPalette(data, palette);
-    gif.writeFrame(index, width, height, { palette, delay: FRAME_INTERVAL_MS });
+    gif.writeFrame(index, width, height, { palette, delay: FRAME_INTERVAL_MS * GIF_SLOWDOWN });
   }
 
   gif.finish();
   fs.writeFileSync(outPath, gif.bytes());
 }
 
+const KEY_LABELS: Record<string, string> = {
+  ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
+  Enter: '⏎', Escape: 'Esc', Tab: '⇥', ' ': 'Space',
+  Backspace: '⌫', Delete: '⌫',
+};
+
+function formatKeystroke(key: string, opts: { meta?: boolean; shift?: boolean }): string {
+  const parts: string[] = [];
+  if (opts.meta) parts.push('⌘');
+  if (opts.shift) parts.push('⇧');
+  parts.push(KEY_LABELS[key] ?? key.toUpperCase());
+  return parts.join(' + ');
+}
+
+async function injectKeystrokeOverlay(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const el = document.createElement('div');
+    el.id = 'keystroke-overlay';
+    Object.assign(el.style, {
+      position: 'fixed', bottom: '12px', right: '12px', zIndex: '99999',
+      background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '6px 14px',
+      borderRadius: '6px', fontSize: '18px', fontFamily: 'system-ui, sans-serif',
+      fontWeight: '600', opacity: '0', transition: 'opacity 0.15s',
+      pointerEvents: 'none',
+    });
+    document.body.appendChild(el);
+  });
+}
+
 export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean } = {}): Promise<void> {
+  if (process.env.RECORD === '1') {
+    const label = formatKeystroke(key, opts);
+    await page.evaluate((text) => {
+      const el = document.getElementById('keystroke-overlay');
+      if (el) { el.textContent = text; el.style.opacity = '1'; }
+    }, label);
+  }
+
   if (opts.meta) {
     await page.evaluate(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, bubbles: true }));
@@ -111,6 +150,13 @@ export async function press(page: Page, key: string, opts: { meta?: boolean; shi
       window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, bubbles: true }));
     });
     await page.waitForTimeout(20);
+  }
+
+  if (process.env.RECORD === '1') {
+    await page.evaluate(() => {
+      const el = document.getElementById('keystroke-overlay');
+      if (el) el.style.opacity = '0';
+    });
   }
 }
 
