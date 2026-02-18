@@ -1,7 +1,7 @@
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
-import { setupMockApi, navigateToUserList, navigateToTasksPane } from './test-utils';
+import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -92,6 +92,31 @@ describe('App create and reorder', () => {
     await waitFor(() => {
       expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), null, '');
     });
+  });
+
+  it('Cmd+N from tasks pane moves selection to new task', async () => {
+    const newTask = { id: 'new', list_id: '1', title: '', sort_key: 3, created_at: 0, updated_at: 0 };
+    const tasksGetByList = vi.fn()
+      .mockResolvedValueOnce(mockTasks) // initial load
+      .mockResolvedValueOnce([...mockTasks, newTask]); // after create
+    setupMockApi({
+      tasksCreate: vi.fn().mockResolvedValue(newTask),
+      tasksGetByList,
+    });
+    render(<App />);
+    await navigateToTasksPane();
+    // Move selection to second task (index 1)
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    let taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[1]?.classList.contains('selected')).toBe(true);
+    fireEvent.keyDown(window, { key: 'n', metaKey: true });
+    await waitFor(() => {
+      taskItems = document.querySelectorAll('.tasks-pane .item');
+      expect(taskItems.length).toBe(3); // wait for refetch
+    });
+    taskItems = document.querySelectorAll('.tasks-pane .item');
+    // New task is at index 2 (last), should be selected
+    expect(taskItems[2]?.classList.contains('selected')).toBe(true);
   });
 
   it('Cmd+N creates task in inbox when smart Inbox selected', async () => {

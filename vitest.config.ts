@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    exclude: ['node_modules', 'dist'],
+    exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {
       thresholds: {
         lines: 95,

@@ -6,4 +6,4 @@ dist/
 coverage/
 src/**/*.js
 
-.kiro/
+.kiro/test-results/
