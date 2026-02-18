@@ -87,8 +87,9 @@ export function Sidebar({
         {sidebarItems.slice(0, SMART_LISTS.length).map((item, i) => {
           const smartItem = item as { type: 'smart'; smartList: SmartList };
           const isSelected = i === selectedSidebarIndex;
+          const hasItems = taskCounts[smartItem.smartList.id] > 0;
           return (
-            <li key={smartItem.smartList.id} className={`item smart-list ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
+            <li key={smartItem.smartList.id} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
             </li>

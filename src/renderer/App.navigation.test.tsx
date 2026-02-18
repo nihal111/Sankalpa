@@ -181,4 +181,13 @@ describe('App navigation', () => {
     const header = document.querySelector('.tasks-pane h2');
     expect(header).toBeDefined();
   });
+
+  it('smart list shows has-items class when it has tasks', async () => {
+    setupMockApi({ tasksGetInboxCount: async () => 3 });
+    render(<App />);
+    await waitFor(() => {
+      const inbox = document.querySelector('.lists-pane .item.smart-list');
+      expect(inbox?.classList.contains('has-items')).toBe(true);
+    });
+  });
 });
