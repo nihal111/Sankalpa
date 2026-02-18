@@ -41,18 +41,23 @@ export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
     setShiftHeld(false);
   }, []);
 
+  const [cmdStartIndex, setCmdStartIndex] = useState<number | null>(null);
+
   const handleCmdDown = useCallback((currentIndex: number) => {
     setCmdHeld(true);
     setBoundaryCursor(currentIndex);
+    setCmdStartIndex(currentIndex);
     setSelectedIndices((prev) => new Set(prev).add(currentIndex));
   }, []);
 
   const handleCmdUp = useCallback((): number | null => {
     setCmdHeld(false);
     const cursor = boundaryCursor;
+    const didMove = cursor !== null && cursor !== cmdStartIndex;
     setBoundaryCursor(null);
-    return cursor;
-  }, [boundaryCursor]);
+    setCmdStartIndex(null);
+    return didMove ? cursor : null;
+  }, [boundaryCursor, cmdStartIndex]);
 
   const toggleAtCursor = useCallback((currentIndex: number) => {
     const targetIdx = boundaryCursor !== null ? boundaryCursor : currentIndex;
