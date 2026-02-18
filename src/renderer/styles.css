@@ -365,3 +365,13 @@ h2 {
 .toggle.on .toggle-knob {
   transform: translateX(20px);
 }
+
+/* Flash animation for reorder/move/add */
+@keyframes flash {
+  0% { background: var(--accent-cursor); }
+  100% { background: transparent; }
+}
+
+.item.flash {
+  animation: flash 200ms ease-out;
+}

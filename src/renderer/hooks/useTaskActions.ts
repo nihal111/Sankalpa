@@ -15,6 +15,7 @@ interface UseTaskActionsParams {
   setEditMode: (mode: { type: 'task'; index: number }) => void;
   setEditValue: (value: string) => void;
   reloadTasks: () => Promise<void>;
+  onFlash?: (id: string) => void;
 }
 
 interface TaskActions {
@@ -26,7 +27,7 @@ interface TaskActions {
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -43,7 +44,8 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     setFocusedPane('tasks');
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
-  }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue]);
+    onFlash?.(newTask.id);
+  }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
@@ -64,8 +66,9 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       await window.api.tasksReorder(neighbor.id, item.sort_key);
       await reloadTasks();
       setSelectedTaskIndex(newIndex);
+      onFlash?.(item.id);
     }
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex]);
+  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash]);
 
   return { createTask, deleteTask, handleReorder };
 }

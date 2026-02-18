@@ -23,6 +23,7 @@ export default function App(): JSX.Element {
         taskCounts={state.taskCounts}
         onItemClick={state.handleSidebarClick}
         onFolderToggle={state.handleFolderToggle}
+        flashIds={state.flashIds}
       />
       <TasksPane
         tasks={state.tasks}
@@ -40,6 +41,7 @@ export default function App(): JSX.Element {
         cmdHeld={state.cmdHeld}
         boundaryCursor={state.boundaryCursor}
         onTaskClick={state.handleTaskClick}
+        flashIds={state.flashIds}
       />
       {state.moveMode && (
         <div className="move-overlay">
