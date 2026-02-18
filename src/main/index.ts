@@ -5,7 +5,7 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
-  calcSortKeyBetween,
+  calcSortKeyBetween, getAllSettings, setSetting,
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
@@ -79,6 +79,10 @@ app.whenReady().then(async () => {
   ipcMain.handle('tasks:move', (_, id: string, newListId: string) => { moveTask(db, id, newListId); saveDb(); });
 
   ipcMain.handle('util:calcSortKey', (_, before: number | null, after: number | null) => calcSortKeyBetween(before, after));
+
+  // Settings IPC handlers
+  ipcMain.handle('settings:getAll', () => getAllSettings(db));
+  ipcMain.handle('settings:set', (_, key: string, value: string) => { setSetting(db, key, value); saveDb(); });
 
   // Global hotkeys
   globalShortcut.register('CommandOrControl+Option+Control+Space', toggleWindow);

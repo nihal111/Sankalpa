@@ -35,4 +35,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Util
   calcSortKey: (before: number | null, after: number | null) => ipcRenderer.invoke('util:calcSortKey', before, after),
+
+  // Settings
+  settingsGetAll: () => ipcRenderer.invoke('settings:getAll'),
+  settingsSet: (key: string, value: string) => ipcRenderer.invoke('settings:set', key, value),
 });
