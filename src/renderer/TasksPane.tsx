@@ -11,7 +11,7 @@ interface TasksPaneProps {
   setEditValue: (v: string) => void;
   setEditMode: (m: EditMode) => void;
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   headerName: string;
   selectedTaskIndices: Set<number>;
   shiftHeld: boolean;

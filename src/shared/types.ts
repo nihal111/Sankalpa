@@ -52,6 +52,9 @@ export interface Api {
   tasksMove: (id: string, newListId: string) => Promise<void>;
 
   calcSortKey: (before: number | null, after: number | null) => Promise<number>;
+
+  settingsGetAll: () => Promise<Record<string, string>>;
+  settingsSet: (key: string, value: string) => Promise<void>;
 }
 
 declare global {

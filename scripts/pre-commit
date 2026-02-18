@@ -1,4 +1,8 @@
 #!/bin/sh
+echo "Running type check..."
+npx tsc --noEmit || exit 1
+echo "Type check passed!"
+
 echo "Running lint..."
 npm run lint || exit 1
 
@@ -9,6 +13,6 @@ echo "Verifying main process builds..."
 sh scripts/verify-main-build.sh || exit 1
 
 echo "Running tests with coverage..."
-npm run test:coverage || exit 1
+npm run test:coverage 2>/dev/null || { echo "Tests failed! Re-run with: npm run test:coverage"; exit 1; }
 
 echo "All checks passed!"

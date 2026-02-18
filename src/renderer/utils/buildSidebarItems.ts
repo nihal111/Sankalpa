@@ -1,6 +1,7 @@
 import type { Folder, List } from '../../shared/types';
 import type { SidebarItem } from '../types';
 import { SMART_LISTS } from '../types';
+export type { SidebarItem };
 
 export function buildSidebarItems(folders: Folder[], lists: List[]): SidebarItem[] {
   const items: SidebarItem[] = [];

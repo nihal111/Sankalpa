@@ -11,7 +11,7 @@ interface EditableItemNameProps {
   setEditValue: (v: string) => void;
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   setEditMode: (m: EditMode) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   badge?: number;
 }
 
@@ -57,7 +57,7 @@ interface SidebarProps {
   setEditValue: (v: string) => void;
   setEditMode: (m: EditMode) => void;
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   taskCounts: Record<string, number>;
   onItemClick: (index: number) => void;
   onFolderToggle: (folderId: string) => void;
