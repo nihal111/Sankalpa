@@ -1,42 +1,27 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import type { Folder, List, Task } from '../shared/types';
+import { useEffect, useState, useCallback } from 'react';
 import { useMultiSelect } from './useMultiSelect';
-import type { Pane, EditMode } from './types';
+import type { Pane } from './types';
 import { buildSidebarItems } from './utils/buildSidebarItems';
 import { useSettingsState } from './hooks/useSettingsState';
 import { useMoveState } from './hooks/useMoveState';
+import { useEditState } from './hooks/useEditState';
+import { useSidebarNavigation } from './hooks/useSidebarNavigation';
+import { useTaskActions } from './hooks/useTaskActions';
+import { useArrowNavigation } from './hooks/useArrowNavigation';
+import { useDataState } from './hooks/useDataState';
 
 export function useAppState() {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [lists, setLists] = useState<List[]>([]);
-  const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
   const [selectedSidebarIndex, setSelectedSidebarIndex] = useState(0);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(0);
-  const [editMode, setEditMode] = useState<EditMode>(null);
-  const [editValue, setEditValue] = useState('');
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes } = settings;
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
-
-  const selectedSidebarItem = useMemo(() => sidebarItems[selectedSidebarIndex], [sidebarItems, selectedSidebarIndex]);
-
-  const selectedListId = useMemo(() =>
-    selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id
-      : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
-      : null,
-  [selectedSidebarItem]);
-
-  const reloadData = useCallback(async () => {
-    const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
-    setFolders(f);
-    setLists(l);
-  }, []);
+  const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
+  const { tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
+  const { reloadData, reloadTasks, setTasks, setFolders, setLists } = dataActions;
 
   const handleMoveCommit = useCallback(async (targetListId: string, taskIds: string[]) => {
     for (const taskId of taskIds) {
@@ -59,12 +44,11 @@ export function useAppState() {
   });
   const { moveMode, moveTargetIndex } = move;
 
-  useEffect(() => {
-    Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]).then(([f, l]) => {
-      setFolders(f);
-      setLists(l);
-    });
-  }, []);
+  const [edit, editActions, editSetters] = useEditState({
+    focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks,
+  });
+  const { editMode, editValue, inputRef } = edit;
+  const { setEditMode, setEditValue } = editSetters;
 
   useEffect(() => {
     return window.api.onQuickAdd(async () => {
@@ -80,103 +64,12 @@ export function useAppState() {
       setEditMode({ type: 'task', index: newIndex });
       setEditValue('');
     });
-  }, []);
+  }, [setEditMode, setEditValue, setTasks]);
 
-  useEffect(() => {
-    const loadCounts = async (): Promise<void> => {
-      const counts: Record<string, number> = {};
-      counts['inbox'] = await window.api.tasksGetInboxCount();
-      for (const list of lists) {
-        counts[list.id] = await window.api.listsGetTaskCount(list.id);
-      }
-      setTaskCounts(counts);
-    };
-    loadCounts();
-  }, [lists, tasks.length]);
-
-  useEffect(() => {
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
-      window.api.tasksGetInbox().then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
-      });
-    } else if (selectedListId && selectedSidebarItem?.type === 'list') {
-      window.api.tasksGetByList(selectedListId).then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
-      });
-    } else {
-      setTasks([]);
-    }
-  }, [selectedListId, selectedSidebarItem]);
-
-  useEffect(() => {
-    if (editMode && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    } else if (editMode) {
-      // Input not yet rendered, retry after DOM update
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      });
-    }
-  }, [editMode]);
-
-  const reloadTasks = useCallback(async () => {
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
-      const newTasks = await window.api.tasksGetInbox();
-      setTasks(newTasks);
-    } else if (selectedListId && selectedSidebarItem?.type === 'list') {
-      const newTasks = await window.api.tasksGetByList(selectedListId);
-      setTasks(newTasks);
-    }
-  }, [selectedListId, selectedSidebarItem]);
-
-  const handleReorder = useCallback(async (direction: -1 | 1) => {
-    if (focusedPane === 'tasks') {
-      const newIndex = selectedTaskIndex + direction;
-      if (newIndex < 0 || newIndex >= tasks.length) return;
-      const item = tasks[selectedTaskIndex];
-      const neighbor = tasks[newIndex];
-      await window.api.tasksReorder(item.id, neighbor.sort_key);
-      await window.api.tasksReorder(neighbor.id, item.sort_key);
-      await reloadTasks();
-      setSelectedTaskIndex(newIndex);
-    }
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks]);
-
-  const startEdit = useCallback(() => {
-    const item = selectedSidebarItem;
-    if (focusedPane === 'lists' && item?.type === 'list') {
-      setEditMode({ type: 'list', id: item.list.id });
-      setEditValue(item.list.name);
-    } else if (focusedPane === 'lists' && item?.type === 'folder') {
-      setEditMode({ type: 'folder', id: item.folder.id });
-      setEditValue(item.folder.name);
-    } else if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
-      setEditMode({ type: 'task', index: selectedTaskIndex });
-      setEditValue(tasks[selectedTaskIndex].title);
-    }
-  }, [focusedPane, selectedSidebarItem, selectedTaskIndex, tasks]);
-
-  const commitEdit = useCallback(async () => {
-    if (!editMode || !editValue.trim()) {
-      setEditMode(null);
-      return;
-    }
-    if (editMode.type === 'list') {
-      await window.api.listsUpdate(editMode.id, editValue.trim());
-      await reloadData();
-    } else if (editMode.type === 'folder') {
-      await window.api.foldersUpdate(editMode.id, editValue.trim());
-      await reloadData();
-    } else {
-      await window.api.tasksUpdate(tasks[editMode.index].id, editValue.trim());
-      await reloadTasks();
-    }
-    setEditMode(null);
-  }, [editMode, editValue, tasks, reloadData, reloadTasks]);
+  const { createTask, deleteTask, handleReorder } = useTaskActions({
+    focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks,
+  });
 
   const createList = useCallback(async () => {
     const id = crypto.randomUUID();
@@ -191,90 +84,21 @@ export function useAppState() {
     setFocusedPane('lists');
     setEditMode({ type: 'list', id: newList.id });
     setEditValue('');
-  }, [selectedSidebarItem, selectedSidebarIndex]);
+  }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists]);
 
-  const createTask = useCallback(async () => {
-    const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
-    const isList = selectedSidebarItem?.type === 'list';
-    if (!isInbox && !isList) return;
-    const id = crypto.randomUUID();
-    const listId = isList ? selectedListId : null;
-    const newTask = await window.api.tasksCreate(id, listId, '');
-    const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(selectedListId!);
-    const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
-    setTasks(newTasks);
-    setSelectedTaskIndex(newIndex);
-    setFocusedPane('tasks');
-    setEditMode({ type: 'task', index: newIndex });
-    setEditValue('');
-  }, [selectedListId, selectedSidebarItem]);
+  const handleArrowNavigation = useArrowNavigation({
+    focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: tasks.length,
+    selectedTaskIndex, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld,
+    selectedTaskIndicesSize: selectedTaskIndices.size,
+    setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn),
+    setSelectedTaskIndex, multiSelectActions, handleReorder,
+  });
 
-  const deleteTask = useCallback(async () => {
-    if (focusedPane !== 'tasks' || tasks.length === 0) return;
-    const task = tasks[selectedTaskIndex];
-    if (!task) return;
-    await window.api.tasksDelete(task.id);
-    await reloadTasks();
-    setSelectedTaskIndex((i) => Math.min(i, tasks.length - 2));
-  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks]);
-
-  const handleArrowNavigation = useCallback((e: KeyboardEvent) => {
-    const delta = e.key === 'ArrowUp' ? -1 : 1;
-    if (e.metaKey && e.shiftKey && focusedPane === 'tasks') {
-      if (selectedTaskIndices.size > 0) multiSelectActions.clear();
-      handleReorder(delta);
-      return;
-    }
-    if (focusedPane === 'lists') {
-      setSelectedSidebarIndex((i) => Math.max(0, Math.min(sidebarItems.length - 1, i + delta)));
-      return;
-    }
-    if (cmdHeld) {
-      multiSelectActions.moveBoundaryCursor(Math.max(0, Math.min(tasks.length - 1, (boundaryCursor ?? selectedTaskIndex) + delta)));
-      return;
-    }
-    if (shiftHeld && selectionAnchor !== null) {
-      const newIndex = Math.max(0, Math.min(tasks.length - 1, selectedTaskIndex + delta));
-      setSelectedTaskIndex(newIndex);
-      multiSelectActions.extendSelection(selectionAnchor, newIndex);
-      return;
-    }
-    if (selectedTaskIndices.size > 0) multiSelectActions.clear();
-    setSelectedTaskIndex((i) => Math.max(0, Math.min(tasks.length - 1, i + delta)));
-  }, [focusedPane, sidebarItems.length, tasks.length, selectedTaskIndex, selectionAnchor, shiftHeld, cmdHeld, selectedTaskIndices.size, handleReorder, multiSelectActions, boundaryCursor]);
-
-  const handleHorizontalArrow = useCallback(async (direction: 'left' | 'right') => {
-    if (focusedPane === 'tasks') {
-      if (direction === 'left') setFocusedPane('lists');
-      return;
-    }
-    const item = selectedSidebarItem;
-    if (direction === 'right') {
-      if (item?.type === 'folder') {
-        if (!item.folder.is_expanded) {
-          await window.api.foldersToggleExpanded(item.folder.id);
-          await reloadData();
-        } else {
-          const childIndex = sidebarItems.findIndex(
-            (si, idx) => idx > selectedSidebarIndex && si.type === 'list' && si.list.folder_id === item.folder.id
-          );
-          if (childIndex >= 0) setSelectedSidebarIndex(childIndex);
-        }
-      } else {
-        setFocusedPane('tasks');
-      }
-    } else {
-      if (item?.type === 'folder' && item.folder.is_expanded) {
-        await window.api.foldersToggleExpanded(item.folder.id);
-        await reloadData();
-      } else if (item?.type === 'list' && item.list.folder_id) {
-        const parentIndex = sidebarItems.findIndex(
-          (si) => si.type === 'folder' && si.folder.id === item.list.folder_id
-        );
-        if (parentIndex >= 0) setSelectedSidebarIndex(parentIndex);
-      }
-    }
-  }, [focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, reloadData]);
+  const { handleHorizontalArrow } = useSidebarNavigation({
+    focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems,
+    setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn),
+    setFocusedPane, reloadData,
+  });
 
   const startMove = useCallback(() => {
     if (focusedPane === 'tasks') moveActions.start();
@@ -296,7 +120,7 @@ export function useAppState() {
       return;
     }
     if (editMode) {
-      if (e.key === 'Escape') { e.preventDefault(); setEditMode(null); }
+      if (e.key === 'Escape') { e.preventDefault(); editActions.cancel(); }
       return;
     }
     if (moveActions.handleKeyDown(e)) return;
@@ -308,9 +132,9 @@ export function useAppState() {
     if (e.key === 'Tab') { e.preventDefault(); if (selectedTaskIndices.size > 0) multiSelectActions.clear(); setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists')); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
-    if (e.key === 'Enter') { e.preventDefault(); if (selectedTaskIndices.size > 0) return; if (selectedSidebarItem?.type === 'smart') return; startEdit(); return; }
+    if (e.key === 'Enter') { e.preventDefault(); if (selectedTaskIndices.size > 0) return; if (selectedSidebarItem?.type === 'smart') return; editActions.start(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); startMove(); return; }
-  }, [editMode, moveMode, focusedPane, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, startEdit, startMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsActions, moveActions, selectedSidebarItem]);
+  }, [editMode, moveMode, focusedPane, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, editActions, startMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsActions, moveActions, selectedSidebarItem]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') { multiSelectActions.handleShiftUp(); return; }
@@ -329,10 +153,6 @@ export function useAppState() {
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [handleKeyDown, handleKeyUp]);
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') { e.preventDefault(); commitEdit(); }
-  };
 
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
@@ -355,7 +175,7 @@ export function useAppState() {
     editValue,
     setEditValue,
     setEditMode,
-    handleInputKeyDown,
+    handleInputKeyDown: editActions.handleInputKeyDown,
     inputRef,
     taskCounts,
     tasks,
