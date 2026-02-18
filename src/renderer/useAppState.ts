@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import type { Folder, List, Task } from '../shared/types';
 import { useMultiSelect } from './useMultiSelect';
 import type { Pane, EditMode, Theme, SidebarItem } from './types';
 import { SMART_LISTS } from './types';
+import { buildSidebarItems } from './utils/buildSidebarItems';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
 
@@ -25,25 +26,15 @@ export function useAppState() {
   const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Build sidebar items list
-  const sidebarItems: SidebarItem[] = [];
-  SMART_LISTS.forEach((sl) => sidebarItems.push({ type: 'smart', smartList: sl }));
-  folders.forEach((folder) => {
-    sidebarItems.push({ type: 'folder', folder });
-    if (folder.is_expanded) {
-      lists.filter((l) => l.folder_id === folder.id).forEach((list) => {
-        sidebarItems.push({ type: 'list', list });
-      });
-    }
-  });
-  lists.filter((l) => l.folder_id === null).forEach((list) => {
-    sidebarItems.push({ type: 'list', list });
-  });
+  const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
 
-  const selectedSidebarItem = sidebarItems[selectedSidebarIndex];
-  const selectedListId = selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id
-    : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
-    : null;
+  const selectedSidebarItem = useMemo(() => sidebarItems[selectedSidebarIndex], [sidebarItems, selectedSidebarIndex]);
+
+  const selectedListId = useMemo(() =>
+    selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id
+      : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
+      : null,
+  [selectedSidebarItem]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -178,23 +169,16 @@ export function useAppState() {
     const id = crypto.randomUUID();
     const folderId = selectedSidebarItem?.type === 'folder' ? selectedSidebarItem.folder.id : undefined;
     const newList = await window.api.listsCreate(id, '', folderId);
-    await reloadData();
     const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
-    const rebuilt: SidebarItem[] = [];
-    SMART_LISTS.forEach((sl) => rebuilt.push({ type: 'smart', smartList: sl }));
-    f.forEach((folder) => {
-      rebuilt.push({ type: 'folder', folder });
-      if (folder.is_expanded) {
-        l.filter((li) => li.folder_id === folder.id).forEach((list) => rebuilt.push({ type: 'list', list }));
-      }
-    });
-    l.filter((li) => li.folder_id === null).forEach((list) => rebuilt.push({ type: 'list', list }));
+    setFolders(f);
+    setLists(l);
+    const rebuilt = buildSidebarItems(f, l);
     const newIndex = rebuilt.findIndex((item) => item.type === 'list' && item.list.id === newList.id);
     setSelectedSidebarIndex(newIndex >= 0 ? newIndex : selectedSidebarIndex);
     setFocusedPane('lists');
     setEditMode({ type: 'list', id: newList.id });
     setEditValue('');
-  }, [selectedSidebarItem, reloadData, selectedSidebarIndex]);
+  }, [selectedSidebarItem, selectedSidebarIndex]);
 
   const createTask = useCallback(async () => {
     const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
