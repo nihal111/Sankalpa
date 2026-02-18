@@ -1,11 +1,9 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import type { Folder, List, Task } from '../shared/types';
 import { useMultiSelect } from './useMultiSelect';
-import type { Pane, EditMode, Theme, SidebarItem } from './types';
-import { SMART_LISTS } from './types';
+import type { Pane, EditMode, SidebarItem } from './types';
 import { buildSidebarItems } from './utils/buildSidebarItems';
-
-const THEMES: Theme[] = ['light', 'dark', 'system'];
+import { useSettingsState } from './hooks/useSettingsState';
 
 export function useAppState() {
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -21,9 +19,8 @@ export function useAppState() {
   const [moveTargetIndex, setMoveTargetIndex] = useState(0);
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>('system');
-  const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
+  const [settings, settingsActions] = useSettingsState();
+  const { settingsOpen, settingsThemeIndex, themes } = settings;
   const inputRef = useRef<HTMLInputElement>(null);
 
   const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
@@ -35,10 +32,6 @@ export function useAppState() {
       : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
       : null,
   [selectedSidebarItem]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]).then(([f, l]) => {
@@ -296,17 +289,10 @@ export function useAppState() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.metaKey && e.key === ',') {
       e.preventDefault();
-      setSettingsOpen(true);
-      setSettingsThemeIndex(THEMES.indexOf(theme));
+      settingsActions.open();
       return;
     }
-    if (settingsOpen) {
-      if (e.key === 'Escape') { e.preventDefault(); setSettingsOpen(false); return; }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); setSettingsThemeIndex((i) => Math.max(0, i - 1)); return; }
-      if (e.key === 'ArrowRight') { e.preventDefault(); setSettingsThemeIndex((i) => Math.min(THEMES.length - 1, i + 1)); return; }
-      if (e.key === 'Enter') { e.preventDefault(); setTheme(THEMES[settingsThemeIndex]); setSettingsOpen(false); return; }
-      return;
-    }
+    if (settingsActions.handleKeyDown(e)) return;
     if (e.key === 'Shift' && focusedPane === 'tasks' && !editMode && !moveMode) {
       if (!shiftHeld) multiSelectActions.handleShiftDown(selectedTaskIndex);
       return;
@@ -346,7 +332,7 @@ export function useAppState() {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (e.key === 'Enter') { e.preventDefault(); if (selectedTaskIndices.size > 0) return; if (selectedSidebarItem?.type === 'smart') return; startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); startMove(); return; }
-  }, [editMode, moveMode, focusedPane, sidebarItems.length, moveTargetIndex, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, startEdit, startMove, commitMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsOpen, settingsThemeIndex, theme, selectedSidebarItem, sidebarItems]);
+  }, [editMode, moveMode, focusedPane, sidebarItems.length, moveTargetIndex, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, startEdit, startMove, commitMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsActions, selectedSidebarItem, sidebarItems]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') { multiSelectActions.handleShiftUp(); return; }
@@ -402,7 +388,7 @@ export function useAppState() {
     boundaryCursor,
     settingsOpen,
     settingsThemeIndex,
-    themes: THEMES,
+    themes,
     getSelectedListName,
     getMoveTargetName,
   };
