@@ -17,6 +17,8 @@ interface SidebarProps {
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: RefObject<HTMLInputElement>;
   taskCounts: Record<string, number>;
+  onItemClick: (index: number) => void;
+  onFolderToggle: (folderId: string) => void;
 }
 
 export function Sidebar({
@@ -32,6 +34,8 @@ export function Sidebar({
   handleInputKeyDown,
   inputRef,
   taskCounts,
+  onItemClick,
+  onFolderToggle,
 }: SidebarProps): JSX.Element {
   return (
     <div className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
@@ -40,7 +44,7 @@ export function Sidebar({
           const smartItem = item as { type: 'smart'; smartList: SmartList };
           const isSelected = i === selectedSidebarIndex;
           return (
-            <li key={smartItem.smartList.id} className={`item smart-list ${isSelected ? 'selected' : ''}`}>
+            <li key={smartItem.smartList.id} className={`item smart-list ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
             </li>
@@ -58,8 +62,8 @@ export function Sidebar({
             const isEditing = editMode?.type === 'folder' && editMode.id === item.folder.id;
             const folderIcon = item.folder.is_expanded ? Icons.folderOpen : Icons.folderClosed;
             return (
-              <li key={item.folder.id} className={`item folder ${isSelected ? 'selected' : ''}`}>
-                <span className="item-icon" dangerouslySetInnerHTML={{ __html: folderIcon }} />
+              <li key={item.folder.id} className={`item folder ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
+                <span className="item-icon" onClick={(e) => { e.stopPropagation(); onFolderToggle(item.folder.id); }} dangerouslySetInnerHTML={{ __html: folderIcon }} />
                 {isEditing ? (
                   <input
                     ref={inputRef}
@@ -82,7 +86,7 @@ export function Sidebar({
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
           return (
-            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''}`}>
+            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
               {isEditing ? (
                 <input

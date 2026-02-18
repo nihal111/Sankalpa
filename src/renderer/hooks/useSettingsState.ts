@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import type { Theme } from './types';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
+const CATEGORIES = ['Theme', 'Hardcore'] as const;
+type SettingsCategory = typeof CATEGORIES[number];
 
 export interface SettingsActions {
   open: () => void;
@@ -9,10 +11,11 @@ export interface SettingsActions {
 }
 
 export function useSettingsState(): [
-  { settingsOpen: boolean; settingsThemeIndex: number; themes: Theme[]; hardcoreMode: boolean },
+  { settingsOpen: boolean; settingsThemeIndex: number; themes: Theme[]; hardcoreMode: boolean; settingsCategory: SettingsCategory },
   SettingsActions
 ] {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsCategory, setSettingsCategory] = useState<SettingsCategory>('Theme');
   const [theme, setTheme] = useState<Theme>('system');
   const [hardcoreMode, setHardcoreMode] = useState(true);
   const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
@@ -39,28 +42,53 @@ export function useSettingsState(): [
 
   const open = useCallback(() => {
     setSettingsOpen(true);
+    setSettingsCategory('Theme');
     setSettingsThemeIndex(THEMES.indexOf(theme));
   }, [theme]);
 
-  const applySettings = useCallback((newTheme: Theme, newHardcore: boolean) => {
-    setTheme(newTheme);
-    setHardcoreMode(newHardcore);
-    window.api.settingsSet('theme', newTheme);
-    window.api.settingsSet('hardcore_mode', newHardcore ? '1' : '0');
+  const applyAndClose = useCallback(() => {
+    if (settingsCategory === 'Theme') {
+      const newTheme = THEMES[settingsThemeIndex];
+      setTheme(newTheme);
+      window.api.settingsSet('theme', newTheme);
+    }
     setSettingsOpen(false);
-  }, []);
+  }, [settingsCategory, settingsThemeIndex]);
+
+  const toggleHardcore = useCallback(() => {
+    const newValue = !hardcoreMode;
+    setHardcoreMode(newValue);
+    window.api.settingsSet('hardcore_mode', newValue ? '1' : '0');
+  }, [hardcoreMode]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent): boolean => {
     if (!settingsOpen) return false;
     if (e.key === 'Escape') { e.preventDefault(); setSettingsOpen(false); return true; }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); setSettingsThemeIndex((i) => Math.max(0, i - 1)); return true; }
-    if (e.key === 'ArrowRight') { e.preventDefault(); setSettingsThemeIndex((i) => Math.min(THEMES.length - 1, i + 1)); return true; }
-    if (e.key === 'Enter') { e.preventDefault(); applySettings(THEMES[settingsThemeIndex], hardcoreMode); return true; }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const idx = CATEGORIES.indexOf(settingsCategory);
+      if (idx > 0) setSettingsCategory(CATEGORIES[idx - 1]);
+      return true;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const idx = CATEGORIES.indexOf(settingsCategory);
+      if (idx < CATEGORIES.length - 1) setSettingsCategory(CATEGORIES[idx + 1]);
+      return true;
+    }
+    if (settingsCategory === 'Theme') {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); setSettingsThemeIndex((i) => Math.max(0, i - 1)); return true; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); setSettingsThemeIndex((i) => Math.min(THEMES.length - 1, i + 1)); return true; }
+      if (e.key === 'Enter') { e.preventDefault(); applyAndClose(); return true; }
+    }
+    if (settingsCategory === 'Hardcore') {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleHardcore(); return true; }
+    }
     return true;
-  }, [settingsOpen, settingsThemeIndex, hardcoreMode, applySettings]);
+  }, [settingsOpen, settingsCategory, settingsThemeIndex, applyAndClose, toggleHardcore]);
 
   return [
-    { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode },
+    { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory },
     { open, handleKeyDown }
   ];
 }

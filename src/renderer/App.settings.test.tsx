@@ -68,4 +68,50 @@ describe('App settings', () => {
     await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('light'));
     expect(document.documentElement.classList.contains('hardcore')).toBe(false);
   });
+
+  it('arrow up/down navigates settings categories', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Theme');
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Hardcore');
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Theme');
+  });
+
+  it('Enter toggles hardcore mode in Hardcore category', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '1' }) });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Go to Hardcore
+    expect(document.querySelector('.toggle')?.classList.contains('on')).toBe(true);
+    fireEvent.keyDown(window, { key: 'Enter' }); // Toggle off
+    expect(document.querySelector('.toggle')?.classList.contains('on')).toBe(false);
+  });
+
+  it('Space toggles hardcore mode in Hardcore category', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Go to Hardcore
+    expect(document.querySelector('.toggle')?.classList.contains('on')).toBe(false);
+    fireEvent.keyDown(window, { key: ' ' }); // Toggle on with Space
+    expect(document.querySelector('.toggle')?.classList.contains('on')).toBe(true);
+  });
+
+  it('does not navigate past first/last category', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    fireEvent.keyDown(window, { key: ',', metaKey: true });
+    // Try to go up from Theme (first)
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Theme');
+    // Go to Hardcore then try to go down
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Should stay on Hardcore
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Hardcore');
+  });
 });

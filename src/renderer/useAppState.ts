@@ -18,7 +18,7 @@ export function useAppState() {
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
-  const { settingsOpen, settingsThemeIndex, themes } = settings;
+  const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
@@ -134,6 +134,25 @@ export function useAppState() {
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
+  const handleSidebarClick = useCallback((index: number) => {
+    if (hardcoreMode) return;
+    setSelectedSidebarIndex(index);
+    setFocusedPane('lists');
+  }, [hardcoreMode]);
+
+  const handleTaskClick = useCallback((index: number) => {
+    if (hardcoreMode) return;
+    setSelectedTaskIndex(index);
+    setFocusedPane('tasks');
+    multiSelectActions.clear();
+  }, [hardcoreMode, multiSelectActions]);
+
+  const handleFolderToggle = useCallback(async (folderId: string) => {
+    if (hardcoreMode) return;
+    await window.api.foldersToggleExpanded(folderId);
+    await reloadData();
+  }, [hardcoreMode, reloadData]);
+
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
     if (selectedSidebarItem?.type === 'smart') return selectedSidebarItem.smartList.name;
@@ -166,8 +185,13 @@ export function useAppState() {
     boundaryCursor,
     settingsOpen,
     settingsThemeIndex,
+    settingsCategory,
     themes,
+    hardcoreMode,
     getSelectedListName,
     getMoveTargetName,
+    handleSidebarClick,
+    handleTaskClick,
+    handleFolderToggle,
   };
 }
