@@ -6,7 +6,7 @@ import {
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
   calcSortKeyBetween,
-} from './db/index.js';
+} from './db/index';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -16,7 +16,7 @@ function createWindow(): void {
     height: 600,
     center: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload'),
       contextIsolation: true,
       nodeIntegration: false,
     },

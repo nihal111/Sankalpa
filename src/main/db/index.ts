@@ -1,3 +1,3 @@
-export { getDb, closeDb, saveDb } from './connection.js';
-export * from './queries.js';
-export { calcSortKeyBetween } from '../../shared/sortKey.js';
+export { getDb, closeDb, saveDb } from './connection';
+export * from './queries';
+export { calcSortKeyBetween } from '../../shared/sortKey';

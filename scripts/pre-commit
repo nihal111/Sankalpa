@@ -5,6 +5,9 @@ npm run lint || exit 1
 echo "Checking hook sizes (ADR-0006)..."
 npm run lint:hooks || exit 1
 
+echo "Verifying main process builds..."
+sh scripts/verify-main-build.sh || exit 1
+
 echo "Running tests with coverage..."
 npm run test:coverage || exit 1
 
