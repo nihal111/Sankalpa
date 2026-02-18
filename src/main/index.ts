@@ -6,7 +6,7 @@ import {
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
   calcSortKeyBetween,
-} from './db';
+} from './db/index.js';
 
 let mainWindow: BrowserWindow | null = null;
 
