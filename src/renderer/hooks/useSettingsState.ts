@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import type { Theme } from './types';
+import type { Theme } from '../types';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
 const CATEGORIES = ['Theme', 'Hardcore'] as const;

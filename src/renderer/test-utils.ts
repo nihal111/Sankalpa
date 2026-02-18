@@ -1,5 +1,5 @@
 import { waitFor, fireEvent, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 import type { Folder, List, Task } from '../shared/types';
 
 export const mockFolders: Folder[] = [];
@@ -40,7 +40,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
   const wrappedOverrides: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(overrides)) {
     if (typeof value === 'function' && !('mock' in value)) {
-      wrappedOverrides[key] = vi.fn().mockImplementation(value);
+      wrappedOverrides[key] = vi.fn().mockImplementation(value as (...args: unknown[]) => unknown);
     } else {
       wrappedOverrides[key] = value;
     }

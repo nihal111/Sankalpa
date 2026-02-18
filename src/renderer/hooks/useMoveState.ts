@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { SidebarItem } from './types';
+import type { SidebarItem } from '../types';
 
 export interface MoveActions {
   start: () => void;

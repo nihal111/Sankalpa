@@ -10,23 +10,23 @@ describe('buildSidebarItems', () => {
   });
 
   it('includes folders and their lists when expanded', () => {
-    const folders: Folder[] = [{ id: 'f1', name: 'Work', is_expanded: true, sort_key: 'a' }];
-    const lists: List[] = [{ id: 'l1', name: 'Tasks', folder_id: 'f1', sort_key: 'a' }];
+    const folders: Folder[] = [{ id: 'f1', name: 'Work', is_expanded: 1, sort_key: 0, created_at: 0, updated_at: 0 }];
+    const lists: List[] = [{ id: 'l1', name: 'Tasks', folder_id: 'f1', sort_key: 0, created_at: 0, updated_at: 0 }];
     const result = buildSidebarItems(folders, lists);
     expect(result).toContainEqual({ type: 'folder', folder: folders[0] });
     expect(result).toContainEqual({ type: 'list', list: lists[0] });
   });
 
   it('hides lists under collapsed folders', () => {
-    const folders: Folder[] = [{ id: 'f1', name: 'Work', is_expanded: false, sort_key: 'a' }];
-    const lists: List[] = [{ id: 'l1', name: 'Tasks', folder_id: 'f1', sort_key: 'a' }];
+    const folders: Folder[] = [{ id: 'f1', name: 'Work', is_expanded: 0, sort_key: 0, created_at: 0, updated_at: 0 }];
+    const lists: List[] = [{ id: 'l1', name: 'Tasks', folder_id: 'f1', sort_key: 0, created_at: 0, updated_at: 0 }];
     const result = buildSidebarItems(folders, lists);
     expect(result).toContainEqual({ type: 'folder', folder: folders[0] });
     expect(result).not.toContainEqual({ type: 'list', list: lists[0] });
   });
 
   it('includes root-level lists', () => {
-    const lists: List[] = [{ id: 'l1', name: 'Personal', folder_id: null, sort_key: 'a' }];
+    const lists: List[] = [{ id: 'l1', name: 'Personal', folder_id: null, sort_key: 0, created_at: 0, updated_at: 0 }];
     const result = buildSidebarItems([], lists);
     expect(result).toContainEqual({ type: 'list', list: lists[0] });
   });

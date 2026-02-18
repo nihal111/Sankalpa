@@ -8,7 +8,7 @@ interface MultiSelectState {
   cmdHeld: boolean;
 }
 
-interface MultiSelectActions {
+export interface MultiSelectActions {
   clear: () => void;
   handleShiftDown: (currentIndex: number) => void;
   handleShiftUp: () => void;
