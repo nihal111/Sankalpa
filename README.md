@@ -58,3 +58,11 @@ npm run dev
 ```
 
 See [DEVELOPING.md](DEVELOPING.md) for full setup instructions.
+
+## Testing
+
+```bash
+npm test                    # Unit tests
+npm run test:e2e            # E2E tests (visible window)
+npm run test:e2e:headless   # E2E tests (no window)
+```

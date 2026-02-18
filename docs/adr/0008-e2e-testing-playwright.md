@@ -24,24 +24,42 @@ Use Playwright for Electron e2e tests that simulate real user interaction.
 ### Setup
 
 ```typescript
-// e2e/task-creation.spec.ts
+// e2e/helpers.ts
 import { _electron as electron } from '@playwright/test';
 
-test.beforeAll(async () => {
-  app = await electron.launch({
-    args: ['.'],
-    env: { ...process.env, SANKALPA_DB_PATH: testDbPath },
+export async function launchApp(testDbName: string) {
+  const headless = process.env.HEADLESS === '1';
+  const app = await electron.launch({
+    args: headless ? ['.', '--test-headless'] : ['.'],
+    env: { ...process.env, SANKALPA_DB_PATH: dbPath },
   });
-  page = await app.firstWindow();
+  const page = await app.firstWindow();
+  return { app, page, dbPath };
+}
+```
+
+### Headless Mode
+
+Electron doesn't support true headless mode like browsers. The workaround is to hide the window:
+
+```typescript
+// src/main/index.ts
+const isTestHeadless = process.argv.includes('--test-headless');
+
+mainWindow = new BrowserWindow({
+  show: !isTestHeadless, // Don't show window in headless test mode
+  // ...
 });
 ```
+
+On Linux CI, also use `xvfb-run` for a virtual display.
 
 ### Keyboard Simulation
 
 Playwright's `page.keyboard.press()` doesn't trigger `window` event listeners in Electron reliably. Use `dispatchEvent` with realistic key sequences:
 
 ```typescript
-async function press(key: string, opts: { meta?: boolean } = {}): Promise<void> {
+async function press(page: Page, key: string, opts: { meta?: boolean } = {}): Promise<void> {
   if (opts.meta) {
     await page.evaluate(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, bubbles: true }));
@@ -75,7 +93,8 @@ function getDbPath(): string {
 
 ### Scripts
 
-- `npm run test:e2e` - Build and run against production
+- `npm run test:e2e` - Build and run with visible window
+- `npm run test:e2e:headless` - Build and run headless (no window)
 - `npm run test:e2e:dev` - Run against dev server (start `npm run dev` first)
 
 ## Consequences
@@ -83,5 +102,4 @@ function getDbPath(): string {
 - Can catch timing bugs that unit tests miss
 - Tests are slower (~2s per test vs ~20ms for unit tests)
 - Requires building the app before running
-- Window opens during test (can't run headless on macOS)
-- Must exclude `e2e/` from vitest config
+- Headless mode hides window but still requires display (use xvfb on Linux CI)

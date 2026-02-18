@@ -17,7 +17,8 @@
     "lint": "eslint src/",
     "lint:hooks": "sh scripts/check-hook-size.sh",
     "test:e2e": "npm run build && playwright test",
-    "test:e2e:dev": "playwright test"
+    "test:e2e:dev": "playwright test",
+    "test:e2e:headless": "npm run build && HEADLESS=1 playwright test"
   },
   "keywords": [],
   "author": "",
