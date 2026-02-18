@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import type { Folder, List } from '../shared/types';
-import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
+import { setupMockApi } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -39,7 +39,7 @@ describe('App folders', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    let folderItem = document.querySelector('.item.folder');
+    const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.querySelector('.item-icon svg')).toBeDefined();
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => {
@@ -62,7 +62,7 @@ describe('App folders', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    let folderItem = document.querySelector('.item.folder');
+    const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.querySelector('.item-icon svg')).toBeDefined();
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     await waitFor(() => {

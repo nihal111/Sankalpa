@@ -1,6 +1,7 @@
 {
   "name": "sankalpa",
   "version": "1.0.0",
+  "type": "module",
   "description": "Keyboard-first todo app",
   "main": "dist/main/main/index.js",
   "scripts": {
@@ -13,7 +14,9 @@
     "start": "electron .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/",
+    "lint:hooks": "sh scripts/check-hook-size.sh"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +29,8 @@
     "vite": "^7.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -34,8 +39,11 @@
     "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.1.2",
     "electron-builder": "^26.7.0",
+    "eslint": "^10.0.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "jsdom": "^28.1.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18",
     "wait-on": "^9.0.4"
   }

@@ -44,7 +44,7 @@ export default function App(): JSX.Element {
         </div>
       )}
       {state.settingsOpen && (
-        <SettingsModal settingsThemeIndex={state.settingsThemeIndex} themes={state.themes} />
+        <SettingsModal settingsThemeIndex={state.settingsThemeIndex} />
       )}
     </div>
   );
