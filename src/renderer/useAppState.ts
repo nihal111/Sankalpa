@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useMultiSelect } from './useMultiSelect';
 import type { Pane } from './types';
 import { buildSidebarItems } from './utils/buildSidebarItems';
@@ -9,6 +9,7 @@ import { useSidebarNavigation } from './hooks/useSidebarNavigation';
 import { useTaskActions } from './hooks/useTaskActions';
 import { useArrowNavigation } from './hooks/useArrowNavigation';
 import { useDataState } from './hooks/useDataState';
+import { useKeyboardNavigation, KeyboardActions, KeyboardState } from './hooks/useKeyboardNavigation';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -104,55 +105,34 @@ export function useAppState() {
     if (focusedPane === 'tasks') moveActions.start();
   }, [focusedPane, moveActions]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.metaKey && e.key === ',') {
-      e.preventDefault();
-      settingsActions.open();
-      return;
-    }
-    if (settingsActions.handleKeyDown(e)) return;
-    if (e.key === 'Shift' && focusedPane === 'tasks' && !editMode && !moveMode) {
-      if (!shiftHeld) multiSelectActions.handleShiftDown(selectedTaskIndex);
-      return;
-    }
-    if (e.key === 'Meta' && focusedPane === 'tasks' && !editMode && !moveMode) {
-      if (!cmdHeld) multiSelectActions.handleCmdDown(selectedTaskIndex);
-      return;
-    }
-    if (editMode) {
-      if (e.key === 'Escape') { e.preventDefault(); editActions.cancel(); }
-      return;
-    }
-    if (moveActions.handleKeyDown(e)) return;
-    if (e.key === 'Escape' && selectedTaskIndices.size > 0) { e.preventDefault(); multiSelectActions.clear(); return; }
-    if (cmdHeld && e.key === 'Enter') { e.preventDefault(); multiSelectActions.toggleAtCursor(selectedTaskIndex); return; }
-    if (e.key === ' ' && !cmdHeld && focusedPane === 'tasks') { e.preventDefault(); multiSelectActions.clear(); return; }
-    if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) createList(); else createTask(); return; }
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteTask(); return; }
-    if (e.key === 'Tab') { e.preventDefault(); if (selectedTaskIndices.size > 0) multiSelectActions.clear(); setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists')); return; }
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); handleArrowNavigation(e); return; }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
-    if (e.key === 'Enter') { e.preventDefault(); if (selectedTaskIndices.size > 0) return; if (selectedSidebarItem?.type === 'smart') return; editActions.start(); return; }
-    if (e.key === 'm' || e.key === 'M') { e.preventDefault(); startMove(); return; }
-  }, [editMode, moveMode, focusedPane, selectedTaskIndices.size, handleArrowNavigation, handleHorizontalArrow, editActions, startMove, createList, createTask, deleteTask, shiftHeld, cmdHeld, selectedTaskIndex, multiSelectActions, settingsActions, moveActions, selectedSidebarItem]);
+  const switchPane = useCallback(() => {
+    setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
+  }, []);
 
-  const handleKeyUp = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Shift') { multiSelectActions.handleShiftUp(); return; }
-    if (e.key === 'Meta') {
-      const cursor = multiSelectActions.handleCmdUp();
-      if (cursor !== null) setSelectedTaskIndex(cursor);
-      return;
-    }
-  }, [multiSelectActions]);
+  const keyboardActions: KeyboardActions = useMemo(() => ({
+    openSettings: settingsActions.open,
+    handleSettingsKeyDown: settingsActions.handleKeyDown,
+    handleMoveKeyDown: moveActions.handleKeyDown,
+    handleShiftDown: () => multiSelectActions.handleShiftDown(selectedTaskIndex),
+    handleShiftUp: multiSelectActions.handleShiftUp,
+    handleCmdDown: () => multiSelectActions.handleCmdDown(selectedTaskIndex),
+    handleCmdUp: multiSelectActions.handleCmdUp,
+    cancelEdit: editActions.cancel,
+    clearSelection: multiSelectActions.clear,
+    toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
+    createList, createTask, deleteTask, switchPane,
+    handleArrowNavigation, handleHorizontalArrow,
+    startEdit: editActions.start,
+    startMove,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove]);
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [handleKeyDown, handleKeyUp]);
+  const keyboardState: KeyboardState = useMemo(() => ({
+    editMode, moveMode, focusedPane, shiftHeld, cmdHeld,
+    hasSelection: selectedTaskIndices.size > 0,
+    canEdit: selectedSidebarItem?.type !== 'smart',
+  }), [editMode, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type]);
+
+  useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
