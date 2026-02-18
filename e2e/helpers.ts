@@ -2,7 +2,12 @@ import { Page, ElectronApplication } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
-export async function launchApp(testDbName: string): Promise<{ app: ElectronApplication; page: Page; dbPath: string }> {
+export type Recorder = { timer: ReturnType<typeof setInterval>; frames: Buffer[] } | null;
+
+const RECORDING_DIR = path.join(__dirname, '..', 'test-recordings');
+const FRAME_INTERVAL_MS = 100;
+
+export async function launchApp(testDbName: string): Promise<{ app: ElectronApplication; page: Page; dbPath: string; recorder: Recorder }> {
   const { _electron: electron } = await import('@playwright/test');
   const dbPath = path.join(__dirname, testDbName);
   if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
@@ -20,13 +25,55 @@ export async function launchApp(testDbName: string): Promise<{ app: ElectronAppl
   });
   
   const page = await app.firstWindow();
-  await page.waitForSelector('.lists-pane', { timeout: 10000 });
-  return { app, page, dbPath };
+  await page.waitForSelector('.lists-pane', { timeout: 2000 });
+
+  let recorder: Recorder = null;
+  if (process.env.RECORD === '1') {
+    if (!fs.existsSync(RECORDING_DIR)) fs.mkdirSync(RECORDING_DIR, { recursive: true });
+    const frames: Buffer[] = [];
+    const timer = setInterval(async () => {
+      try { frames.push(await page.screenshot()); } catch {}
+    }, FRAME_INTERVAL_MS);
+    recorder = { timer, frames };
+  }
+
+  return { app, page, dbPath, recorder };
 }
 
-export async function closeApp(app: ElectronApplication, dbPath: string): Promise<void> {
+export async function closeApp(app: ElectronApplication, dbPath: string, recorder: Recorder): Promise<void> {
+  if (recorder) {
+    clearInterval(recorder.timer);
+    // Capture one final frame
+    try {
+      const page = app.windows()[0];
+      if (page) recorder.frames.push(await page.screenshot());
+    } catch {}
+    if (recorder.frames.length > 0) {
+      const specName = dbPath.replace(/.*\/test-/, '').replace('.db', '');
+      await encodeGif(recorder.frames, path.join(RECORDING_DIR, `${specName}.gif`));
+    }
+  }
   await app.close();
   if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+}
+
+async function encodeGif(pngBuffers: Buffer[], outPath: string): Promise<void> {
+  const gifenc = await import('gifenc');
+  const { GIFEncoder, quantize, applyPalette } = ('default' in gifenc ? gifenc.default as typeof gifenc : gifenc);
+  const { PNG } = await import('pngjs');
+
+  const first = PNG.sync.read(pngBuffers[0]);
+  const gif = GIFEncoder();
+
+  for (const buf of pngBuffers) {
+    const { data, width, height } = PNG.sync.read(buf);
+    const palette = quantize(data, 256);
+    const index = applyPalette(data, palette);
+    gif.writeFrame(index, width, height, { palette, delay: FRAME_INTERVAL_MS });
+  }
+
+  gif.finish();
+  fs.writeFileSync(outPath, gif.bytes());
 }
 
 export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean } = {}): Promise<void> {
