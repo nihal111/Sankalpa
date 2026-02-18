@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import { useAppState } from './useAppState';
 import { Sidebar } from './Sidebar';
 import { TasksPane } from './TasksPane';
 import { SettingsModal } from './SettingsModal';
 
-export default function App(): JSX.Element {
+export default function App(): ReactNode {
   const state = useAppState();
 
   return (

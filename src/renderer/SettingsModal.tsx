@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ThemePreview, SystemThemePreview } from './ThemePreview';
 
 interface SettingsModalProps {
@@ -6,7 +7,7 @@ interface SettingsModalProps {
   hardcoreMode: boolean;
 }
 
-export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode }: SettingsModalProps): JSX.Element {
+export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode }: SettingsModalProps): ReactNode {
   return (
     <div className="settings-overlay">
       <div className="settings-modal">
