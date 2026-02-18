@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import type { List } from '../shared/types';
 import type { SidebarItem, SmartList, EditMode, Pane } from './types';
 import { SMART_LISTS } from './types';
@@ -24,7 +24,7 @@ function EditableItemName({
   setEditMode,
   inputRef,
   badge,
-}: EditableItemNameProps): JSX.Element {
+}: EditableItemNameProps): ReactNode {
   if (isEditing) {
     return (
       <input
@@ -80,7 +80,7 @@ export function Sidebar({
   onItemClick,
   onFolderToggle,
   flashIds,
-}: SidebarProps): JSX.Element {
+}: SidebarProps): ReactNode {
   return (
     <div className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
       <ul className="item-list">

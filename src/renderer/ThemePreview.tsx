@@ -1,6 +1,7 @@
+import type { ReactNode } from 'react';
 import { THEME_COLORS } from './types';
 
-export function ThemePreview({ themeKey }: { themeKey: 'light' | 'dark' }): JSX.Element {
+export function ThemePreview({ themeKey }: { themeKey: 'light' | 'dark' }): ReactNode {
   const c = THEME_COLORS[themeKey];
   return (
     <div className="theme-preview" style={{ background: c.bgPrimary, border: `1px solid ${c.border}` }}>
@@ -16,7 +17,7 @@ export function ThemePreview({ themeKey }: { themeKey: 'light' | 'dark' }): JSX.
   );
 }
 
-export function SystemThemePreview(): JSX.Element {
+export function SystemThemePreview(): ReactNode {
   const dark = THEME_COLORS.dark;
   const light = THEME_COLORS.light;
   return (

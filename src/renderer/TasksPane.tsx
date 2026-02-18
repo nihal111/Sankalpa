@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import type { Task } from '../shared/types';
 import type { EditMode, Pane } from './types';
 
@@ -38,7 +38,7 @@ export function TasksPane({
   boundaryCursor,
   onTaskClick,
   flashIds,
-}: TasksPaneProps): JSX.Element {
+}: TasksPaneProps): ReactNode {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
       <h2>{headerName}</h2>
