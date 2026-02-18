@@ -20,6 +20,35 @@ Guidelines for AI agents working on this codebase.
 - Private/helper functions arranged in order they are first called
 - Keep files focused and small
 
+## React Patterns (ENFORCED)
+
+These rules are derived from ADRs and MUST be followed:
+
+### Hook Size Limit (ADR-0006)
+- **Max 200 lines per hook file** - Check with `wc -l`
+- If approaching limit, split by domain (not by type)
+- See `src/renderer/hooks/` for examples
+
+### Memoize Derived State (ADR-0005)
+- **All arrays/objects derived from state MUST use `useMemo`**
+- Chain memoization for derived-from-derived values
+- Extract complex logic to pure functions in `utils/`
+
+```typescript
+// ❌ WRONG
+const items = buildItems(data);
+const selected = items[index];
+
+// ✅ CORRECT
+const items = useMemo(() => buildItems(data), [data]);
+const selected = useMemo(() => items[index], [items, index]);
+```
+
+### Keyboard Handling (ADR-0007)
+- Handlers receive action callbacks, don't manipulate state directly
+- Actions must be memoized with `useCallback`
+- Keep handler dependency arrays small
+
 ## Error Handling Policy
 
 **Default to throwing exceptions for unspecified error cases.**

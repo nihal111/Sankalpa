@@ -1,4 +1,11 @@
 #!/bin/sh
-echo "Running tests with coverage before commit..."
+echo "Running lint..."
+npm run lint || exit 1
+
+echo "Checking hook sizes (ADR-0006)..."
+npm run lint:hooks || echo "WARNING: Hook size check failed - see ADR-0006"
+
+echo "Running tests with coverage..."
 npm run test:coverage || exit 1
-echo "Tests passed!"
+
+echo "All checks passed!"

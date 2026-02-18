@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import type { Folder, List, Task } from '../shared/types';
 import { useMultiSelect } from './useMultiSelect';
-import type { Pane, EditMode, SidebarItem } from './types';
+import type { Pane, EditMode } from './types';
 import { buildSidebarItems } from './utils/buildSidebarItems';
 import { useSettingsState } from './hooks/useSettingsState';
 import { useMoveState } from './hooks/useMoveState';
@@ -108,7 +108,7 @@ export function useAppState() {
     } else {
       setTasks([]);
     }
-  }, [selectedListId, selectedSidebarItem?.type]);
+  }, [selectedListId, selectedSidebarItem]);
 
   useEffect(() => {
     if (editMode && inputRef.current) {

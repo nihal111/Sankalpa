@@ -1,12 +1,10 @@
-import type { Theme } from './types';
 import { ThemePreview, SystemThemePreview } from './ThemePreview';
 
 interface SettingsModalProps {
   settingsThemeIndex: number;
-  themes: Theme[];
 }
 
-export function SettingsModal({ settingsThemeIndex, themes }: SettingsModalProps): JSX.Element {
+export function SettingsModal({ settingsThemeIndex }: SettingsModalProps): JSX.Element {
   return (
     <div className="settings-overlay">
       <div className="settings-modal">

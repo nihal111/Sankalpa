@@ -1,5 +1,5 @@
-import initSqlJs, { Database } from 'sql.js';
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import initSqlJs from 'sql.js';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { initSchema, seed } from './schema';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
