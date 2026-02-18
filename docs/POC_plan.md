@@ -106,9 +106,9 @@ A keyboard-first todo app for macOS.
 
 ### Phase 7: Polish
 
-- [ ] Flash animation on reorder/move/add (~200ms)
-- [ ] Optimistic UI updates
-- [ ] Window centering on first open
+- [x] Flash animation on reorder/move/add (~200ms)
+- [ ] ~~Optimistic UI updates~~ (measured: reorder 3.4ms, create 2.1ms — already fast enough)
+- [x] Window centering on first open
 
 ### Phase 8: Tests & Docs
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, screen } from 'electron';
 import path from 'path';
 import {
   getDb, closeDb, saveDb,
@@ -12,11 +12,16 @@ let mainWindow: BrowserWindow | null = null;
 const isTestHeadless = process.argv.includes('--test-headless');
 
 function createWindow(): void {
+  const cursor = screen.getCursorScreenPoint();
+  const { bounds } = screen.getDisplayNearestPoint(cursor);
+  const [winW, winH] = [800, 600];
+
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    center: true,
-    show: !isTestHeadless, // Don't show window in headless test mode
+    width: winW,
+    height: winH,
+    x: Math.round(bounds.x + (bounds.width - winW) / 2),
+    y: Math.round(bounds.y + (bounds.height - winH) / 2),
+    show: !isTestHeadless,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

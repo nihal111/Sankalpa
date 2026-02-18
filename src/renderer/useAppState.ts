@@ -10,6 +10,7 @@ import { useTaskActions } from './hooks/useTaskActions';
 import { useArrowNavigation } from './hooks/useArrowNavigation';
 import { useDataState } from './hooks/useDataState';
 import { useKeyboardNavigation, KeyboardActions, KeyboardState } from './hooks/useKeyboardNavigation';
+import { useFlash } from './hooks/useFlash';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -19,6 +20,7 @@ export function useAppState() {
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
+  const { flashIds, flash } = useFlash();
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
@@ -28,12 +30,13 @@ export function useAppState() {
     for (const taskId of taskIds) {
       await window.api.tasksMove(taskId, targetListId);
     }
+    taskIds.forEach(flash);
     multiSelectActions.clear();
     const newIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === targetListId);
     if (newIndex >= 0) setSelectedSidebarIndex(newIndex);
     setFocusedPane('lists');
     await reloadData();
-  }, [sidebarItems, multiSelectActions, reloadData]);
+  }, [sidebarItems, multiSelectActions, reloadData, flash]);
 
   const [move, moveActions] = useMoveState({
     sidebarItems,
@@ -69,7 +72,7 @@ export function useAppState() {
 
   const { createTask, deleteTask, handleReorder } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash,
   });
 
   const createList = useCallback(async () => {
@@ -85,7 +88,8 @@ export function useAppState() {
     setFocusedPane('lists');
     setEditMode({ type: 'list', id: newList.id });
     setEditValue('');
-  }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists]);
+    flash(newList.id);
+  }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists, flash]);
 
   const handleArrowNavigation = useArrowNavigation({
     focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: tasks.length,
@@ -193,5 +197,6 @@ export function useAppState() {
     handleSidebarClick,
     handleTaskClick,
     handleFolderToggle,
+    flashIds,
   };
 }

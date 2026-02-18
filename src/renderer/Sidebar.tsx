@@ -19,6 +19,7 @@ interface SidebarProps {
   taskCounts: Record<string, number>;
   onItemClick: (index: number) => void;
   onFolderToggle: (folderId: string) => void;
+  flashIds: Set<string>;
 }
 
 export function Sidebar({
@@ -36,6 +37,7 @@ export function Sidebar({
   taskCounts,
   onItemClick,
   onFolderToggle,
+  flashIds,
 }: SidebarProps): JSX.Element {
   return (
     <div className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
@@ -86,7 +88,7 @@ export function Sidebar({
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
           return (
-            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''}`} onClick={() => onItemClick(i)}>
+            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
               {isEditing ? (
                 <input

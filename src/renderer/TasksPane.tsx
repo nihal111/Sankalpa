@@ -18,6 +18,7 @@ interface TasksPaneProps {
   cmdHeld: boolean;
   boundaryCursor: number | null;
   onTaskClick: (index: number) => void;
+  flashIds: Set<string>;
 }
 
 export function TasksPane({
@@ -36,6 +37,7 @@ export function TasksPane({
   cmdHeld,
   boundaryCursor,
   onTaskClick,
+  flashIds,
 }: TasksPaneProps): JSX.Element {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
@@ -44,7 +46,7 @@ export function TasksPane({
         {tasks.map((task, i) => (
           <li
             key={task.id}
-            className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''}`}
+            className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''}`}
             onClick={() => onTaskClick(i)}
           >
             {editMode?.type === 'task' && editMode.index === i ? (
