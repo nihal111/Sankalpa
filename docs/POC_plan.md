@@ -112,8 +112,8 @@ A keyboard-first todo app for macOS.
 
 ### Phase 8: Tests & Docs
 
-- [ ] Vitest unit tests (reorder, move, list reorder logic)
-- [ ] README with keybindings, architecture, ordering explanation
+- [x] Vitest unit tests (reorder, move, list reorder logic)
+- [x] README with keybindings, architecture, ordering explanation
 
 ## Data Model
 

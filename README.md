@@ -18,6 +18,10 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 - SQLite persistence
 - Hardcore mode (mouse disabled)
 
+## Stack
+
+Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
+
 ## Keybindings
 
 | Key | Action |
@@ -66,3 +70,11 @@ npm test                    # Unit tests
 npm run test:e2e            # E2E tests (visible window)
 npm run test:e2e:headless   # E2E tests (no window)
 ```
+
+## Architecture
+
+See [`docs/`](docs/) for architecture details, including:
+
+- [Architecture overview](docs/architecture.md)
+- [Architecture Decision Records](docs/adr/)
+- [Electron IPC](docs/electron-ipc.md)
