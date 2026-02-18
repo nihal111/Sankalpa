@@ -60,7 +60,7 @@ export function TasksPane({
                 className="edit-input"
               />
             ) : (
-              task.title
+              task.title || '\u00A0'
             )}
           </li>
         ))}

@@ -8,7 +8,6 @@ Feature tracker for Sankalpa — what's next after the POC.
 |---------|-------------|-------|------------|--------|
 | Inbox text styling | Gray only when empty; normal white when it has items | UI Polish | Low | |
 | Inbox badge count | Show item count badge on the smart Inbox | UI Polish | Low | |
-| Empty task height bug | Unnamed task has half-height highlight; doubles on edit | UI Polish | Low | |
 | Checkboxes | Add checkbox to each task to mark it done | Task Lifecycle | Medium | |
 | Completed list | Completed smart list; tracks which list each task came from | Task Lifecycle | Medium | |
 | Undo | Cmd+Z to reverse actions, especially accidental deletes | Task Lifecycle | Medium | |
