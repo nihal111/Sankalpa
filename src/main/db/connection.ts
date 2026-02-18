@@ -2,7 +2,7 @@ import initSqlJs, { Database } from 'sql.js';
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { initSchema, seed } from './schema';
+import { initSchema, seed } from './schema.js';
 
 let db: Database | null = null;
 
