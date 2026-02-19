@@ -70,7 +70,7 @@ export function useAppState() {
     });
   }, [setEditMode, setEditValue, setTasks]);
 
-  const { createTask, deleteTask, handleReorder } = useTaskActions({
+  const { createTask, toggleTaskCompleted, deleteTask, handleReorder } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash,
   });
@@ -123,12 +123,12 @@ export function useAppState() {
     handleCmdUp: multiSelectActions.handleCmdUp,
     cancelEdit: editActions.cancel,
     clearSelection: multiSelectActions.clear,
-    toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
+    toggleTaskCompleted,
     createList, createTask, deleteTask, switchPane,
     handleArrowNavigation, handleHorizontalArrow,
     startEdit: editActions.start,
     startMove,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove]);
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
     editMode, moveMode, focusedPane, shiftHeld, cmdHeld,
@@ -150,6 +150,12 @@ export function useAppState() {
     setFocusedPane('tasks');
     multiSelectActions.clear();
   }, [hardcoreMode, multiSelectActions]);
+
+
+  const handleTaskToggle = useCallback(async (taskId: string) => {
+    await window.api.tasksToggleCompleted(taskId);
+    await reloadTasks();
+  }, [reloadTasks]);
 
   const handleFolderToggle = useCallback(async (folderId: string) => {
     if (hardcoreMode) return;
@@ -196,6 +202,7 @@ export function useAppState() {
     getMoveTargetName,
     handleSidebarClick,
     handleTaskClick,
+    handleTaskToggle,
     handleFolderToggle,
     flashIds,
   };

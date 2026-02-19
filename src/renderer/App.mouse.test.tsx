@@ -35,7 +35,7 @@ describe('App mouse interactions', () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
       foldersGetAll: () => Promise.resolve([{ id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 }]),
-      listsGetAll: () => Promise.resolve([{ id: '1', folder_id: 'f1', name: 'Nested List', sort_key: 1, created_at: 0, updated_at: 0 }]),
+      listsGetAll: () => Promise.resolve([{ id: '1', folder_id: 'f1', name: 'Nested List', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 }]),
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Folder')).toBeDefined());
@@ -78,7 +78,7 @@ describe('App mouse interactions', () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({ hardcore_mode: '1' }),
       foldersGetAll: () => Promise.resolve([{ id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 }]),
-      listsGetAll: () => Promise.resolve([{ id: '1', folder_id: 'f1', name: 'Nested', sort_key: 1, created_at: 0, updated_at: 0 }]),
+      listsGetAll: () => Promise.resolve([{ id: '1', folder_id: 'f1', name: 'Nested', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 }]),
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Folder')).toBeDefined());

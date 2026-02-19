@@ -178,6 +178,19 @@ h2 {
   outline-offset: -2px;
 }
 
+
+.task-item.completed {
+  color: var(--text-secondary);
+}
+
+.task-item.completed input[type="checkbox"] + * {
+  color: var(--text-secondary);
+}
+
+.task-item.completed {
+  text-decoration: line-through;
+}
+
 .edit-input {
   width: 100%;
   background: transparent;

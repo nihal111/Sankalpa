@@ -20,6 +20,7 @@ interface UseTaskActionsParams {
 
 interface TaskActions {
   createTask: () => Promise<void>;
+  toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
   handleReorder: (direction: -1 | 1) => Promise<void>;
 }
@@ -47,6 +48,14 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     onFlash?.(newTask.id);
   }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
 
+  const toggleTaskCompleted = useCallback(async () => {
+    if (focusedPane !== 'tasks' || tasks.length === 0) return;
+    const task = tasks[selectedTaskIndex];
+    if (!task) return;
+    await window.api.tasksToggleCompleted(task.id);
+    await reloadTasks();
+  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks]);
+
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
     const task = tasks[selectedTaskIndex];
@@ -70,5 +79,5 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
   }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash]);
 
-  return { createTask, deleteTask, handleReorder };
+  return { createTask, toggleTaskCompleted, deleteTask, handleReorder };
 }

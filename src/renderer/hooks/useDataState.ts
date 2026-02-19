@@ -46,7 +46,13 @@ export function useDataState(
   const reloadTasks = useCallback(async () => {
     if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
       setTasks(await window.api.tasksGetInbox());
-    } else if (selectedListId && selectedSidebarItem?.type === 'list') {
+      return;
+    }
+    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed') {
+      setTasks(await window.api.tasksGetCompleted());
+      return;
+    }
+    if (selectedListId && selectedSidebarItem?.type === 'list') {
       setTasks(await window.api.tasksGetByList(selectedListId));
     }
   }, [selectedListId, selectedSidebarItem]);
@@ -62,6 +68,7 @@ export function useDataState(
     const loadCounts = async (): Promise<void> => {
       const counts: Record<string, number> = {};
       counts['inbox'] = await window.api.tasksGetInboxCount();
+      counts['completed'] = (await window.api.tasksGetCompleted()).length;
       for (const list of lists) {
         counts[list.id] = await window.api.listsGetTaskCount(list.id);
       }
@@ -73,6 +80,11 @@ export function useDataState(
   useEffect(() => {
     if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
       window.api.tasksGetInbox().then((t) => {
+        setTasks(t);
+        setSelectedTaskIndex(0);
+      });
+    } else if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed') {
+      window.api.tasksGetCompleted().then((t) => {
         setTasks(t);
         setSelectedTaskIndex(0);
       });
