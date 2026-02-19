@@ -11,6 +11,7 @@ import { useArrowNavigation } from './hooks/useArrowNavigation';
 import { useDataState } from './hooks/useDataState';
 import { useKeyboardNavigation, KeyboardActions, KeyboardState } from './hooks/useKeyboardNavigation';
 import { useFlash } from './hooks/useFlash';
+import { useUndoStack } from './hooks/useUndoStack';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -26,17 +27,37 @@ export function useAppState() {
   const { tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists } = dataActions;
 
+  const afterUndo = useCallback(async () => {
+    await reloadData();
+    await reloadTasks();
+  }, [reloadData, reloadTasks]);
+  const { push: undoPush, undo } = useUndoStack(afterUndo);
+
   const handleMoveCommit = useCallback(async (targetListId: string, taskIds: string[]) => {
+    const originals = taskIds.map((id) => {
+      const t = tasks.find((task) => task.id === id);
+      return { id, listId: t?.list_id ?? null, sortKey: t?.sort_key ?? 0 };
+    });
     for (const taskId of taskIds) {
       await window.api.tasksMove(taskId, targetListId);
     }
+    undoPush({ execute: async () => {
+      for (const orig of originals) {
+        if (orig.listId !== null) {
+          await window.api.tasksMove(orig.id, orig.listId);
+        } else {
+          await window.api.tasksSetListId(orig.id, null);
+        }
+        await window.api.tasksReorder(orig.id, orig.sortKey);
+      }
+    } });
     taskIds.forEach(flash);
     multiSelectActions.clear();
     const newIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === targetListId);
     if (newIndex >= 0) setSelectedSidebarIndex(newIndex);
     setFocusedPane('lists');
     await reloadData();
-  }, [sidebarItems, multiSelectActions, reloadData, flash]);
+  }, [sidebarItems, multiSelectActions, reloadData, flash, tasks, undoPush]);
 
   const [move, moveActions] = useMoveState({
     sidebarItems,
@@ -49,7 +70,7 @@ export function useAppState() {
   const { moveMode, moveTargetIndex } = move;
 
   const [edit, editActions, editSetters] = useEditState({
-    focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks,
+    focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush,
   });
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
@@ -72,7 +93,7 @@ export function useAppState() {
 
   const { createTask, toggleTaskCompleted, deleteTask, handleReorder } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, undoPush,
   });
 
   const createList = useCallback(async () => {
@@ -89,7 +110,8 @@ export function useAppState() {
     setEditMode({ type: 'list', id: newList.id });
     setEditValue('');
     flash(newList.id);
-  }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists, flash]);
+    undoPush({ execute: async () => { await window.api.listsDelete(newList.id); } });
+  }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists, flash, undoPush]);
 
   const handleArrowNavigation = useArrowNavigation({
     focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: tasks.length,
@@ -129,7 +151,8 @@ export function useAppState() {
     handleArrowNavigation, handleHorizontalArrow,
     startEdit: editActions.start,
     startMove,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove]);
+    undo,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
     editMode, moveMode, focusedPane, shiftHeld, cmdHeld,

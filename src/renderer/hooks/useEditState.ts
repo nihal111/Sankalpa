@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import type { EditMode, Pane } from '../types';
 import type { Task } from '../../shared/types';
+import type { UndoEntry } from './useUndoStack';
 
 interface SidebarItem {
   type: 'smart' | 'folder' | 'list';
@@ -15,6 +16,7 @@ interface UseEditStateParams {
   tasks: Task[];
   reloadData: () => Promise<void>;
   reloadTasks: () => Promise<void>;
+  undoPush: (entry: UndoEntry) => void;
 }
 
 interface EditActions {
@@ -29,10 +31,11 @@ export function useEditState(params: UseEditStateParams): [
   EditActions,
   { setEditMode: (mode: EditMode) => void; setEditValue: (value: string) => void }
 ] {
-  const { focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks } = params;
+  const { focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush } = params;
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevValueRef = useRef<string>('');
 
   useEffect(() => {
     if (editMode && inputRef.current) {
@@ -46,15 +49,30 @@ export function useEditState(params: UseEditStateParams): [
     }
   }, [editMode]);
 
+  // Sync prevValueRef whenever edit mode is entered (covers both start() and direct setEditMode)
+  useEffect(() => {
+    if (!editMode) { prevValueRef.current = ''; return; }
+    if (editMode.type === 'task' && tasks[editMode.index]) {
+      prevValueRef.current = tasks[editMode.index].title;
+    } else if (editMode.type === 'list' && selectedSidebarItem?.type === 'list') {
+      prevValueRef.current = selectedSidebarItem.list!.name;
+    } else if (editMode.type === 'folder' && selectedSidebarItem?.type === 'folder') {
+      prevValueRef.current = selectedSidebarItem.folder!.name;
+    }
+  }, [editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const start = useCallback(() => {
     const item = selectedSidebarItem;
     if (focusedPane === 'lists' && item?.type === 'list') {
+      prevValueRef.current = item.list!.name;
       setEditMode({ type: 'list', id: item.list!.id });
       setEditValue(item.list!.name);
     } else if (focusedPane === 'lists' && item?.type === 'folder') {
+      prevValueRef.current = item.folder!.name;
       setEditMode({ type: 'folder', id: item.folder!.id });
       setEditValue(item.folder!.name);
     } else if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
+      prevValueRef.current = tasks[selectedTaskIndex].title;
       setEditMode({ type: 'task', index: selectedTaskIndex });
       setEditValue(tasks[selectedTaskIndex].title);
     }
@@ -65,18 +83,32 @@ export function useEditState(params: UseEditStateParams): [
       setEditMode(null);
       return;
     }
+    const oldValue = prevValueRef.current;
+    const newValue = editValue.trim();
     if (editMode.type === 'list') {
-      await window.api.listsUpdate(editMode.id, editValue.trim());
+      const id = editMode.id;
+      await window.api.listsUpdate(id, newValue);
+      if (oldValue && oldValue !== newValue) {
+        undoPush({ execute: async () => { await window.api.listsUpdate(id, oldValue); } });
+      }
       await reloadData();
     } else if (editMode.type === 'folder') {
-      await window.api.foldersUpdate(editMode.id, editValue.trim());
+      const id = editMode.id;
+      await window.api.foldersUpdate(id, newValue);
+      if (oldValue && oldValue !== newValue) {
+        undoPush({ execute: async () => { await window.api.foldersUpdate(id, oldValue); } });
+      }
       await reloadData();
     } else {
-      await window.api.tasksUpdate(tasks[editMode.index].id, editValue.trim());
+      const taskId = tasks[editMode.index].id;
+      await window.api.tasksUpdate(taskId, newValue);
+      if (oldValue && oldValue !== newValue) {
+        undoPush({ execute: async () => { await window.api.tasksUpdate(taskId, oldValue); } });
+      }
       await reloadTasks();
     }
     setEditMode(null);
-  }, [editMode, editValue, tasks, reloadData, reloadTasks]);
+  }, [editMode, editValue, tasks, reloadData, reloadTasks, undoPush]);
 
   const cancel = useCallback(() => setEditMode(null), []);
 

@@ -34,6 +34,11 @@ contextBridge.exposeInMainWorld('api', {
   tasksDelete: (id: string) => ipcRenderer.invoke('tasks:delete', id),
   tasksReorder: (id: string, sortKey: number) => ipcRenderer.invoke('tasks:reorder', id, sortKey),
   tasksMove: (id: string, newListId: string) => ipcRenderer.invoke('tasks:move', id, newListId),
+  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => ipcRenderer.invoke('tasks:restore', id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt),
+  tasksSetListId: (id: string, listId: string | null) => ipcRenderer.invoke('tasks:setListId', id, listId),
+
+  // Lists undo
+  listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => ipcRenderer.invoke('lists:restore', id, folderId, name, sortKey, createdAt, updatedAt),
 
   // Util
   calcSortKey: (before: number | null, after: number | null) => ipcRenderer.invoke('util:calcSortKey', before, after),

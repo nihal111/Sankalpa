@@ -55,6 +55,10 @@ export interface Api {
   tasksDelete: (id: string) => Promise<void>;
   tasksReorder: (id: string, sortKey: number) => Promise<void>;
   tasksMove: (id: string, newListId: string) => Promise<void>;
+  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
+  tasksSetListId: (id: string, listId: string | null) => Promise<void>;
+
+  listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
 
   calcSortKey: (before: number | null, after: number | null) => Promise<number>;
 

@@ -157,6 +157,22 @@ export function moveTask(db: Database, id: string, newListId: string): void {
     [newListId, sortKey, Date.now(), id]);
 }
 
+// Undo helpers
+
+export function restoreTask(db: Database, id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number): void {
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt]);
+}
+
+export function restoreList(db: Database, id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number): void {
+  db.run('INSERT INTO lists (id, folder_id, name, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, folderId, name, sortKey, createdAt, updatedAt]);
+}
+
+export function setTaskListId(db: Database, id: string, listId: string | null): void {
+  db.run('UPDATE tasks SET list_id = ?, updated_at = ? WHERE id = ?', [listId, Date.now(), id]);
+}
+
 // Settings
 
 export function getSetting(db: Database, key: string): string | undefined {
