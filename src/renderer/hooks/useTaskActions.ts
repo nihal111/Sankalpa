@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { Task } from '../../shared/types';
 import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
+import type { UndoEntry } from './useUndoStack';
 
 interface UseTaskActionsParams {
   focusedPane: Pane;
@@ -16,6 +17,7 @@ interface UseTaskActionsParams {
   setEditValue: (value: string) => void;
   reloadTasks: () => Promise<void>;
   onFlash?: (id: string) => void;
+  undoPush: (entry: UndoEntry) => void;
 }
 
 interface TaskActions {
@@ -28,7 +30,7 @@ interface TaskActions {
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, undoPush,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -46,7 +48,8 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
     onFlash?.(newTask.id);
-  }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
+    undoPush({ execute: async () => { await window.api.tasksDelete(newTask.id); } });
+  }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
@@ -60,10 +63,12 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
     const task = tasks[selectedTaskIndex];
     if (!task) return;
+    const { id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at } = task;
     await window.api.tasksDelete(task.id);
     await reloadTasks();
     setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex]);
+    undoPush({ execute: async () => { await window.api.tasksRestore(id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at); } });
+  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush]);
 
   const handleReorder = useCallback(async (direction: -1 | 1) => {
     if (focusedPane === 'tasks') {
@@ -71,13 +76,19 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       if (newIndex < 0 || newIndex >= tasks.length) return;
       const item = tasks[selectedTaskIndex];
       const neighbor = tasks[newIndex];
+      const origItemSortKey = item.sort_key;
+      const origNeighborSortKey = neighbor.sort_key;
       await window.api.tasksReorder(item.id, neighbor.sort_key);
       await window.api.tasksReorder(neighbor.id, item.sort_key);
       await reloadTasks();
       setSelectedTaskIndex(newIndex);
       onFlash?.(item.id);
+      undoPush({ execute: async () => {
+        await window.api.tasksReorder(item.id, origItemSortKey);
+        await window.api.tasksReorder(neighbor.id, origNeighborSortKey);
+      } });
     }
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash]);
+  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash, undoPush]);
 
   return { createTask, toggleTaskCompleted, deleteTask, handleReorder };
 }

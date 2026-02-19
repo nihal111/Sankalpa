@@ -22,6 +22,7 @@ export interface KeyboardActions {
   handleHorizontalArrow: (dir: 'left' | 'right') => void;
   startEdit: Command;
   startMove: Command;
+  undo: Command;
 }
 
 export interface KeyboardState {
@@ -54,6 +55,7 @@ export function useKeyboardNavigation(
       if (e.key === 'Escape') { e.preventDefault(); actions.cancelEdit(); }
       return;
     }
+    if (e.metaKey && e.key === 'z') { e.preventDefault(); actions.undo(); return; }
     if (actions.handleMoveKeyDown(e)) return;
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
     if (e.metaKey && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleTaskCompleted(); return; }
