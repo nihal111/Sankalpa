@@ -75,8 +75,8 @@ describe('App folders', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-      { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Inbox', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '2', folder_id: null, name: 'Work', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
@@ -142,8 +142,8 @@ describe('App folders', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-      { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Inbox', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '2', folder_id: null, name: 'Work', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
@@ -168,8 +168,8 @@ describe('App folders', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-      { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Inbox', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '2', folder_id: null, name: 'Work', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
@@ -195,7 +195,7 @@ describe('App folders', () => {
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
-      listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: 'f1', name: '', sort_key: 1, created_at: 0, updated_at: 0 }),
+      listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: 'f1', name: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 }),
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
@@ -216,7 +216,7 @@ describe('App folders', () => {
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
-      listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: 'f1', name: '', sort_key: 1, created_at: 0, updated_at: 0 }),
+      listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: 'f1', name: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 }),
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());

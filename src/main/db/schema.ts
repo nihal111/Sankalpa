@@ -29,12 +29,17 @@ export function initSchema(db: Database): void {
       id TEXT PRIMARY KEY,
       list_id TEXT,
       title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PENDING',
+      created_timestamp INTEGER NOT NULL,
+      completed_timestamp INTEGER,
       sort_key REAL NOT NULL,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
       FOREIGN KEY (list_id) REFERENCES lists(id)
     )
   `);
+
+  migrateTasksTable(db);
 
   db.run(`CREATE INDEX IF NOT EXISTS idx_folders_sort ON folders(sort_key)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_lists_folder ON lists(folder_id)`);
@@ -68,12 +73,29 @@ export function seed(db: Database): void {
   db.run('INSERT INTO lists (id, folder_id, name, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     ['first-project', 'folder-1', 'First Project', 1, now, now]);
 
-  db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    ['task-1', 'tutorial', 'Welcome to Sankalpa', 1, now, now]);
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['task-1', 'tutorial', 'Welcome to Sankalpa', 'PENDING', now, null, 1, now, now]);
 
-  db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    ['task-2', 'tutorial', 'Press Tab to switch panes', 2, now, now]);
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['task-2', 'tutorial', 'Press Tab to switch panes', 'PENDING', now, null, 2, now, now]);
 
-  db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    ['task-3', 'first-project', 'Your first task', 1, now, now]);
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    ['task-3', 'first-project', 'Your first task', 'PENDING', now, null, 1, now, now]);
+}
+
+function migrateTasksTable(db: Database): void {
+  const columns = db.exec('PRAGMA table_info(tasks)')[0]?.values ?? [];
+  const columnNames = columns.map((column) => String(column[1]));
+
+  if (!columnNames.includes('status')) {
+    db.run("ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT 'PENDING'");
+  }
+  if (!columnNames.includes('created_timestamp')) {
+    db.run('ALTER TABLE tasks ADD COLUMN created_timestamp INTEGER');
+    db.run('UPDATE tasks SET created_timestamp = created_at WHERE created_timestamp IS NULL');
+    db.run('UPDATE tasks SET created_timestamp = ? WHERE created_timestamp IS NULL', [Date.now()]);
+  }
+  if (!columnNames.includes('completed_timestamp')) {
+    db.run('ALTER TABLE tasks ADD COLUMN completed_timestamp INTEGER');
+  }
 }

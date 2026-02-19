@@ -59,43 +59,13 @@ test('Shift+Arrow extends and contracts selection', async () => {
   await press(page, ' ');
 });
 
-test('Cmd+Arrow+Enter toggles selection at cursor', async () => {
-  // Reset to index 0
+test('Cmd+Enter toggles completion on selected task', async () => {
   await press(page, 'ArrowUp');
   await press(page, 'ArrowUp');
-  
-  // Hold Cmd
-  await page.evaluate(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, bubbles: true }));
-  });
-  await page.waitForTimeout(20);
-  
-  // Initial item should be selected
-  expect(await getSelectedIndices(page, '.tasks-pane .item')).toEqual([0]);
-  
-  // Move cursor down
-  await page.evaluate(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', metaKey: true, bubbles: true }));
-  });
-  await page.waitForTimeout(50);
-  
-  // Toggle selection at cursor (index 1)
-  await page.evaluate(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', metaKey: true, bubbles: true }));
-  });
-  await page.waitForTimeout(50);
-  
-  expect(await getSelectedIndices(page, '.tasks-pane .item')).toEqual([0, 1]);
-  
-  // Release Cmd
-  await page.evaluate(() => {
-    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, bubbles: true }));
-  });
-  await page.waitForTimeout(50);
-  
-  // Selection should persist
-  expect(await getSelectedIndices(page, '.tasks-pane .item')).toEqual([0, 1]);
-  
-  // Clear
-  await press(page, ' ');
+
+  await press(page, 'Enter', { meta: true });
+  await expect(page.locator('.tasks-pane .item').nth(0)).toHaveClass(/completed/);
+
+  await press(page, 'Enter', { meta: true });
+  await expect(page.locator('.tasks-pane .item').nth(0)).not.toHaveClass(/completed/);
 });

@@ -42,6 +42,7 @@ export default function App(): ReactNode {
         cmdHeld={state.cmdHeld}
         boundaryCursor={state.boundaryCursor}
         onTaskClick={state.handleTaskClick}
+        onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
       />
       {state.moveMode && (
