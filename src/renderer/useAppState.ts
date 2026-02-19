@@ -123,6 +123,7 @@ export function useAppState() {
     handleCmdUp: multiSelectActions.handleCmdUp,
     cancelEdit: editActions.cancel,
     clearSelection: multiSelectActions.clear,
+    toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
     toggleTaskCompleted,
     createList, createTask, deleteTask, switchPane,
     handleArrowNavigation, handleHorizontalArrow,

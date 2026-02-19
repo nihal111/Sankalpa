@@ -52,19 +52,19 @@ describe('App multi-select', () => {
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('Cmd shows cursor and selects current item', async () => {
+  it('Ctrl shows cursor and selects current item', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('cursor')).toBe(true);
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('Cmd+Arrow moves cursor without selecting', async () => {
+  it('Ctrl+Arrow moves cursor without selecting', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('cursor')).toBe(false);
@@ -73,20 +73,24 @@ describe('App multi-select', () => {
     expect(taskItems[1]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('Cmd+Enter toggles completion at cursor', async () => {
+  it('Ctrl+Enter toggles selection at cursor', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
-    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
-    expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1');
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
+    expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('releasing Cmd hides cursor after completion toggle', async () => {
+  it('releasing Ctrl hides cursor but keeps selection', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
-    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
-    fireEvent.keyUp(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyUp(window, { key: 'Control', ctrlKey: false });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('cursor')).toBe(false);
   });
@@ -130,30 +134,35 @@ describe('App multi-select', () => {
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('Cmd+Space does nothing when boundaryCursor is null', async () => {
+  it('Ctrl+Space does nothing when boundaryCursor is null', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: ' ', metaKey: true });
+    fireEvent.keyDown(window, { key: ' ', ctrlKey: true });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('releasing Cmd after completion does not impact arrow navigation', async () => {
+  it('releasing Ctrl with multiple items keeps selection until arrow without modifier', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
-    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
-    fireEvent.keyUp(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
-    const taskItems = document.querySelectorAll('.tasks-pane .item');
-    expect(taskItems[1]?.classList.contains('selected')).toBe(true);
+    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyUp(window, { key: 'Control', ctrlKey: false });
+    let taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
+    expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
+    expect(taskItems[1]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('single item selection clears when modifier released', async () => {
+  it('single item selection clears when Ctrl released', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
-    fireEvent.keyUp(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
+    fireEvent.keyUp(window, { key: 'Control', ctrlKey: false });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });
@@ -169,10 +178,10 @@ describe('App multi-select', () => {
     }
   });
 
-  it('Meta in lists pane does not trigger multi-select', async () => {
+  it('Control in lists pane does not trigger multi-select', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     const listItems = document.querySelectorAll('.lists-pane .item');
     for (const item of listItems) {
       expect(item.classList.contains('cursor')).toBe(false);
@@ -190,10 +199,10 @@ describe('App multi-select', () => {
     expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('Cmd+Return when not in tasks pane does nothing', async () => {
+  it('Ctrl+Return when not in tasks pane does nothing', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     fireEvent.keyDown(window, { key: 'Enter' });
     const listItems = document.querySelectorAll('.lists-pane .item');
     for (const item of listItems) {
@@ -214,10 +223,10 @@ describe('App multi-select', () => {
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });
 
-  it('Cmd+Arrow clamps at list boundaries', async () => {
+  it('Ctrl+Arrow clamps at list boundaries', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     for (let i = 0; i < 10; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
@@ -236,22 +245,22 @@ describe('App multi-select', () => {
     expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('Cmd hides selected highlight, shows only cursor and multi-selected', async () => {
+  it('Ctrl hides selected highlight, shows only cursor and multi-selected', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('selected')).toBe(false);
     expect(taskItems[0]?.classList.contains('cursor')).toBe(true);
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
   });
 
-  it('releasing Cmd moves cursor to boundaryCursor position', async () => {
+  it('releasing Ctrl moves cursor to boundaryCursor position', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta' });
+    fireEvent.keyDown(window, { key: 'Control', ctrlKey: true });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyUp(window, { key: 'Meta' });
+    fireEvent.keyUp(window, { key: 'Control', ctrlKey: false });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[1]?.classList.contains('selected')).toBe(true);
   });
@@ -259,7 +268,6 @@ describe('App multi-select', () => {
   it('Cmd+Enter toggles task completion on and off', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1');
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
@@ -292,7 +300,7 @@ describe('App multi-select', () => {
   it('handles Meta keyup without prior keydown', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyUp(window, { key: 'Meta' });
+    fireEvent.keyUp(window, { key: 'Control', ctrlKey: false });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('selected')).toBe(true);
   });
