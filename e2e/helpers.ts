@@ -16,8 +16,13 @@ export async function launchApp(testDbName: string): Promise<{ app: ElectronAppl
   const isDev = process.env.SANKALPA_DEV === '1';
   const headless = process.env.HEADLESS === '1';
   
+  const launchArgs = headless ? ['.', '--test-headless'] : ['.'];
+  if (typeof process.getuid === 'function' && process.getuid() === 0) {
+    launchArgs.push('--no-sandbox');
+  }
+
   const app = await electron.launch({
-    args: headless ? ['.', '--test-headless'] : ['.'],
+    args: launchArgs,
     env: {
       ...process.env,
       SANKALPA_DB_PATH: dbPath,
