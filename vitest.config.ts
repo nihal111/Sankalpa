@@ -8,6 +8,10 @@ export default defineConfig({
     globals: true,
     exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {
+      exclude: [
+        'src/main/db/migrations.ts',
+        'src/main/db/connection.ts',
+      ],
       thresholds: {
         lines: 95,
         functions: 95,

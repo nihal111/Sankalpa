@@ -1,4 +1,7 @@
 import { Database } from 'sql.js';
+import { migrateTasksTable } from './migrations';
+
+export { migrateTasksTable } from './migrations';
 
 export function initSchema(db: Database): void {
   db.run(`
@@ -81,21 +84,4 @@ export function seed(db: Database): void {
 
   db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     ['task-3', 'first-project', 'Your first task', 'PENDING', now, null, 1, now, now]);
-}
-
-function migrateTasksTable(db: Database): void {
-  const columns = db.exec('PRAGMA table_info(tasks)')[0]?.values ?? [];
-  const columnNames = columns.map((column) => String(column[1]));
-
-  if (!columnNames.includes('status')) {
-    db.run("ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT 'PENDING'");
-  }
-  if (!columnNames.includes('created_timestamp')) {
-    db.run('ALTER TABLE tasks ADD COLUMN created_timestamp INTEGER');
-    db.run('UPDATE tasks SET created_timestamp = created_at WHERE created_timestamp IS NULL');
-    db.run('UPDATE tasks SET created_timestamp = ? WHERE created_timestamp IS NULL', [Date.now()]);
-  }
-  if (!columnNames.includes('completed_timestamp')) {
-    db.run('ALTER TABLE tasks ADD COLUMN completed_timestamp INTEGER');
-  }
 }

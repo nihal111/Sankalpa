@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import { setupMockApi, navigateToUserList } from './test-utils';
 
@@ -189,5 +189,101 @@ describe('App navigation', () => {
       const inbox = document.querySelector('.lists-pane .item.smart-list');
       expect(inbox?.classList.contains('has-items')).toBe(true);
     });
+  });
+
+  it('navigating to Completed smart list loads completed tasks', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({
+      tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
+    // Completed is at index 4 in SMART_LISTS
+    for (let i = 0; i < 4; i++) {
+      fireEvent.keyDown(window, { key: 'ArrowDown' });
+    }
+    fireEvent.keyDown(window, { key: 'Tab' });
+    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+    expect(window.api.tasksGetCompleted).toHaveBeenCalled();
+  });
+
+  it('Cmd+Enter toggles task completion from tasks pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
+  });
+
+  it('right arrow on list in sidebar focuses tasks pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
+  });
+
+  it('left arrow on nested list navigates to parent folder', async () => {
+    setupMockApi({
+      foldersGetAll: vi.fn().mockResolvedValue([
+        { id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
+      ]),
+      listsGetAll: vi.fn().mockResolvedValue([
+        { id: '1', folder_id: 'f1', name: 'Nested', sort_key: 1, created_at: 0, updated_at: 0 },
+      ]),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Nested')).toBeDefined());
+    // 5 smart lists (0-4), folder (5), nested list (6) — press down 6 times
+    for (let i = 0; i < 6; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    // Verify we're on the nested list by checking tasks header
+    await waitFor(() => {
+      const header = document.querySelector('.tasks-pane h2');
+      expect(header?.textContent).toBe('Nested');
+    });
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    // Should navigate to parent folder
+    await waitFor(() => expect(screen.getByText('Folder').closest('li')?.classList.contains('selected')).toBe(true));
+  });
+
+  it('left arrow in tasks pane switches to lists pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(document.querySelector('.lists-pane')?.classList.contains('focused')).toBe(true);
+  });
+
+  it('right arrow in tasks pane does not switch pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
+  });
+
+  it('toggling task on Completed list reloads completed tasks', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
+    ];
+    const getCompletedMock = vi.fn().mockResolvedValue(completedTasks);
+    setupMockApi({
+      tasksGetCompleted: getCompletedMock,
+      tasksToggleCompleted: vi.fn().mockResolvedValue(undefined),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Tab' });
+    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+    const callsBefore = getCompletedMock.mock.calls.length;
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('ct1'));
+    // reloadTasks should call tasksGetCompleted again
+    await waitFor(() => expect(getCompletedMock.mock.calls.length).toBeGreaterThan(callsBefore));
   });
 });

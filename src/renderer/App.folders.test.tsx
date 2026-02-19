@@ -249,4 +249,34 @@ describe('App folders', () => {
     fireEvent.blur(input);
     expect(document.querySelector('.lists-pane input')).toBeNull();
   });
+
+  it('left arrow on collapsed folder does nothing', async () => {
+    const foldersWithData: Folder[] = [
+      { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 0, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({
+      foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    // Should stay on the folder
+    expect(screen.getByText('Projects').closest('li')?.classList.contains('selected')).toBe(true);
+    expect(window.api.foldersToggleExpanded).not.toHaveBeenCalled();
+  });
+
+  it('left arrow on expanded folder collapses it', async () => {
+    const foldersWithData: Folder[] = [
+      { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({
+      foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    await waitFor(() => expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1'));
+  });
 });

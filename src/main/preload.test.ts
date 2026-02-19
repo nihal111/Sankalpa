@@ -101,6 +101,15 @@ describe('preload', () => {
 
     const api = mockExposeInMainWorld.mock.calls[0][1];
 
+    api.tasksGetInbox();
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getInbox');
+
+    api.tasksGetCompleted();
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getCompleted');
+
+    api.tasksGetInboxCount();
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getInboxCount');
+
     api.tasksGetByList('list1');
     expect(mockInvoke).toHaveBeenCalledWith('tasks:getByList', 'list1');
 
@@ -110,6 +119,9 @@ describe('preload', () => {
     api.tasksUpdate('t1', 'newtitle');
     expect(mockInvoke).toHaveBeenCalledWith('tasks:update', 't1', 'newtitle');
 
+    api.tasksToggleCompleted('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:toggleCompleted', 't1');
+
     api.tasksDelete('t1');
     expect(mockInvoke).toHaveBeenCalledWith('tasks:delete', 't1');
 
@@ -118,6 +130,18 @@ describe('preload', () => {
 
     api.tasksMove('t1', 'list2');
     expect(mockInvoke).toHaveBeenCalledWith('tasks:move', 't1', 'list2');
+  });
+
+  it('settings methods invoke correct IPC channels', async () => {
+    await import('./preload');
+
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+
+    api.settingsGetAll();
+    expect(mockInvoke).toHaveBeenCalledWith('settings:getAll');
+
+    api.settingsSet('theme', 'dark');
+    expect(mockInvoke).toHaveBeenCalledWith('settings:set', 'theme', 'dark');
   });
 
   it('calcSortKey invokes correct IPC channel', async () => {

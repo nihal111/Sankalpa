@@ -4,7 +4,7 @@ import { initSchema } from './schema';
 import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
-  getInboxTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, deleteTask, reorderTask, moveTask,
+  getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   getSetting, setSetting, getAllSettings,
 } from './queries';
 
@@ -239,6 +239,28 @@ describe('tasks', () => {
     createTask(db, 't2', null, 'Inbox 2');
     createTask(db, 't3', 'inbox', 'List Task');
     expect(getInboxTaskCount(db)).toBe(2);
+  });
+
+  it('toggleTaskCompleted marks task as completed and back', () => {
+    createTask(db, 't1', 'inbox', 'Task');
+    toggleTaskCompleted(db, 't1');
+    const completed = getTasksByList(db, 'inbox');
+    expect(completed[0].status).toBe('COMPLETED');
+    expect(completed[0].completed_timestamp).not.toBeNull();
+
+    toggleTaskCompleted(db, 't1');
+    const pending = getTasksByList(db, 'inbox');
+    expect(pending[0].status).toBe('PENDING');
+    expect(pending[0].completed_timestamp).toBeNull();
+  });
+
+  it('getCompletedTasks returns only completed tasks', () => {
+    createTask(db, 't1', 'inbox', 'Done');
+    createTask(db, 't2', 'inbox', 'Not Done');
+    toggleTaskCompleted(db, 't1');
+    const completed = getCompletedTasks(db);
+    expect(completed).toHaveLength(1);
+    expect(completed[0].title).toBe('Done');
   });
 });
 

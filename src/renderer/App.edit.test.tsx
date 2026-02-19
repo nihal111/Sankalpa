@@ -149,6 +149,19 @@ describe('App edit mode', () => {
     expect(window.api.tasksDelete).not.toHaveBeenCalled();
   });
 
+  it('Cmd+Enter does nothing when no tasks', async () => {
+    const emptyTasksMock = vi.fn().mockResolvedValue([]);
+    window.api.tasksGetByList = emptyTasksMock;
+    render(<App />);
+    await waitFor(() => expect(document.querySelectorAll('.lists-pane .item.list').length).toBeGreaterThan(0));
+    for (let i = 0; i < 5; i++) {
+      fireEvent.keyDown(window, { key: 'ArrowDown' });
+    }
+    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    expect(window.api.tasksToggleCompleted).not.toHaveBeenCalled();
+  });
+
   it('deletes task from inbox and reloads', async () => {
     const inboxTasks = [
       { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },

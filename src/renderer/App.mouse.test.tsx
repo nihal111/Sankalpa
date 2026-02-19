@@ -87,3 +87,68 @@ describe('App mouse interactions', () => {
     expect(window.api.foldersToggleExpanded).not.toHaveBeenCalled();
   });
 });
+
+describe('Sidebar resize', () => {
+  beforeEach(() => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+  });
+
+  it('resizes sidebar on drag', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const handle = document.querySelector('.sidebar-resize-handle') as HTMLElement;
+    const sidebar = document.querySelector('.lists-pane') as HTMLElement;
+    Object.defineProperty(sidebar, 'offsetWidth', { value: 240 });
+    fireEvent.mouseDown(handle, { clientX: 240 });
+    fireEvent.mouseMove(document, { clientX: 300 });
+    expect(sidebar.style.width).toBe('300px');
+    fireEvent.mouseUp(document);
+    // After mouseUp, further moves should not resize
+    fireEvent.mouseMove(document, { clientX: 400 });
+    expect(sidebar.style.width).toBe('300px');
+  });
+
+  it('clamps sidebar width to min/max', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const handle = document.querySelector('.sidebar-resize-handle') as HTMLElement;
+    const sidebar = document.querySelector('.lists-pane') as HTMLElement;
+    Object.defineProperty(sidebar, 'offsetWidth', { value: 240 });
+    fireEvent.mouseDown(handle, { clientX: 240 });
+    fireEvent.mouseMove(document, { clientX: 50 });
+    expect(sidebar.style.width).toBe('160px');
+    fireEvent.mouseMove(document, { clientX: 800 });
+    expect(sidebar.style.width).toBe('480px');
+    fireEvent.mouseUp(document);
+  });
+});
+
+describe('Checkbox interactions', () => {
+  beforeEach(() => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+  });
+
+  it('clicking checkbox toggles task completion', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const workItem = screen.getByText('Work').closest('li');
+    fireEvent.click(workItem!);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    const checkbox = screen.getByLabelText('mark Task 1 as complete');
+    fireEvent.click(checkbox);
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
+  });
+
+  it('clicking checkbox does not select the task row', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const workItem = screen.getByText('Work').closest('li');
+    fireEvent.click(workItem!);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    const checkbox = screen.getByLabelText('mark Task 2 as complete');
+    fireEvent.click(checkbox);
+    // Task 2 row should not become selected (click was on checkbox, not row)
+    const task2 = screen.getByText('Task 2').closest('li');
+    expect(task2?.classList.contains('selected')).toBe(false);
+  });
+});
