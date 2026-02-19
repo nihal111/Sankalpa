@@ -29,7 +29,7 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Tab` | Switch pane focus |
 | `↑/↓` | Move selection |
 | `←/→` | Expand/collapse folder |
-| `Enter` | Edit selected item |
+| `E` | Edit selected item |
 | `Esc` | Cancel / close / hide |
 | `Delete/Backspace` | Delete selected task |
 | `Cmd+N` | New task in current list |

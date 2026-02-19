@@ -6,10 +6,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
-| Inbox badge count | Show item count badge on the smart Inbox | UI Polish | Low | |
-| Checkboxes | Add checkbox to each task to mark it done | Task Lifecycle | Medium | |
-| Completed list | Completed smart list; tracks which list each task came from | Task Lifecycle | Medium | |
-| Undo | Cmd+Z to reverse actions, especially accidental deletes | Task Lifecycle | Medium | |
+| Completed list source tracking | Track which list each completed task came from | Task Lifecycle | Medium | |
 | Due dates | Assign due dates to tasks; powers Today/Upcoming/Overdue smart lists | Task Properties | Medium | |
 
 ## High
@@ -34,12 +31,10 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
 | Due date in detail panel | Show and edit due date in the right-side detail panel (hotkey D) | Task Properties | Medium | |
-| Edit hotkey | Change task edit trigger from Enter to E | Navigation | Low | |
 | App logo | Design and add an app logo | UI Polish | Low | |
 | Someday/Maybe list | Smart list as a parking lot for non-actionable ideas | Task Organization | Low | |
 | Trash retention | Auto-purge trash after configurable period; setting in preferences | Task Lifecycle | Medium | |
 | Headings / sections | Lightweight grouping of tasks within a list | Task Organization | Medium | |
-| Resizable sidebar | Drag to resize sidebar width | UI Polish | Low | |
 | Contextual hotkey bar | Show available keybindings in bottom bar on all main screens | UI Polish | Medium | |
 | E2E GIF recording | Run Playwright with a flag to produce GIF; attach to PRs as proof | Platform | Medium | |
 | Productivity stats | Track tasks completed per day, sum of durations, trends over time | Platform | High | |

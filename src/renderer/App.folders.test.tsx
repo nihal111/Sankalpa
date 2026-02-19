@@ -109,7 +109,7 @@ describe('App folders', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => {
       const input = document.querySelector('.lists-pane input');
       expect(input).toBeDefined();
@@ -129,7 +129,7 @@ describe('App folders', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Folder Name' } });
@@ -243,7 +243,7 @@ describe('App folders', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
     fireEvent.blur(input);

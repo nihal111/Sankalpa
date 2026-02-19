@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import { type ReactNode, type RefObject, useCallback, useRef } from 'react';
 import type { List } from '../shared/types';
 import type { SidebarItem, SmartList, EditMode, Pane } from './types';
 import { SMART_LISTS } from './types';
@@ -81,8 +81,28 @@ export function Sidebar({
   onFolderToggle,
   flashIds,
 }: SidebarProps): ReactNode {
+  const paneRef = useRef<HTMLDivElement>(null);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const pane = paneRef.current;
+    if (!pane) return;
+    const startX = e.clientX;
+    const startWidth = pane.offsetWidth;
+    const onMouseMove = (ev: MouseEvent): void => {
+      const newWidth = Math.max(160, Math.min(480, startWidth + ev.clientX - startX));
+      pane.style.width = `${newWidth}px`;
+    };
+    const onMouseUp = (): void => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, []);
+
   return (
-    <div className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
+    <div ref={paneRef} className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
       <ul className="item-list">
         {sidebarItems.slice(0, SMART_LISTS.length).map((item, i) => {
           const smartItem = item as { type: 'smart'; smartList: SmartList };
@@ -146,6 +166,7 @@ export function Sidebar({
           );
         })}
       </ul>
+      <div className="sidebar-resize-handle" onMouseDown={handleResizeStart} role="separator" aria-orientation="vertical" />
     </div>
   );
 }

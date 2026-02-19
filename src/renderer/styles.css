@@ -76,8 +76,20 @@ body {
 
 .lists-pane {
   width: 240px;
+  min-width: 160px;
+  max-width: 480px;
   border-right: 1px solid var(--border-pane);
   background: var(--bg-secondary);
+  position: relative;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
 }
 
 .tasks-pane {

@@ -11,7 +11,7 @@ describe('App edit mode', () => {
   it('enters edit mode on Enter for list', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => {
       const input = document.querySelector('.lists-pane input');
       expect(input).toBeDefined();
@@ -21,7 +21,7 @@ describe('App edit mode', () => {
   it('enters edit mode on Enter for task', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => {
       const input = document.querySelector('.tasks-pane .edit-input');
       expect(input).toBeDefined();
@@ -31,7 +31,7 @@ describe('App edit mode', () => {
   it('cancels edit mode on Escape', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(document.querySelector('.lists-pane input')).toBeNull();
@@ -40,7 +40,7 @@ describe('App edit mode', () => {
   it('commits list edit on Enter', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Name' } });
@@ -51,7 +51,7 @@ describe('App edit mode', () => {
   it('commits task edit on Enter', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
     const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Task' } });
@@ -62,7 +62,7 @@ describe('App edit mode', () => {
   it('cancels edit on blur', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
     fireEvent.blur(input);
@@ -72,7 +72,7 @@ describe('App edit mode', () => {
   it('does not commit empty edit', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '   ' } });
@@ -89,14 +89,14 @@ describe('App edit mode', () => {
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
     fireEvent.keyDown(window, { key: 'Tab' });
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     expect(document.querySelector('input')).toBeNull();
   });
 
   it('task edit input loses focus on blur', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
     const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
     fireEvent.blur(input);
@@ -109,7 +109,7 @@ describe('App edit mode', () => {
     for (let i = 0; i < 6; i++) {
       fireEvent.keyDown(window, { key: 'ArrowUp' });
     }
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     expect(document.querySelector('.lists-pane input')).toBeNull();
   });
 
@@ -118,7 +118,7 @@ describe('App edit mode', () => {
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Shift' });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'e' });
     expect(document.querySelector('.tasks-pane .edit-input')).toBeNull();
   });
 

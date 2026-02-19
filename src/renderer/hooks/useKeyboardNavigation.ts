@@ -66,7 +66,7 @@ export function useKeyboardNavigation(
     if (e.key === 'Tab') { e.preventDefault(); if (state.hasSelection) actions.clearSelection(); actions.switchPane(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
-    if (e.key === 'Enter') { e.preventDefault(); if (state.hasSelection || !state.canEdit) return; actions.startEdit(); return; }
+    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || !state.canEdit) return; actions.startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
   }, [actions, state]);
 
