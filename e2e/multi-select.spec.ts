@@ -69,3 +69,30 @@ test('Cmd+Enter toggles completion on selected task', async () => {
   await press(page, 'Enter', { meta: true });
   await expect(page.locator('.tasks-pane .item').nth(0)).not.toHaveClass(/completed/);
 });
+
+
+test('Ctrl+Arrow+Enter toggles selection at cursor', async () => {
+  await press(page, 'ArrowUp');
+  await press(page, 'ArrowUp');
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true }));
+  });
+  await page.waitForTimeout(20);
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', ctrlKey: true, bubbles: true }));
+  });
+  await page.waitForTimeout(50);
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
+  });
+  await page.waitForTimeout(50);
+
+  expect(await getSelectedIndices(page, '.tasks-pane .item')).toEqual([0, 1]);
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control', ctrlKey: false, bubbles: true }));
+  });
+});
