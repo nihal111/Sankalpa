@@ -175,9 +175,9 @@ export async function createList(page: Page, name: string): Promise<void> {
 
 export async function createTask(page: Page, title: string): Promise<void> {
   await press(page, 'n', { meta: true });
-  await page.waitForSelector('.tasks-pane input');
-  await page.locator('.tasks-pane input').fill(title);
-  await page.locator('.tasks-pane input').press('Enter');
+  await page.waitForSelector('.tasks-pane .edit-input');
+  await page.locator('.tasks-pane .edit-input').fill(title);
+  await page.locator('.tasks-pane .edit-input').press('Enter');
   await page.waitForTimeout(100);
 }
 

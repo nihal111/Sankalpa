@@ -86,7 +86,7 @@ export function moveList(db: Database, id: string, folderId: string | null): voi
 }
 
 export function getTaskCount(db: Database, listId: string): number {
-  const result = queryOne<{ count: number }>(db, 'SELECT COUNT(*) as count FROM tasks WHERE list_id = ?', [listId]);
+  const result = queryOne<{ count: number }>(db, "SELECT COUNT(*) as count FROM tasks WHERE list_id = ? AND status = 'PENDING'", [listId]);
   return result!.count;
 }
 
@@ -96,8 +96,12 @@ export function getInboxTasks(db: Database): Task[] {
   return queryAll<Task>(db, 'SELECT * FROM tasks WHERE list_id IS NULL ORDER BY sort_key', []);
 }
 
+export function getCompletedTasks(db: Database): Task[] {
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE status = 'COMPLETED' ORDER BY completed_timestamp DESC", []);
+}
+
 export function getInboxTaskCount(db: Database): number {
-  const result = queryOne<{ count: number }>(db, 'SELECT COUNT(*) as count FROM tasks WHERE list_id IS NULL', []);
+  const result = queryOne<{ count: number }>(db, "SELECT COUNT(*) as count FROM tasks WHERE list_id IS NULL AND status = 'PENDING'", []);
   return result!.count;
 }
 
@@ -108,13 +112,35 @@ export function getTasksByList(db: Database, listId: string): Task[] {
 export function createTask(db: Database, id: string, listId: string | null, title: string): Task {
   const sortKey = listId ? getNextSortKey(db, 'tasks', listId) : getNextSortKey(db, 'tasks');
   const now = Date.now();
-  db.run('INSERT INTO tasks (id, list_id, title, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, listId, title, sortKey, now, now]);
-  return { id, list_id: listId, title, sort_key: sortKey, created_at: now, updated_at: now };
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, listId, title, 'PENDING', now, null, sortKey, now, now]);
+  return {
+    id,
+    list_id: listId,
+    title,
+    status: 'PENDING',
+    created_timestamp: now,
+    completed_timestamp: null,
+    sort_key: sortKey,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 export function updateTask(db: Database, id: string, title: string): void {
   db.run('UPDATE tasks SET title = ?, updated_at = ? WHERE id = ?', [title, Date.now(), id]);
+}
+
+export function toggleTaskCompleted(db: Database, id: string): void {
+  const now = Date.now();
+  db.run(`
+    UPDATE tasks
+    SET
+      status = CASE WHEN status = 'COMPLETED' THEN 'PENDING' ELSE 'COMPLETED' END,
+      completed_timestamp = CASE WHEN status = 'COMPLETED' THEN NULL ELSE ? END,
+      updated_at = ?
+    WHERE id = ?
+  `, [now, now, id]);
 }
 
 export function deleteTask(db: Database, id: string): void {

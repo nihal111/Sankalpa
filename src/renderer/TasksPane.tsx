@@ -18,6 +18,7 @@ interface TasksPaneProps {
   cmdHeld: boolean;
   boundaryCursor: number | null;
   onTaskClick: (index: number) => void;
+  onTaskToggle: (taskId: string) => void;
   flashIds: Set<string>;
 }
 
@@ -37,6 +38,7 @@ export function TasksPane({
   cmdHeld,
   boundaryCursor,
   onTaskClick,
+  onTaskToggle,
   flashIds,
 }: TasksPaneProps): ReactNode {
   return (
@@ -46,9 +48,16 @@ export function TasksPane({
         {tasks.map((task, i) => (
           <li
             key={task.id}
-            className={`item ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''}`}
+            className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''}`}
             onClick={() => onTaskClick(i)}
           >
+            <input
+              type="checkbox"
+              checked={task.status === 'COMPLETED'}
+              onChange={() => onTaskToggle(task.id)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`mark ${task.title || 'untitled task'} as complete`}
+            />
             {editMode?.type === 'task' && editMode.index === i ? (
               <input
                 ref={inputRef}

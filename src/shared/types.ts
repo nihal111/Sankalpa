@@ -20,6 +20,9 @@ export interface Task {
   id: string;
   list_id: string | null;
   title: string;
+  status: 'PENDING' | 'COMPLETED';
+  created_timestamp: number;
+  completed_timestamp: number | null;
   sort_key: number;
   created_at: number;
   updated_at: number;
@@ -43,10 +46,12 @@ export interface Api {
   listsGetTaskCount: (listId: string) => Promise<number>;
 
   tasksGetInbox: () => Promise<Task[]>;
+  tasksGetCompleted: () => Promise<Task[]>;
   tasksGetInboxCount: () => Promise<number>;
   tasksGetByList: (listId: string) => Promise<Task[]>;
   tasksCreate: (id: string, listId: string | null, title: string) => Promise<Task>;
   tasksUpdate: (id: string, title: string) => Promise<void>;
+  tasksToggleCompleted: (id: string) => Promise<void>;
   tasksDelete: (id: string) => Promise<void>;
   tasksReorder: (id: string, sortKey: number) => Promise<void>;
   tasksMove: (id: string, newListId: string) => Promise<void>;

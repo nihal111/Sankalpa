@@ -23,7 +23,7 @@ describe('App edit mode', () => {
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Enter' });
     await waitFor(() => {
-      const input = document.querySelector('.tasks-pane input');
+      const input = document.querySelector('.tasks-pane .edit-input');
       expect(input).toBeDefined();
     });
   });
@@ -52,8 +52,8 @@ describe('App edit mode', () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Enter' });
-    await waitFor(() => expect(document.querySelector('.tasks-pane input')).toBeDefined());
-    const input = document.querySelector('.tasks-pane input') as HTMLInputElement;
+    await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
+    const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Task' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     await waitFor(() => expect(window.api.tasksUpdate).toHaveBeenCalledWith('t1', 'New Task'));
@@ -97,10 +97,10 @@ describe('App edit mode', () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Enter' });
-    await waitFor(() => expect(document.querySelector('.tasks-pane input')).toBeDefined());
-    const input = document.querySelector('.tasks-pane input') as HTMLInputElement;
+    await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
+    const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
     fireEvent.blur(input);
-    expect(document.querySelector('.tasks-pane input')).toBeNull();
+    expect(document.querySelector('.tasks-pane .edit-input')).toBeNull();
   });
 
   it('does not enter edit mode on smart list', async () => {
@@ -119,7 +119,7 @@ describe('App edit mode', () => {
     fireEvent.keyDown(window, { key: 'Shift' });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'Enter' });
-    expect(document.querySelector('.tasks-pane input')).toBeNull();
+    expect(document.querySelector('.tasks-pane .edit-input')).toBeNull();
   });
 
   it('deletes task on Delete key', async () => {
@@ -151,7 +151,7 @@ describe('App edit mode', () => {
 
   it('deletes task from inbox and reloads', async () => {
     const inboxTasks = [
-      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),

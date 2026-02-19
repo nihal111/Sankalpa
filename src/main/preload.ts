@@ -25,10 +25,12 @@ contextBridge.exposeInMainWorld('api', {
 
   // Tasks
   tasksGetInbox: () => ipcRenderer.invoke('tasks:getInbox'),
+  tasksGetCompleted: () => ipcRenderer.invoke('tasks:getCompleted'),
   tasksGetInboxCount: () => ipcRenderer.invoke('tasks:getInboxCount'),
   tasksGetByList: (listId: string) => ipcRenderer.invoke('tasks:getByList', listId),
   tasksCreate: (id: string, listId: string | null, title: string) => ipcRenderer.invoke('tasks:create', id, listId, title),
   tasksUpdate: (id: string, title: string) => ipcRenderer.invoke('tasks:update', id, title),
+  tasksToggleCompleted: (id: string) => ipcRenderer.invoke('tasks:toggleCompleted', id),
   tasksDelete: (id: string) => ipcRenderer.invoke('tasks:delete', id),
   tasksReorder: (id: string, sortKey: number) => ipcRenderer.invoke('tasks:reorder', id, sortKey),
   tasksMove: (id: string, newListId: string) => ipcRenderer.invoke('tasks:move', id, newListId),
