@@ -36,6 +36,7 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Cmd+Shift+N` | New list |
 | `Cmd+Shift+↑/↓` | Reorder item |
 | `M` | Move task to another list |
+| `Cmd+Enter` | Mark selected task complete |
 | `Cmd+,` | Open settings |
 
 ### Multi-select (tasks pane)
@@ -43,8 +44,8 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | Key | Action |
 |-----|--------|
 | `Shift+↑/↓` | Extend/contract selection |
-| `Cmd+↑/↓` | Move cursor without selecting |
-| `Cmd+Enter` | Toggle selection at cursor |
+| `Ctrl+↑/↓` | Move cursor without selecting |
+| `Ctrl+Enter` | Toggle selection at cursor |
 | `Space` | Clear selection |
 
 ### Global (system-wide)

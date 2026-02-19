@@ -184,13 +184,6 @@ h2 {
   color: var(--text-secondary);
 }
 
-.task-item.completed input[type="checkbox"] + * {
-  color: var(--text-secondary);
-}
-
-.task-item.completed {
-  text-decoration: line-through;
-}
 
 .edit-input {
   width: 100%;

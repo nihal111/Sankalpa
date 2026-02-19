@@ -12,6 +12,7 @@ export interface KeyboardActions {
   handleCmdUp: () => number | null;
   cancelEdit: Command;
   clearSelection: Command;
+  toggleAtCursor: Command;
   toggleTaskCompleted: Command;
   createList: Command;
   createTask: Command;
@@ -45,7 +46,7 @@ export function useKeyboardNavigation(
       if (!state.shiftHeld) actions.handleShiftDown();
       return;
     }
-    if (e.key === 'Meta' && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode) {
+    if (e.key === 'Control' && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode) {
       if (!state.cmdHeld) actions.handleCmdDown();
       return;
     }
@@ -55,7 +56,8 @@ export function useKeyboardNavigation(
     }
     if (actions.handleMoveKeyDown(e)) return;
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
-    if ((e.metaKey || state.cmdHeld) && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleTaskCompleted(); return; }
+    if (e.metaKey && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleTaskCompleted(); return; }
+    if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
     if (e.key === ' ' && !state.cmdHeld && state.focusedPane === 'tasks') { e.preventDefault(); actions.clearSelection(); return; }
     if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) actions.createList(); else actions.createTask(); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); actions.deleteTask(); return; }
@@ -68,7 +70,7 @@ export function useKeyboardNavigation(
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') { actions.handleShiftUp(); return; }
-    if (e.key === 'Meta') {
+    if (e.key === 'Control') {
       const cursor = actions.handleCmdUp();
       if (cursor !== null) setSelectedTaskIndex(cursor);
       return;
