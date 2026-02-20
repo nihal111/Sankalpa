@@ -160,6 +160,24 @@ describe('Checkbox interactions', () => {
     await waitFor(() => expect(completedItem?.classList.contains('selected')).toBe(true));
   });
 
+  it('completed view shows origin list name for each task', async () => {
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
+      tasksGetCompleted: () => Promise.resolve([
+        { id: 'c1', list_id: '2', title: 'Done task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
+        { id: 'c2', list_id: null, title: 'Inbox task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 2, created_at: 0, updated_at: 0 },
+      ]),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
+    fireEvent.click(screen.getByText('Completed').closest('li')!);
+    await waitFor(() => expect(screen.getByText('Done task')).toBeDefined());
+    const origins = document.querySelectorAll('.task-origin');
+    expect(origins.length).toBe(2);
+    expect(origins[0].textContent).toBe('Work');
+    expect(origins[1].textContent).toBe('Inbox');
+  });
+
   it('clicking a folder selects it', async () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),

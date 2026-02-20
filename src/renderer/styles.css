@@ -195,6 +195,14 @@ h2 {
   color: var(--text-secondary);
 }
 
+.task-origin {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
 
 .edit-input {
   width: 100%;

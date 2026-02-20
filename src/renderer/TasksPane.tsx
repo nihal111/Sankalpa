@@ -20,6 +20,7 @@ interface TasksPaneProps {
   onTaskClick: (index: number) => void;
   onTaskToggle: (taskId: string) => void;
   flashIds: Set<string>;
+  listNames?: Record<string, string>;
 }
 
 export function TasksPane({
@@ -40,6 +41,7 @@ export function TasksPane({
   onTaskClick,
   onTaskToggle,
   flashIds,
+  listNames,
 }: TasksPaneProps): ReactNode {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
@@ -71,6 +73,7 @@ export function TasksPane({
             ) : (
               task.title || '\u00A0'
             )}
+            {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}
           </li>
         ))}
       </ul>

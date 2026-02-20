@@ -44,6 +44,7 @@ export default function App(): ReactNode {
         onTaskClick={state.handleTaskClick}
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
+        listNames={state.isCompletedView ? state.listNames : undefined}
       />
       {state.moveMode && (
         <div className="move-overlay">

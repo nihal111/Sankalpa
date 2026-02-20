@@ -24,8 +24,16 @@ export function useAppState() {
   const { flashIds, flash } = useFlash();
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
-  const { tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
+  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists } = dataActions;
+
+  const listNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const l of lists) map[l.id] = l.name;
+    return map;
+  }, [lists]);
+
+  const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
 
   const afterUndo = useCallback(async () => {
     await reloadData();
@@ -234,5 +242,7 @@ export function useAppState() {
     handleTaskToggle,
     handleFolderToggle,
     flashIds,
+    listNames,
+    isCompletedView,
   };
 }
