@@ -88,22 +88,22 @@ export function useEditState(params: UseEditStateParams): [
     if (editMode.type === 'list') {
       const id = editMode.id;
       await window.api.listsUpdate(id, newValue);
-      if (oldValue && oldValue !== newValue) {
-        undoPush({ execute: async () => { await window.api.listsUpdate(id, oldValue); } });
+      if (oldValue != null && oldValue !== newValue) {
+        undoPush({ undo: async () => { await window.api.listsUpdate(id, oldValue); }, redo: async () => { await window.api.listsUpdate(id, newValue); } });
       }
       await reloadData();
     } else if (editMode.type === 'folder') {
       const id = editMode.id;
       await window.api.foldersUpdate(id, newValue);
-      if (oldValue && oldValue !== newValue) {
-        undoPush({ execute: async () => { await window.api.foldersUpdate(id, oldValue); } });
+      if (oldValue != null && oldValue !== newValue) {
+        undoPush({ undo: async () => { await window.api.foldersUpdate(id, oldValue); }, redo: async () => { await window.api.foldersUpdate(id, newValue); } });
       }
       await reloadData();
     } else {
       const taskId = tasks[editMode.index].id;
       await window.api.tasksUpdate(taskId, newValue);
-      if (oldValue && oldValue !== newValue) {
-        undoPush({ execute: async () => { await window.api.tasksUpdate(taskId, oldValue); } });
+      if (oldValue != null && oldValue !== newValue) {
+        undoPush({ undo: async () => { await window.api.tasksUpdate(taskId, oldValue); }, redo: async () => { await window.api.tasksUpdate(taskId, newValue); } });
       }
       await reloadTasks();
     }

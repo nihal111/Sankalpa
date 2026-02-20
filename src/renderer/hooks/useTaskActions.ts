@@ -48,7 +48,7 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
     onFlash?.(newTask.id);
-    undoPush({ execute: async () => { await window.api.tasksDelete(newTask.id); } });
+    undoPush({ undo: async () => { await window.api.tasksDelete(newTask.id); }, redo: async () => { await window.api.tasksRestore(newTask.id, listId, '', 'PENDING', newTask.created_timestamp, null, newTask.sort_key, newTask.created_at, newTask.updated_at); } });
   }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
@@ -67,7 +67,7 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     await window.api.tasksDelete(task.id);
     await reloadTasks();
     setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-    undoPush({ execute: async () => { await window.api.tasksRestore(id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at); } });
+    undoPush({ undo: async () => { await window.api.tasksRestore(id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at); }, redo: async () => { await window.api.tasksDelete(id); } });
   }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush]);
 
   const handleReorder = useCallback(async (direction: -1 | 1) => {
@@ -83,9 +83,12 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       await reloadTasks();
       setSelectedTaskIndex(newIndex);
       onFlash?.(item.id);
-      undoPush({ execute: async () => {
+      undoPush({ undo: async () => {
         await window.api.tasksReorder(item.id, origItemSortKey);
         await window.api.tasksReorder(neighbor.id, origNeighborSortKey);
+      }, redo: async () => {
+        await window.api.tasksReorder(item.id, neighbor.sort_key);
+        await window.api.tasksReorder(neighbor.id, item.sort_key);
       } });
     }
   }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash, undoPush]);

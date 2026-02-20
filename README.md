@@ -37,6 +37,8 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Cmd+Shift+↑/↓` | Reorder item |
 | `M` | Move task to another list |
 | `Cmd+Enter` | Mark selected task complete |
+| `Cmd+Z` | Undo |
+| `Cmd+Shift+Z` | Redo |
 | `Cmd+,` | Open settings |
 
 ### Multi-select (tasks pane)

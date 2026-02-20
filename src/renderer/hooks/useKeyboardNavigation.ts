@@ -23,6 +23,7 @@ export interface KeyboardActions {
   startEdit: Command;
   startMove: Command;
   undo: Command;
+  redo: Command;
 }
 
 export interface KeyboardState {
@@ -55,6 +56,7 @@ export function useKeyboardNavigation(
       if (e.key === 'Escape') { e.preventDefault(); actions.cancelEdit(); }
       return;
     }
+    if (e.metaKey && e.shiftKey && e.key === 'z') { e.preventDefault(); actions.redo(); return; }
     if (e.metaKey && e.key === 'z') { e.preventDefault(); actions.undo(); return; }
     if (actions.handleMoveKeyDown(e)) return;
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
@@ -66,7 +68,7 @@ export function useKeyboardNavigation(
     if (e.key === 'Tab') { e.preventDefault(); if (state.hasSelection) actions.clearSelection(); actions.switchPane(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
-    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || !state.canEdit) return; actions.startEdit(); return; }
+    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
   }, [actions, state]);
 

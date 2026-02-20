@@ -155,4 +155,11 @@ describe('preload', () => {
     api.calcSortKey(null, 1);
     expect(mockInvoke).toHaveBeenCalledWith('util:calcSortKey', null, 1);
   });
+
+  it('listsRestore invokes correct IPC channel', async () => {
+    await import('./preload');
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    api.listsRestore('l1', null, 'My List', 5, 100, 200);
+    expect(mockInvoke).toHaveBeenCalledWith('lists:restore', 'l1', null, 'My List', 5, 100, 200);
+  });
 });

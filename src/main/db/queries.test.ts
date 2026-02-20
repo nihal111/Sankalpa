@@ -5,6 +5,7 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
+  restoreList,
   getSetting, setSetting, getAllSettings,
 } from './queries';
 
@@ -292,5 +293,15 @@ describe('settings', () => {
     setSetting(db, 'hardcore_mode', '1');
     const settings = getAllSettings(db);
     expect(settings).toEqual({ theme: 'dark', hardcore_mode: '1' });
+  });
+
+  it('restoreList re-inserts a deleted list', () => {
+    const list = createList(db, 'rl1', 'Restored', undefined);
+    deleteList(db, 'rl1');
+    expect(getAllLists(db).find((l) => l.id === 'rl1')).toBeUndefined();
+    restoreList(db, list.id, list.folder_id, list.name, list.sort_key, list.created_at, list.updated_at);
+    const restored = getAllLists(db).find((l) => l.id === 'rl1');
+    expect(restored).toBeDefined();
+    expect(restored!.name).toBe('Restored');
   });
 });

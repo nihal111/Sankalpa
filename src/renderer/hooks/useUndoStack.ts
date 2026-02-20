@@ -1,28 +1,42 @@
 import { useRef, useCallback } from 'react';
 
 export interface UndoEntry {
-  execute: () => Promise<void>;
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
 }
 
 export interface UndoStack {
   push: (entry: UndoEntry) => void;
   undo: () => Promise<boolean>;
+  redo: () => Promise<boolean>;
 }
 
 export function useUndoStack(afterUndo: () => Promise<void>): UndoStack {
-  const stackRef = useRef<UndoEntry[]>([]);
+  const undoRef = useRef<UndoEntry[]>([]);
+  const redoRef = useRef<UndoEntry[]>([]);
 
   const push = useCallback((entry: UndoEntry) => {
-    stackRef.current.push(entry);
+    undoRef.current.push(entry);
+    redoRef.current = [];
   }, []);
 
   const undo = useCallback(async (): Promise<boolean> => {
-    const entry = stackRef.current.pop();
+    const entry = undoRef.current.pop();
     if (!entry) return false;
-    await entry.execute();
+    await entry.undo();
+    redoRef.current.push(entry);
     await afterUndo();
     return true;
   }, [afterUndo]);
 
-  return { push, undo };
+  const redo = useCallback(async (): Promise<boolean> => {
+    const entry = redoRef.current.pop();
+    if (!entry) return false;
+    await entry.redo();
+    undoRef.current.push(entry);
+    await afterUndo();
+    return true;
+  }, [afterUndo]);
+
+  return { push, undo, redo };
 }

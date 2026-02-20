@@ -151,4 +151,24 @@ describe('Checkbox interactions', () => {
     const task2 = screen.getByText('Task 2').closest('li');
     expect(task2?.classList.contains('selected')).toBe(false);
   });
+
+  it('clicking a smart list selects it', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
+    const completedItem = screen.getByText('Completed').closest('li');
+    fireEvent.click(completedItem!);
+    await waitFor(() => expect(completedItem?.classList.contains('selected')).toBe(true));
+  });
+
+  it('clicking a folder selects it', async () => {
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
+      foldersGetAll: () => Promise.resolve([{ id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 }]),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
+    const folderItem = screen.getByText('Projects').closest('li');
+    fireEvent.click(folderItem!);
+    await waitFor(() => expect(folderItem?.classList.contains('selected')).toBe(true));
+  });
 });

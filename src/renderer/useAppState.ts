@@ -31,7 +31,7 @@ export function useAppState() {
     await reloadData();
     await reloadTasks();
   }, [reloadData, reloadTasks]);
-  const { push: undoPush, undo } = useUndoStack(afterUndo);
+  const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
 
   const handleMoveCommit = useCallback(async (targetListId: string, taskIds: string[]) => {
     const originals = taskIds.map((id) => {
@@ -41,7 +41,7 @@ export function useAppState() {
     for (const taskId of taskIds) {
       await window.api.tasksMove(taskId, targetListId);
     }
-    undoPush({ execute: async () => {
+    undoPush({ undo: async () => {
       for (const orig of originals) {
         if (orig.listId !== null) {
           await window.api.tasksMove(orig.id, orig.listId);
@@ -49,6 +49,10 @@ export function useAppState() {
           await window.api.tasksSetListId(orig.id, null);
         }
         await window.api.tasksReorder(orig.id, orig.sortKey);
+      }
+    }, redo: async () => {
+      for (const taskId of taskIds) {
+        await window.api.tasksMove(taskId, targetListId);
       }
     } });
     taskIds.forEach(flash);
@@ -110,7 +114,7 @@ export function useAppState() {
     setEditMode({ type: 'list', id: newList.id });
     setEditValue('');
     flash(newList.id);
-    undoPush({ execute: async () => { await window.api.listsDelete(newList.id); } });
+    undoPush({ undo: async () => { await window.api.listsDelete(newList.id); }, redo: async () => { await window.api.listsRestore(newList.id, newList.folder_id, '', newList.sort_key, newList.created_at, newList.updated_at); } });
   }, [selectedSidebarItem, selectedSidebarIndex, setEditMode, setEditValue, setFolders, setLists, flash, undoPush]);
 
   const handleArrowNavigation = useArrowNavigation({
@@ -152,7 +156,8 @@ export function useAppState() {
     startEdit: editActions.start,
     startMove,
     undo,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo]);
+    redo,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
     editMode, moveMode, focusedPane, shiftHeld, cmdHeld,
