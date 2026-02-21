@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { Folder, List, Task } from '../../shared/types';
 import { buildSidebarItems, SidebarItem } from '../utils/buildSidebarItems';
+import { todayBounds } from '../utils/dateBounds';
 
 interface DataState {
   folders: Folder[];
@@ -43,19 +44,27 @@ export function useDataState(
     setLists(l);
   }, []);
 
-  const reloadTasks = useCallback(async () => {
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
-      setTasks(await window.api.tasksGetInbox());
-      return;
+  const loadSmartTasks = useCallback(async (smartId: string): Promise<Task[]> => {
+    const [start, end] = todayBounds();
+    switch (smartId) {
+      case 'inbox': return window.api.tasksGetInbox();
+      case 'completed': return window.api.tasksGetCompleted();
+      case 'overdue': return window.api.tasksGetOverdue(start);
+      case 'today': return window.api.tasksGetDueBetween(start, end);
+      case 'upcoming': return window.api.tasksGetUpcoming(end);
     }
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed') {
-      setTasks(await window.api.tasksGetCompleted());
+    return [];
+  }, []);
+
+  const reloadTasks = useCallback(async () => {
+    if (selectedSidebarItem?.type === 'smart') {
+      setTasks(await loadSmartTasks(selectedSidebarItem.smartList.id));
       return;
     }
     if (selectedListId && selectedSidebarItem?.type === 'list') {
       setTasks(await window.api.tasksGetByList(selectedListId));
     }
-  }, [selectedListId, selectedSidebarItem]);
+  }, [selectedListId, selectedSidebarItem, loadSmartTasks]);
 
   useEffect(() => {
     Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]).then(([f, l]) => {
@@ -66,9 +75,13 @@ export function useDataState(
 
   useEffect(() => {
     const loadCounts = async (): Promise<void> => {
+      const [start, end] = todayBounds();
       const counts: Record<string, number> = {};
       counts['inbox'] = await window.api.tasksGetInboxCount();
       counts['completed'] = (await window.api.tasksGetCompleted()).length;
+      counts['overdue'] = (await window.api.tasksGetOverdue(start)).length;
+      counts['today'] = (await window.api.tasksGetDueBetween(start, end)).length;
+      counts['upcoming'] = (await window.api.tasksGetUpcoming(end)).length;
       for (const list of lists) {
         counts[list.id] = await window.api.listsGetTaskCount(list.id);
       }
@@ -78,25 +91,20 @@ export function useDataState(
   }, [lists, tasks.length]);
 
   useEffect(() => {
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox') {
-      window.api.tasksGetInbox().then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
-      });
-    } else if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed') {
-      window.api.tasksGetCompleted().then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
+    let stale = false;
+    if (selectedSidebarItem?.type === 'smart') {
+      loadSmartTasks(selectedSidebarItem.smartList.id).then((t) => {
+        if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
       });
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
+        if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
       });
     } else {
       setTasks([]);
     }
-  }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex]);
+    return () => { stale = true; };
+  }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex, loadSmartTasks]);
 
   return [
     { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId },
