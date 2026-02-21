@@ -29,6 +29,8 @@ export interface Task {
   created_at: number;
   updated_at: number;
   deleted_at: number | null;
+  parent_id: string | null;
+  is_expanded: number; // SQLite boolean (0 or 1)
 }
 
 export interface Api {
@@ -69,6 +71,9 @@ export interface Api {
   tasksGetDueBetween: (start: number, end: number) => Promise<Task[]>;
   tasksGetOverdue: (before: number) => Promise<Task[]>;
   tasksGetUpcoming: (from: number) => Promise<Task[]>;
+  tasksSetParentId: (id: string, parentId: string | null) => Promise<void>;
+  tasksToggleExpanded: (id: string) => Promise<void>;
+  tasksGetDescendants: (id: string) => Promise<Task[]>;
 
   listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
 

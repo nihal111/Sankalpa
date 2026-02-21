@@ -693,3 +693,35 @@ h2 {
   color: var(--text-secondary);
   font-size: 12px;
 }
+
+/* Tree connectors for subtask nesting */
+.tree-connector {
+  font-family: monospace;
+  color: var(--text-secondary);
+  white-space: pre;
+  flex-shrink: 0;
+}
+
+.collapse-indicator {
+  font-size: 10px;
+  color: var(--text-secondary);
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.child-count {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Throb animation for blocked indent/outdent */
+@keyframes throb {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.item.throb {
+  animation: throb 150ms ease-in-out;
+}

@@ -1,7 +1,7 @@
-import { useCallback, useState, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import type { Task, List } from '../../shared/types';
+import type { UndoEntry } from './useUndoStack';
 import type { ConfirmationOption } from '../ConfirmationDialog';
-import type { SidebarItem } from '../types';
 
 interface ConfirmationDialogState {
   title: string;
@@ -10,28 +10,30 @@ interface ConfirmationDialogState {
 }
 
 interface UseTrashActionsParams {
-  selectedSidebarItem: SidebarItem | undefined;
+  isTrashView: boolean;
   tasks: Task[];
-  selectedTaskIndex: number;
   lists: List[];
-  setSelectedTaskIndex: (fn: (i: number) => number) => void;
+  selectedTaskIndex: number;
+  setSelectedTaskIndex: (fn: number | ((i: number) => number)) => void;
   reloadTasks: () => Promise<void>;
   reloadData: () => Promise<void>;
-  undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
+  undoPush: (entry: UndoEntry) => void;
 }
 
-export function useTrashActions({
-  selectedSidebarItem, tasks, selectedTaskIndex, lists,
-  setSelectedTaskIndex, reloadTasks, reloadData, undoPush,
-}: UseTrashActionsParams): [
-  ConfirmationDialogState | null,
-  { handlePermanentDeleteRequest: (task: Task) => void; handleRestoreTask: () => Promise<void>; closeConfirmationDialog: () => void }
-] {
+interface TrashActions {
+  confirmationDialog: ConfirmationDialogState | null;
+  closeConfirmationDialog: () => void;
+  handlePermanentDeleteRequest: (task: Task) => void;
+  handleRestoreTask: () => Promise<void>;
+  handleCascadeComplete: (task: Task, descendantCount: number, onConfirm: () => void) => void;
+  handleCascadeDelete: (task: Task, descendantCount: number, onConfirm: () => void) => void;
+}
+
+export function useTrashActions(params: UseTrashActionsParams): TrashActions {
+  const { isTrashView, tasks, lists, selectedTaskIndex, setSelectedTaskIndex, reloadTasks, reloadData, undoPush } = params;
   const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
-  const isTrashView = useMemo(() =>
-    selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash',
-  [selectedSidebarItem]);
+  const closeConfirmationDialog = useCallback(() => setConfirmationDialog(null), []);
 
   const handlePermanentDelete = useCallback(async (task: Task) => {
     const { id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at, deleted_at } = task;
@@ -101,7 +103,28 @@ export function useTrashActions({
     }
   }, [isTrashView, tasks, selectedTaskIndex, lists, reloadTasks, reloadData, setSelectedTaskIndex, undoPush]);
 
-  const closeConfirmationDialog = useCallback(() => setConfirmationDialog(null), []);
+  const handleCascadeComplete = useCallback((task: Task, descendantCount: number, onConfirm: () => void) => {
+    setConfirmationDialog({
+      title: 'Complete Task',
+      message: `Completing this task will also complete ${descendantCount} subtask${descendantCount === 1 ? '' : 's'}. Continue?`,
+      options: [{ label: 'Complete All', action: () => { setConfirmationDialog(null); onConfirm(); } }],
+    });
+  }, []);
 
-  return [confirmationDialog, { handlePermanentDeleteRequest, handleRestoreTask, closeConfirmationDialog }];
+  const handleCascadeDelete = useCallback((task: Task, descendantCount: number, onConfirm: () => void) => {
+    setConfirmationDialog({
+      title: 'Delete Task',
+      message: `Deleting this task will also delete ${descendantCount} subtask${descendantCount === 1 ? '' : 's'}. Continue?`,
+      options: [{ label: 'Delete All', action: () => { setConfirmationDialog(null); onConfirm(); } }],
+    });
+  }, []);
+
+  return {
+    confirmationDialog,
+    closeConfirmationDialog,
+    handlePermanentDeleteRequest,
+    handleRestoreTask,
+    handleCascadeComplete,
+    handleCascadeDelete,
+  };
 }

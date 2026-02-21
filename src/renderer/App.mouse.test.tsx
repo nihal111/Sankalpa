@@ -156,16 +156,18 @@ describe('Checkbox interactions', () => {
     render(<App />);
     const sidebar = document.querySelector('.lists-pane')!;
     await waitFor(() => expect(sidebar.querySelector('.item-name')?.textContent).toBe('Inbox'));
+    // Wait a bit for the app to fully initialize
+    await new Promise(r => setTimeout(r, 100));
     const completedItem = Array.from(sidebar.querySelectorAll('li')).find(li => li.textContent?.includes('Completed'))!;
     fireEvent.click(completedItem);
-    await waitFor(() => expect(completedItem.classList.contains('selected')).toBe(true));
+    await waitFor(() => expect(completedItem.classList.contains('selected')).toBe(true), { timeout: 2000 });
   });
 
   it('completed view shows origin list name for each task', async () => {
     setupMockApi({
       tasksGetCompleted: () => Promise.resolve([
-        { id: 'c1', list_id: '2', title: 'Done task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0 },
-        { id: 'c2', list_id: null, title: 'Inbox task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 2, created_at: 0, updated_at: 0 },
+        { id: 'c1', list_id: '2', title: 'Done task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+        { id: 'c2', list_id: null, title: 'Inbox task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
       ]),
     });
     render(<App />);

@@ -32,6 +32,7 @@ export default function App(): ReactNode {
       />
       <TasksPane
         tasks={state.tasks}
+        flatTasks={state.flatTasks}
         selectedTaskIndex={state.selectedTaskIndex}
         focusedPane={state.focusedPane}
         editMode={state.editMode}
@@ -48,6 +49,7 @@ export default function App(): ReactNode {
         onTaskClick={state.handleTaskClick}
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
+        throbIds={state.throbIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
         dueDateIndex={state.focusedPane === 'lists' || !state.selectedTask ? state.dueDateIndex : null}
         onDueDateCommit={state.commitDueDate}

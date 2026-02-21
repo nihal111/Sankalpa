@@ -24,4 +24,10 @@ export function migrateTasksTable(db: Database): void {
   if (!columnNames.includes('notes')) {
     db.run("ALTER TABLE tasks ADD COLUMN notes TEXT DEFAULT NULL");
   }
+  if (!columnNames.includes('parent_id')) {
+    db.run('ALTER TABLE tasks ADD COLUMN parent_id TEXT REFERENCES tasks(id)');
+  }
+  if (!columnNames.includes('is_expanded')) {
+    db.run('ALTER TABLE tasks ADD COLUMN is_expanded INTEGER NOT NULL DEFAULT 1');
+  }
 }

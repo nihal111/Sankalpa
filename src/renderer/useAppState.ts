@@ -6,15 +6,17 @@ import { useMoveState } from './hooks/useMoveState';
 import { useEditState } from './hooks/useEditState';
 import { useSidebarNavigation } from './hooks/useSidebarNavigation';
 import { useTaskActions } from './hooks/useTaskActions';
+import { useTaskNesting } from './hooks/useTaskNesting';
+import { useTrashActions } from './hooks/useTrashActions';
 import { useArrowNavigation } from './hooks/useArrowNavigation';
 import { useDataState } from './hooks/useDataState';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useKeyboardActions, useKeyboardState } from './hooks/useKeyboardActions';
 import { useFlash } from './hooks/useFlash';
 import { useUndoStack } from './hooks/useUndoStack';
-import { useTrashActions } from './hooks/useTrashActions';
 import { useDueDateState } from './hooks/useDueDateState';
 import { useListActions, useMoveCommit } from './hooks/useListActions';
+import { flattenWithDepth } from './utils/taskTree';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -25,35 +27,30 @@ export function useAppState() {
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
   const { flashIds, flash } = useFlash();
+  const { flashIds: throbIds, flash: throb } = useFlash();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
+
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
 
-  const listNames = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const l of lists) map[l.id] = l.name;
-    return map;
-  }, [lists]);
-
+  const listNames = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists]);
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
+  const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
 
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
 
-  const [confirmationDialog, trashActions] = useTrashActions({
-    selectedSidebarItem, tasks, selectedTaskIndex, lists, setSelectedTaskIndex, reloadTasks, reloadData, undoPush,
+  const trashActions = useTrashActions({
+    isTrashView, tasks, lists, selectedTaskIndex, setSelectedTaskIndex, reloadTasks, reloadData, undoPush,
   });
-  const { handlePermanentDeleteRequest, handleRestoreTask, closeConfirmationDialog } = trashActions;
 
   const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
 
-  const [edit, editActions, editSetters] = useEditState({
-    focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush,
-  });
+  const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush });
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
 
@@ -85,10 +82,15 @@ export function useAppState() {
     });
   }, [setEditMode, setEditValue, setTasks]);
 
-  const { createTask, toggleTaskCompleted, deleteTask, handleReorder } = useTaskActions({
+  const { createTask, toggleTaskCompleted, deleteTask } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, undoPush,
-    isTrashView, onPermanentDeleteRequest: handlePermanentDeleteRequest,
+    isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
+    onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete,
+  });
+
+  const { handleReorder, indentTask, outdentTask, toggleCollapse } = useTaskNesting({
+    focusedPane, selectedTaskIndex, tasks, flatTasks, setSelectedTaskIndex, reloadTasks, onFlash: flash, onThrob: throb, undoPush,
   });
 
   const handleArrowNavigation = useArrowNavigation({
@@ -147,7 +149,8 @@ export function useAppState() {
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
-    handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+    handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+    indentTask, outdentTask, toggleCollapse,
   });
 
   const keyboardState = useKeyboardState({
@@ -175,8 +178,8 @@ export function useAppState() {
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
     settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
-    flashIds, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit,
-    trashIndex, isTrashView, lists, confirmationDialog, closeConfirmationDialog,
+    flashIds, throbIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit,
+    trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,

@@ -81,8 +81,8 @@ describe('App create and reorder', () => {
         quickAddCallback = cb;
         return () => {};
       }),
-      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null }),
-      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null }]),
+      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }),
+      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }]),
     });
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
@@ -95,7 +95,7 @@ describe('App create and reorder', () => {
   });
 
   it('Cmd+N from tasks pane moves selection to new task', async () => {
-    const newTask = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null };
+    const newTask = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     const tasksGetByList = vi.fn()
       .mockResolvedValueOnce(mockTasks) // initial load
       .mockResolvedValueOnce([...mockTasks, newTask]); // after create
@@ -121,8 +121,8 @@ describe('App create and reorder', () => {
 
   it('Cmd+N creates task in inbox when smart Inbox selected', async () => {
     setupMockApi({
-      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null }),
-      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null }]),
+      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }),
+      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }]),
     });
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());

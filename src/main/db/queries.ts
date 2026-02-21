@@ -120,8 +120,8 @@ export function getAllTasks(db: Database): Task[] {
 export function createTask(db: Database, id: string, listId: string | null, title: string): Task {
   const sortKey = listId ? getNextSortKey(db, 'tasks', listId) : getNextSortKey(db, 'tasks');
   const now = Date.now();
-  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, due_date, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, listId, title, 'PENDING', now, null, null, sortKey, now, now]);
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, due_date, sort_key, created_at, updated_at, parent_id, is_expanded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, listId, title, 'PENDING', now, null, null, sortKey, now, now, null, 1]);
   return {
     id,
     list_id: listId,
@@ -135,6 +135,8 @@ export function createTask(db: Database, id: string, listId: string | null, titl
     created_at: now,
     updated_at: now,
     deleted_at: null,
+    parent_id: null,
+    is_expanded: 1,
   };
 }
 
@@ -226,4 +228,26 @@ export function setSetting(db: Database, key: string, value: string): void {
 export function getAllSettings(db: Database): Record<string, string> {
   const rows = queryAll<{ key: string; value: string }>(db, 'SELECT key, value FROM settings');
   return Object.fromEntries(rows.map(r => [r.key, r.value]));
+}
+
+// Task nesting
+
+export function setTaskParentId(db: Database, id: string, parentId: string | null): void {
+  db.run('UPDATE tasks SET parent_id = ?, updated_at = ? WHERE id = ?', [parentId, Date.now(), id]);
+}
+
+export function toggleTaskExpanded(db: Database, id: string): void {
+  db.run('UPDATE tasks SET is_expanded = NOT is_expanded, updated_at = ? WHERE id = ?', [Date.now(), id]);
+}
+
+export function getTaskDescendants(db: Database, id: string): Task[] {
+  return queryAll<Task>(db, `
+    WITH RECURSIVE descendants AS (
+      SELECT * FROM tasks WHERE parent_id = ?
+      UNION ALL
+      SELECT t.* FROM tasks t
+      INNER JOIN descendants d ON t.parent_id = d.id
+    )
+    SELECT * FROM descendants
+  `, [id]);
 }

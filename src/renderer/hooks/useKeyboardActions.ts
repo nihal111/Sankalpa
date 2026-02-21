@@ -30,6 +30,9 @@ interface UseKeyboardActionsParams {
   focusedPane: Pane;
   openSearch: () => void;
   handleStartNotesEdit: () => void;
+  indentTask: () => void;
+  outdentTask: () => void;
+  toggleCollapse: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -38,6 +41,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+    indentTask, outdentTask, toggleCollapse,
   } = params;
 
   const startMove = useCallback(() => {
@@ -71,11 +75,15 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     restoreTask: handleRestoreTask,
     openSearch,
     startNotes: handleStartNotesEdit,
+    indentTask,
+    outdentTask,
+    toggleCollapse,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, toggleTaskCompleted, createList, createTask,
     deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
+    indentTask, outdentTask, toggleCollapse,
   ]);
 }
 

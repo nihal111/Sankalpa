@@ -9,6 +9,7 @@ import {
   getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   calcSortKeyBetween, getAllSettings, setSetting,
   getTrashedTasks, softDeleteTask, restoreFromTrash, getAllTasks,
+  setTaskParentId, toggleTaskExpanded, getTaskDescendants,
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
@@ -98,6 +99,9 @@ app.whenReady().then(async () => {
   ipcMain.handle('tasks:getDueBetween', (_, start: number, end: number) => getTasksDueBetween(db, start, end));
   ipcMain.handle('tasks:getOverdue', (_, before: number) => getOverdueTasks(db, before));
   ipcMain.handle('tasks:getUpcoming', (_, from: number) => getUpcomingTasks(db, from));
+  ipcMain.handle('tasks:setParentId', (_, id: string, parentId: string | null) => { setTaskParentId(db, id, parentId); saveDb(); });
+  ipcMain.handle('tasks:toggleExpanded', (_, id: string) => { toggleTaskExpanded(db, id); saveDb(); });
+  ipcMain.handle('tasks:getDescendants', (_, id: string) => getTaskDescendants(db, id));
 
   // List undo
   ipcMain.handle('lists:restore', (_, id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => { restoreList(db, id, folderId, name, sortKey, createdAt, updatedAt); saveDb(); });

@@ -33,7 +33,7 @@ describe('App navigation', () => {
     });
   });
 
-  it('switches pane focus with Tab', async () => {
+  it('switches pane focus with Tab and ArrowLeft', async () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
     const listsPane = document.querySelector('.lists-pane');
@@ -43,7 +43,8 @@ describe('App navigation', () => {
     fireEvent.keyDown(window, { key: 'Tab' });
     expect(listsPane?.classList.contains('focused')).toBe(false);
     expect(tasksPane?.classList.contains('focused')).toBe(true);
-    fireEvent.keyDown(window, { key: 'Tab' });
+    // Tab now indents in tasks pane, use ArrowLeft to switch back
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(listsPane?.classList.contains('focused')).toBe(true);
   });
 
@@ -193,7 +194,7 @@ describe('App navigation', () => {
 
   it('navigating to Completed smart list loads completed tasks', async () => {
     const completedTasks = [
-      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks),
@@ -268,7 +269,7 @@ describe('App navigation', () => {
 
   it('toggling task on Completed list reloads completed tasks', async () => {
     const completedTasks = [
-      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
     ];
     const getCompletedMock = vi.fn().mockResolvedValue(completedTasks);
     setupMockApi({

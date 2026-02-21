@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
-import { setupMockApi, mockTasks, mockLists } from './test-utils';
+import { setupMockApi, mockTasks } from './test-utils';
 import type { Task } from '../shared/types';
 
 beforeEach(() => {
@@ -100,7 +100,7 @@ describe('App search', () => {
 
   it('shows notes snippet with bold match when search matches notes', async () => {
     const tasksWithNotes: Task[] = [
-      { id: 't1', list_id: '1', title: 'Buy groceries', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: 'Remember to get organic apples and bananas', sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+      { id: 't1', list_id: '1', title: 'Buy groceries', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: 'Remember to get organic apples and bananas', sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),
@@ -120,7 +120,7 @@ describe('App search', () => {
   it('shows ellipsis in notes snippet when match is deep in long notes', async () => {
     const longNotes = 'A'.repeat(80) + ' findme ' + 'B'.repeat(80);
     const tasksWithNotes: Task[] = [
-      { id: 't1', list_id: '1', title: 'Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: longNotes, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+      { id: 't1', list_id: '1', title: 'Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: longNotes, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),

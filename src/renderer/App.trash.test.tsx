@@ -8,18 +8,21 @@ const trashedTask: Task = {
   id: 'trash1', list_id: '1', title: 'Trashed Task', status: 'PENDING',
   created_timestamp: 0, completed_timestamp: null, due_date: null,
   sort_key: 1, created_at: 0, updated_at: 0, deleted_at: 1000,
+  notes: null, parent_id: null, is_expanded: 1,
 };
 
 const trashedTaskNoList: Task = {
   id: 'trash2', list_id: 'deleted-list', title: 'Orphan Task', status: 'PENDING',
   created_timestamp: 0, completed_timestamp: null, due_date: null,
   sort_key: 2, created_at: 0, updated_at: 0, deleted_at: 1000,
+  notes: null, parent_id: null, is_expanded: 1,
 };
 
 const trashedInboxTask: Task = {
   id: 'trash3', list_id: null, title: 'Inbox Trashed', status: 'PENDING',
   created_timestamp: 0, completed_timestamp: null, due_date: null,
   sort_key: 3, created_at: 0, updated_at: 0, deleted_at: 1000,
+  notes: null, parent_id: null, is_expanded: 1,
 };
 
 async function navigateToTrash(): Promise<void> {

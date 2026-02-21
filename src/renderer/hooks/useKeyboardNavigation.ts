@@ -29,6 +29,9 @@ export interface KeyboardActions {
   restoreTask: Command;
   openSearch: Command;
   startNotes: Command;
+  indentTask: Command;
+  outdentTask: Command;
+  toggleCollapse: Command;
 }
 
 export interface KeyboardState {
@@ -77,7 +80,17 @@ export function useKeyboardNavigation(
     if (e.key === ' ' && !state.cmdHeld && state.focusedPane === 'tasks') { e.preventDefault(); actions.clearSelection(); return; }
     if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) actions.createList(); else actions.createTask(); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); actions.deleteTask(); return; }
-    if (e.key === 'Tab') { e.preventDefault(); if (state.hasSelection) actions.clearSelection(); actions.switchPane(); return; }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (state.hasSelection) { actions.clearSelection(); actions.switchPane(); return; }
+      if (state.focusedPane === 'tasks') {
+        if (e.shiftKey) { actions.outdentTask(); } else { actions.indentTask(); }
+        return;
+      }
+      actions.switchPane();
+      return;
+    }
+    if ((e.key === 'c' || e.key === 'C') && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleCollapse(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }

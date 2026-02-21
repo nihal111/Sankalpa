@@ -3,6 +3,7 @@ import type { Task } from '../../shared/types';
 import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
 import type { UndoEntry } from './useUndoStack';
+import { getDescendantIds } from '../utils/taskTree';
 
 interface UseTaskActionsParams {
   focusedPane: Pane;
@@ -20,20 +21,21 @@ interface UseTaskActionsParams {
   undoPush: (entry: UndoEntry) => void;
   isTrashView: boolean;
   onPermanentDeleteRequest?: (task: Task) => void;
+  onCascadeComplete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
+  onCascadeDelete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
 }
 
 interface TaskActions {
   createTask: () => Promise<void>;
   toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
-  handleReorder: (direction: -1 | 1) => Promise<void>;
 }
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, undoPush,
-    isTrashView, onPermanentDeleteRequest,
+    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -51,61 +53,60 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     setEditMode({ type: 'task', index: newIndex });
     setEditValue('');
     onFlash?.(newTask.id);
-    undoPush({ undo: async () => { await window.api.tasksDelete(newTask.id); }, redo: async () => { await window.api.tasksRestore(newTask.id, listId, '', 'PENDING', newTask.created_timestamp, null, newTask.sort_key, newTask.created_at, newTask.updated_at); } });
+    undoPush({
+      undo: async () => { await window.api.tasksDelete(newTask.id); },
+      redo: async () => { await window.api.tasksRestore(newTask.id, listId, '', 'PENDING', newTask.created_timestamp, null, newTask.sort_key, newTask.created_at, newTask.updated_at); },
+    });
   }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
     const task = tasks[selectedTaskIndex];
     if (!task) return;
+
+    const descendantIds = getDescendantIds(task.id, tasks);
+    if (descendantIds.length > 0 && task.status !== 'COMPLETED') {
+      onCascadeComplete?.(task, descendantIds.length, async () => {
+        await window.api.tasksToggleCompleted(task.id);
+        for (const id of descendantIds) await window.api.tasksToggleCompleted(id);
+        await reloadTasks();
+      });
+      return;
+    }
+
     await window.api.tasksToggleCompleted(task.id);
     await reloadTasks();
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks]);
+  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, onCascadeComplete]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
     const task = tasks[selectedTaskIndex];
     if (!task) return;
 
-    if (isTrashView) {
-      // In trash view, request permanent delete confirmation
-      onPermanentDeleteRequest?.(task);
-      return;
-    }
+    if (isTrashView) { onPermanentDeleteRequest?.(task); return; }
 
-    // Soft delete - move to trash
-    const { id } = task;
-    await window.api.tasksDelete(task.id);
-    await reloadTasks();
-    setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-    undoPush({
-      undo: async () => { await window.api.tasksRestoreFromTrash(id); },
-      redo: async () => { await window.api.tasksDelete(id); },
-    });
-  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest]);
-
-  const handleReorder = useCallback(async (direction: -1 | 1) => {
-    if (focusedPane === 'tasks') {
-      const newIndex = selectedTaskIndex + direction;
-      if (newIndex < 0 || newIndex >= tasks.length) return;
-      const item = tasks[selectedTaskIndex];
-      const neighbor = tasks[newIndex];
-      const origItemSortKey = item.sort_key;
-      const origNeighborSortKey = neighbor.sort_key;
-      await window.api.tasksReorder(item.id, neighbor.sort_key);
-      await window.api.tasksReorder(neighbor.id, item.sort_key);
+    const descendantIds = getDescendantIds(task.id, tasks);
+    const doDelete = async () => {
+      const { id } = task;
+      await window.api.tasksDelete(task.id);
+      for (const descId of descendantIds) await window.api.tasksDelete(descId);
       await reloadTasks();
-      setSelectedTaskIndex(newIndex);
-      onFlash?.(item.id);
-      undoPush({ undo: async () => {
-        await window.api.tasksReorder(item.id, origItemSortKey);
-        await window.api.tasksReorder(neighbor.id, origNeighborSortKey);
-      }, redo: async () => {
-        await window.api.tasksReorder(item.id, neighbor.sort_key);
-        await window.api.tasksReorder(neighbor.id, item.sort_key);
-      } });
-    }
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, setSelectedTaskIndex, onFlash, undoPush]);
+      setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2 - descendantIds.length));
+      undoPush({
+        undo: async () => {
+          await window.api.tasksRestoreFromTrash(id);
+          for (const descId of descendantIds) await window.api.tasksRestoreFromTrash(descId);
+        },
+        redo: async () => {
+          await window.api.tasksDelete(id);
+          for (const descId of descendantIds) await window.api.tasksDelete(descId);
+        },
+      });
+    };
 
-  return { createTask, toggleTaskCompleted, deleteTask, handleReorder };
+    if (descendantIds.length > 0) { onCascadeDelete?.(task, descendantIds.length, doDelete); return; }
+    await doDelete();
+  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
+
+  return { createTask, toggleTaskCompleted, deleteTask };
 }

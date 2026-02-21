@@ -164,7 +164,7 @@ describe('App edit mode', () => {
 
   it('deletes task from inbox and reloads', async () => {
     const inboxTasks = [
-      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),
@@ -198,7 +198,7 @@ describe('App edit mode', () => {
   });
 
   it('D key on task with existing due date shows current value', async () => {
-    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: new Date('2026-06-15T09:00').getTime(), sort_key: 1, created_at: 0, updated_at: 0 };
+    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: new Date('2026-06-15T09:00').getTime(), sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
     render(<App />);
     await navigateToTasksPane();
@@ -222,7 +222,7 @@ describe('App edit mode', () => {
 
   it('overdue task shows red due date', async () => {
     const pastDate = Date.now() - 86400000;
-    const overdueTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0 };
+    const overdueTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     setupMockApi({ tasksGetByList: () => Promise.resolve([overdueTask]) });
     render(<App />);
     await navigateToTasksPane();
@@ -230,7 +230,7 @@ describe('App edit mode', () => {
   });
 
   it('D key with empty value clears due date', async () => {
-    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: 1000, sort_key: 1, created_at: 0, updated_at: 0 };
+    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: 1000, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
     render(<App />);
     await navigateToTasksPane();
@@ -244,7 +244,7 @@ describe('App edit mode', () => {
 
   it('completed task with due date does not show overdue class', async () => {
     const pastDate = Date.now() - 86400000;
-    const completedTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'COMPLETED' as const, created_timestamp: 0, completed_timestamp: 1, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0 };
+    const completedTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'COMPLETED' as const, created_timestamp: 0, completed_timestamp: 1, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     setupMockApi({ tasksGetByList: () => Promise.resolve([completedTask]) });
     render(<App />);
     await navigateToTasksPane();
