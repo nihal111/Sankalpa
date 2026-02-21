@@ -149,8 +149,7 @@ export function useAppState() {
   }, [focusedPane, tasks, selectedTaskIndex]);
 
   const commitDueDate = useCallback(async (value: string) => {
-    if (dueDateIndex === null) return;
-    const task = tasks[dueDateIndex];
+    const task = tasks[dueDateIndex!];
     const dueDate = value ? new Date(value).getTime() : null;
     await window.api.tasksSetDueDate(task.id, dueDate);
     setDueDateIndex(null);
@@ -158,6 +157,10 @@ export function useAppState() {
   }, [dueDateIndex, tasks, reloadTasks]);
 
   const cancelDueDate = useCallback(() => setDueDateIndex(null), []);
+
+  const blurDueDate = useCallback(() => {
+    (document.activeElement as HTMLElement)?.blur();
+  }, []);
 
   const switchPane = useCallback(() => {
     setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
@@ -180,12 +183,13 @@ export function useAppState() {
     startEdit: editActions.start,
     startMove,
     startDueDate,
+    commitDueDate: blurDueDate,
     undo,
     redo,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, cancelDueDate, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, startDueDate, undo, redo]);
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, cancelDueDate, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, startDueDate, blurDueDate, undo, redo]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
-    editMode: editMode || dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
+    editMode: editMode || dueDateIndex !== null, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
     hasSelection: selectedTaskIndices.size > 0,
     canEdit: selectedSidebarItem?.type !== 'smart',
   }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type]);
