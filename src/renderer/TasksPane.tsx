@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from 'react';
-import type { Task } from '../shared/types';
+import type { Task, List } from '../shared/types';
 import type { EditMode, Pane } from './types';
 
 function toDatetimeLocal(ms: number): string {
@@ -35,6 +35,8 @@ interface TasksPaneProps {
   listNames?: Record<string, string>;
   dueDateIndex: number | null;
   onDueDateCommit: (value: string) => void;
+  showSourceList?: boolean;
+  lists?: List[];
 }
 
 export function TasksPane({
@@ -58,51 +60,66 @@ export function TasksPane({
   listNames,
   dueDateIndex,
   onDueDateCommit,
+  showSourceList,
+  lists,
 }: TasksPaneProps): ReactNode {
+  const getSourceListName = (task: Task): string | null => {
+    if (!showSourceList || !lists) return null;
+    if (!task.list_id) return 'Inbox';
+    const list = lists.find((l) => l.id === task.list_id);
+    return list?.name ?? null;
+  };
+
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
       <h2>{headerName}</h2>
       <ul className="item-list">
-        {tasks.map((task, i) => (
-          <li
-            key={task.id}
-            className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''}`}
-            onClick={() => onTaskClick(i)}
-          >
-            <input
-              type="checkbox"
-              checked={task.status === 'COMPLETED'}
-              onChange={() => onTaskToggle(task.id)}
-              onClick={(e) => e.stopPropagation()}
-              aria-label={`mark ${task.title || 'untitled task'} as complete`}
-            />
-            {editMode?.type === 'task' && editMode.index === i ? (
+        {tasks.map((task, i) => {
+          const sourceListName = getSourceListName(task);
+          return (
+            <li
+              key={task.id}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''}`}
+              onClick={() => onTaskClick(i)}
+            >
               <input
-                ref={inputRef}
-                type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                onBlur={() => setEditMode(null)}
-                className="edit-input"
+                type="checkbox"
+                checked={task.status === 'COMPLETED'}
+                onChange={() => onTaskToggle(task.id)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`mark ${task.title || 'untitled task'} as complete`}
               />
-            ) : (
-              task.title || '\u00A0'
-            )}
-            {dueDateIndex === i ? (
-              <input
-                type="datetime-local"
-                className="due-date-input"
-                defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
-                autoFocus
-                onBlur={(e) => onDueDateCommit(e.currentTarget.value)}
-              />
-            ) : task.due_date ? (
-              <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
-            ) : null}
-            {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}
-          </li>
-        ))}
+              <span className="task-content">
+                {editMode?.type === 'task' && editMode.index === i ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={handleInputKeyDown}
+                    onBlur={() => setEditMode(null)}
+                    className="edit-input"
+                  />
+                ) : (
+                  task.title || '\u00A0'
+                )}
+                {sourceListName && <span className="task-source-list">{sourceListName}</span>}
+              </span>
+              {dueDateIndex === i ? (
+                <input
+                  type="datetime-local"
+                  className="due-date-input"
+                  defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
+                  autoFocus
+                  onBlur={(e) => onDueDateCommit(e.currentTarget.value)}
+                />
+              ) : task.due_date ? (
+                <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
+              ) : null}
+              {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -12,6 +12,14 @@ import { useDataState } from './hooks/useDataState';
 import { useKeyboardNavigation, KeyboardActions, KeyboardState } from './hooks/useKeyboardNavigation';
 import { useFlash } from './hooks/useFlash';
 import { useUndoStack } from './hooks/useUndoStack';
+import type { Task, List } from '../shared/types';
+import type { ConfirmationOption } from './ConfirmationDialog';
+
+interface ConfirmationDialogState {
+  title: string;
+  message: string;
+  options: ConfirmationOption[];
+}
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -23,9 +31,10 @@ export function useAppState() {
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
   const { flashIds, flash } = useFlash();
+  const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
-  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId } = data;
+  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists } = dataActions;
 
   const listNames = useMemo(() => {
@@ -35,6 +44,10 @@ export function useAppState() {
   }, [lists]);
 
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
+
+  const isTrashView = useMemo(() =>
+    selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash',
+  [selectedSidebarItem]);
 
   const afterUndo = useCallback(async () => {
     await reloadData();
@@ -88,6 +101,75 @@ export function useAppState() {
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
 
+  const handlePermanentDelete = useCallback(async (task: Task) => {
+    const { id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at, deleted_at } = task;
+    await window.api.tasksDelete(id);
+    await reloadTasks();
+    setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
+    setConfirmationDialog(null);
+    undoPush({
+      undo: async () => { await window.api.tasksRestore(id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at, deleted_at); },
+      redo: async () => { await window.api.tasksDelete(id); },
+    });
+  }, [reloadTasks, setSelectedTaskIndex, tasks.length, undoPush]);
+
+  const handlePermanentDeleteRequest = useCallback((task: Task) => {
+    setConfirmationDialog({
+      title: 'Permanently Delete',
+      message: `Are you sure you want to permanently delete "${task.title || 'Untitled'}"? This cannot be undone.`,
+      options: [{ label: 'Delete', action: () => handlePermanentDelete(task) }],
+    });
+  }, [handlePermanentDelete]);
+
+  const handleRestoreTask = useCallback(async () => {
+    if (!isTrashView || tasks.length === 0) return;
+    const task = tasks[selectedTaskIndex];
+    if (!task) return;
+
+    const listExists = task.list_id === null || lists.some((l) => l.id === task.list_id);
+
+    if (listExists) {
+      await window.api.tasksRestoreFromTrash(task.id);
+      await reloadTasks();
+      setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
+      undoPush({
+        undo: async () => { await window.api.tasksSoftDelete(task.id); },
+        redo: async () => { await window.api.tasksRestoreFromTrash(task.id); },
+      });
+    } else {
+      // Original list was deleted - show dialog
+      const listName = task.list_id ?? 'Unknown';
+      setConfirmationDialog({
+        title: 'Restore Task',
+        message: `The original list no longer exists.`,
+        options: [
+          {
+            label: 'Restore to Inbox',
+            action: async () => {
+              await window.api.tasksSetListId(task.id, null);
+              await window.api.tasksRestoreFromTrash(task.id);
+              await reloadTasks();
+              setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
+              setConfirmationDialog(null);
+            },
+          },
+          {
+            label: `Create "${listName}" and restore`,
+            action: async () => {
+              const newList = await window.api.listsCreate(crypto.randomUUID(), listName);
+              await window.api.tasksSetListId(task.id, newList.id);
+              await window.api.tasksRestoreFromTrash(task.id);
+              await reloadData();
+              await reloadTasks();
+              setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
+              setConfirmationDialog(null);
+            },
+          },
+        ],
+      });
+    }
+  }, [isTrashView, tasks, selectedTaskIndex, lists, reloadTasks, reloadData, setSelectedTaskIndex, undoPush]);
+
   useEffect(() => {
     return window.api.onQuickAdd(async () => {
       // Navigate to smart Inbox
@@ -107,6 +189,7 @@ export function useAppState() {
   const { createTask, toggleTaskCompleted, deleteTask, handleReorder } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, undoPush,
+    isTrashView, onPermanentDeleteRequest: handlePermanentDeleteRequest,
   });
 
   const createList = useCallback(async () => {
@@ -166,6 +249,10 @@ export function useAppState() {
     setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
   }, []);
 
+  const closeConfirmationDialog = useCallback(() => {
+    setConfirmationDialog(null);
+  }, []);
+
   const keyboardActions: KeyboardActions = useMemo(() => ({
     openSettings: settingsActions.open,
     handleSettingsKeyDown: settingsActions.handleKeyDown,
@@ -186,13 +273,15 @@ export function useAppState() {
     commitDueDate: blurDueDate,
     undo,
     redo,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, cancelDueDate, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, startDueDate, blurDueDate, undo, redo]);
+    restoreTask: handleRestoreTask,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, cancelDueDate, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, startDueDate, blurDueDate, undo, redo, handleRestoreTask]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
     editMode: editMode || dueDateIndex !== null, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
     hasSelection: selectedTaskIndices.size > 0,
     canEdit: selectedSidebarItem?.type !== 'smart',
-  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type]);
+    isTrashView,
+  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView]);
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
@@ -267,5 +356,10 @@ export function useAppState() {
     isCompletedView,
     dueDateIndex,
     commitDueDate,
+    trashIndex,
+    isTrashView,
+    lists,
+    confirmationDialog,
+    closeConfirmationDialog,
   };
 }

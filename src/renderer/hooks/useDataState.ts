@@ -11,6 +11,7 @@ interface DataState {
   sidebarItems: SidebarItem[];
   selectedSidebarItem: SidebarItem | undefined;
   selectedListId: string | null;
+  trashIndex: number;
 }
 
 interface DataActions {
@@ -31,6 +32,7 @@ export function useDataState(
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
 
   const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
+  const trashIndex = useMemo(() => sidebarItems.length - 1, [sidebarItems]);
   const selectedSidebarItem = useMemo(() => sidebarItems[selectedSidebarIndex], [sidebarItems, selectedSidebarIndex]);
   const selectedListId = useMemo(() =>
     selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id
@@ -61,6 +63,10 @@ export function useDataState(
       setTasks(await loadSmartTasks(selectedSidebarItem.smartList.id));
       return;
     }
+    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
+      setTasks(await window.api.tasksGetTrashed());
+      return;
+    }
     if (selectedListId && selectedSidebarItem?.type === 'list') {
       setTasks(await window.api.tasksGetByList(selectedListId));
     }
@@ -82,6 +88,7 @@ export function useDataState(
       counts['overdue'] = (await window.api.tasksGetOverdue(start)).length;
       counts['today'] = (await window.api.tasksGetDueBetween(start, end)).length;
       counts['upcoming'] = (await window.api.tasksGetUpcoming(end)).length;
+      counts['trash'] = (await window.api.tasksGetTrashed()).length;
       for (const list of lists) {
         counts[list.id] = await window.api.listsGetTaskCount(list.id);
       }
@@ -96,6 +103,11 @@ export function useDataState(
       loadSmartTasks(selectedSidebarItem.smartList.id).then((t) => {
         if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
       });
+    } else if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
+      window.api.tasksGetTrashed().then((t) => {
+        setTasks(t);
+        setSelectedTaskIndex(0);
+      });
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
         if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
@@ -107,7 +119,7 @@ export function useDataState(
   }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex, loadSmartTasks]);
 
   return [
-    { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId },
+    { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex },
     { reloadData, reloadTasks, setTasks, setFolders, setLists },
   ];
 }

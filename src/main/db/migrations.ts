@@ -18,4 +18,7 @@ export function migrateTasksTable(db: Database): void {
   if (!columnNames.includes('due_date')) {
     db.run('ALTER TABLE tasks ADD COLUMN due_date INTEGER');
   }
+  if (!columnNames.includes('deleted_at')) {
+    db.run('ALTER TABLE tasks ADD COLUMN deleted_at INTEGER DEFAULT NULL');
+  }
 }

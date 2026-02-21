@@ -5,7 +5,7 @@ export type Pane = 'lists' | 'tasks';
 export type EditMode = { type: 'list'; id: string } | { type: 'task'; index: number } | { type: 'folder'; id: string } | null;
 export type Theme = 'system' | 'light' | 'dark';
 
-export type SmartListId = 'inbox' | 'overdue' | 'today' | 'upcoming' | 'completed';
+export type SmartListId = 'inbox' | 'overdue' | 'today' | 'upcoming' | 'completed' | 'trash';
 export interface SmartList {
   id: SmartListId;
   name: string;
@@ -19,6 +19,8 @@ export const SMART_LISTS: SmartList[] = [
   { id: 'upcoming', name: 'Upcoming', icon: Icons.upcoming },
   { id: 'completed', name: 'Completed', icon: Icons.completed },
 ];
+
+export const TRASH_SMART_LIST: SmartList = { id: 'trash', name: 'Trash', icon: Icons.trash };
 
 export type SidebarItem =
   | { type: 'smart'; smartList: SmartList }

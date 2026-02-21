@@ -18,6 +18,8 @@ interface UseTaskActionsParams {
   reloadTasks: () => Promise<void>;
   onFlash?: (id: string) => void;
   undoPush: (entry: UndoEntry) => void;
+  isTrashView: boolean;
+  onPermanentDeleteRequest?: (task: Task) => void;
 }
 
 interface TaskActions {
@@ -31,6 +33,7 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, undoPush,
+    isTrashView, onPermanentDeleteRequest,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -63,12 +66,23 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;
     const task = tasks[selectedTaskIndex];
     if (!task) return;
-    const { id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at } = task;
+
+    if (isTrashView) {
+      // In trash view, request permanent delete confirmation
+      onPermanentDeleteRequest?.(task);
+      return;
+    }
+
+    // Soft delete - move to trash
+    const { id } = task;
     await window.api.tasksDelete(task.id);
     await reloadTasks();
     setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-    undoPush({ undo: async () => { await window.api.tasksRestore(id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at); }, redo: async () => { await window.api.tasksDelete(id); } });
-  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush]);
+    undoPush({
+      undo: async () => { await window.api.tasksRestoreFromTrash(id); },
+      redo: async () => { await window.api.tasksDelete(id); },
+    });
+  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest]);
 
   const handleReorder = useCallback(async (direction: -1 | 1) => {
     if (focusedPane === 'tasks') {

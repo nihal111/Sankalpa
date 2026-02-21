@@ -3,6 +3,7 @@ import { useAppState } from './useAppState';
 import { Sidebar } from './Sidebar';
 import { TasksPane } from './TasksPane';
 import { SettingsModal } from './SettingsModal';
+import { ConfirmationDialog } from './ConfirmationDialog';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -25,6 +26,7 @@ export default function App(): ReactNode {
         onItemClick={state.handleSidebarClick}
         onFolderToggle={state.handleFolderToggle}
         flashIds={state.flashIds}
+        trashIndex={state.trashIndex}
       />
       <TasksPane
         tasks={state.tasks}
@@ -47,6 +49,8 @@ export default function App(): ReactNode {
         listNames={state.isCompletedView ? state.listNames : undefined}
         dueDateIndex={state.dueDateIndex}
         onDueDateCommit={state.commitDueDate}
+        showSourceList={state.isTrashView}
+        lists={state.lists}
       />
       {state.moveMode && (
         <div className="move-overlay">
@@ -58,6 +62,14 @@ export default function App(): ReactNode {
           settingsThemeIndex={state.settingsThemeIndex}
           settingsCategory={state.settingsCategory}
           hardcoreMode={state.hardcoreMode}
+        />
+      )}
+      {state.confirmationDialog && (
+        <ConfirmationDialog
+          title={state.confirmationDialog.title}
+          message={state.confirmationDialog.message}
+          options={state.confirmationDialog.options}
+          onCancel={state.closeConfirmationDialog}
         />
       )}
     </div>

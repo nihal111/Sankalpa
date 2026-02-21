@@ -1,6 +1,6 @@
 import type { Folder, List } from '../../shared/types';
 import type { SidebarItem } from '../types';
-import { SMART_LISTS } from '../types';
+import { SMART_LISTS, TRASH_SMART_LIST } from '../types';
 export type { SidebarItem };
 
 export function buildSidebarItems(folders: Folder[], lists: List[]): SidebarItem[] {
@@ -17,5 +17,7 @@ export function buildSidebarItems(folders: Folder[], lists: List[]): SidebarItem
   lists.filter((l) => l.folder_id === null).forEach((list) => {
     items.push({ type: 'list', list });
   });
+  // Trash is always last
+  items.push({ type: 'smart', smartList: TRASH_SMART_LIST });
   return items;
 }

@@ -5,13 +5,13 @@ import type { Folder, List, Task } from '../shared/types';
 export const mockFolders: Folder[] = [];
 
 export const mockLists: List[] = [
-  { id: '1', folder_id: null, name: 'Inbox', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
-  { id: '2', folder_id: null, name: 'Work', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 2, created_at: 0, updated_at: 0 },
+  { id: '1', folder_id: null, name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
+  { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
 ];
 
 export const mockTasks: Task[] = [
-  { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0 },
-  { id: 't2', list_id: '1', title: 'Task 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 2, created_at: 0, updated_at: 0 },
+  { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+  { id: 't2', list_id: '1', title: 'Task 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null },
 ];
 
 export function setupMockApi(overrides: Record<string, unknown> = {}): void {
@@ -22,12 +22,13 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     foldersUpdate: vi.fn().mockResolvedValue(undefined),
     listsGetAll: vi.fn().mockResolvedValue(mockLists),
     listsGetTaskCount: vi.fn().mockResolvedValue(2),
-    listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: null, name: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 3, created_at: 0, updated_at: 0 }),
+    listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: null, name: '', sort_key: 3, created_at: 0, updated_at: 0 }),
     tasksGetInbox: vi.fn().mockResolvedValue([]),
     tasksGetCompleted: vi.fn().mockResolvedValue([]),
     tasksGetInboxCount: vi.fn().mockResolvedValue(0),
     tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
-    tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0 }),
+    tasksGetTrashed: vi.fn().mockResolvedValue([]),
+    tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null }),
     listsUpdate: vi.fn().mockResolvedValue(undefined),
     tasksUpdate: vi.fn().mockResolvedValue(undefined),
     tasksToggleCompleted: vi.fn().mockResolvedValue(undefined),
@@ -35,6 +36,8 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     tasksReorder: vi.fn().mockResolvedValue(undefined),
     tasksMove: vi.fn().mockResolvedValue(undefined),
     tasksDelete: vi.fn().mockResolvedValue(undefined),
+    tasksSoftDelete: vi.fn().mockResolvedValue(undefined),
+    tasksRestoreFromTrash: vi.fn().mockResolvedValue(undefined),
     tasksRestore: vi.fn().mockResolvedValue(undefined),
     tasksSetListId: vi.fn().mockResolvedValue(undefined),
     tasksSetDueDate: vi.fn().mockResolvedValue(undefined),
