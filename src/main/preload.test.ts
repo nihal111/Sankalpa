@@ -134,6 +134,21 @@ describe('preload', () => {
     api.tasksSetDueDate('t1', 1000);
     expect(mockInvoke).toHaveBeenCalledWith('tasks:setDueDate', 't1', 1000);
 
+    api.tasksGetTrashed();
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getTrashed');
+
+    api.tasksSoftDelete('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:softDelete', 't1');
+
+    api.tasksRestoreFromTrash('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:restoreFromTrash', 't1');
+
+    api.tasksRestore('t1', 'list1', 'title', 'PENDING', 0, null, 1, 0, 0, null);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:restore', 't1', 'list1', 'title', 'PENDING', 0, null, 1, 0, 0, null);
+
+    api.tasksSetListId('t1', 'list2');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:setListId', 't1', 'list2');
+
     api.tasksGetDueBetween(100, 200);
     expect(mockInvoke).toHaveBeenCalledWith('tasks:getDueBetween', 100, 200);
 

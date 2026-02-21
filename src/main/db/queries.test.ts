@@ -7,6 +7,7 @@ import {
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   restoreList, setTaskDueDate, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
+  restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -343,5 +344,34 @@ describe('settings', () => {
     const restored = getAllLists(db).find((l) => l.id === 'rl1');
     expect(restored).toBeDefined();
     expect(restored!.name).toBe('Restored');
+  });
+
+  it('restoreTask re-inserts a deleted task', () => {
+    const task = createTask(db, 'rt1', null, 'Restore me');
+    deleteTask(db, 'rt1');
+    expect(getInboxTasks(db).find((t) => t.id === 'rt1')).toBeUndefined();
+    restoreTask(db, task.id, task.list_id, task.title, task.status, task.created_timestamp, task.completed_timestamp, task.sort_key, task.created_at, task.updated_at, task.deleted_at);
+    const restored = getInboxTasks(db).find((t) => t.id === 'rt1');
+    expect(restored).toBeDefined();
+    expect(restored!.title).toBe('Restore me');
+  });
+
+  it('setTaskListId moves task to a different list', () => {
+    const list = createList(db, 'sl1', 'Target');
+    const task = createTask(db, 'st1', null, 'Move me');
+    expect(getInboxTasks(db).find((t) => t.id === 'st1')).toBeDefined();
+    setTaskListId(db, 'st1', 'sl1');
+    expect(getInboxTasks(db).find((t) => t.id === 'st1')).toBeUndefined();
+    expect(getTasksByList(db, list.id).find((t) => t.id === 'st1')).toBeDefined();
+  });
+
+  it('softDeleteTask and restoreFromTrash round-trip', () => {
+    const task = createTask(db, 'sd1', null, 'Soft delete me');
+    softDeleteTask(db, 'sd1');
+    expect(getInboxTasks(db).find((t) => t.id === 'sd1')).toBeUndefined();
+    expect(getTrashedTasks(db).find((t) => t.id === 'sd1')).toBeDefined();
+    restoreFromTrash(db, 'sd1');
+    expect(getInboxTasks(db).find((t) => t.id === 'sd1')).toBeDefined();
+    expect(getTrashedTasks(db).find((t) => t.id === 'sd1')).toBeUndefined();
   });
 });

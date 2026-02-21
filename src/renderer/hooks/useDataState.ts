@@ -54,6 +54,7 @@ export function useDataState(
       case 'overdue': return window.api.tasksGetOverdue(start);
       case 'today': return window.api.tasksGetDueBetween(start, end);
       case 'upcoming': return window.api.tasksGetUpcoming(end);
+      case 'trash': return window.api.tasksGetTrashed();
     }
     return [];
   }, []);
@@ -61,10 +62,6 @@ export function useDataState(
   const reloadTasks = useCallback(async () => {
     if (selectedSidebarItem?.type === 'smart') {
       setTasks(await loadSmartTasks(selectedSidebarItem.smartList.id));
-      return;
-    }
-    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
-      setTasks(await window.api.tasksGetTrashed());
       return;
     }
     if (selectedListId && selectedSidebarItem?.type === 'list') {
@@ -102,11 +99,6 @@ export function useDataState(
     if (selectedSidebarItem?.type === 'smart') {
       loadSmartTasks(selectedSidebarItem.smartList.id).then((t) => {
         if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
-      });
-    } else if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
-      window.api.tasksGetTrashed().then((t) => {
-        setTasks(t);
-        setSelectedTaskIndex(0);
       });
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
