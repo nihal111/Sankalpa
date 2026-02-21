@@ -8,6 +8,10 @@ Guidelines for AI agents working on this codebase.
 - **Dev Server**: `npm run dev`
 - **Tests**: `npm test` or `npm run test:coverage`
 
+## CRITICAL: Do NOT add "type": "module" to package.json
+
+The Electron main process is built as CommonJS. Adding `"type": "module"` will break the app at runtime with `ReferenceError: exports is not defined`. The pre-commit hook will reject this.
+
 ## TypeScript Standards
 
 - **Type Hints**: ALL functions must have complete type annotations (parameters and return types)

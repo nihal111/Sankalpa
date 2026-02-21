@@ -1,4 +1,11 @@
 #!/bin/sh
+# Electron main process is CommonJS - "type": "module" breaks it
+if grep -q '"type":\s*"module"' package.json; then
+  echo "ERROR: package.json contains \"type\": \"module\" which breaks Electron main process"
+  echo "Remove it - this project uses CommonJS for the main process"
+  exit 1
+fi
+
 echo "Running type check..."
 npx tsc --noEmit || exit 1
 echo "Type check passed!"

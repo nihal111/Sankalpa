@@ -1,7 +1,6 @@
 {
   "name": "sankalpa",
   "version": "1.0.0",
-  "type": "module",
   "description": "Keyboard-first todo app",
   "main": "dist/main/main/index.js",
   "scripts": {
