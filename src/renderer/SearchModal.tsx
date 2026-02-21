@@ -42,16 +42,17 @@ export function SearchModal({ isOpen, lastQuery, onClose, onSelectTask, onQueryC
     return map;
   }, [lists]);
 
+  const haystack = useMemo(() => tasks.map((t) => t.title), [tasks]);
+
   const results = useMemo((): SearchResult[] => {
     if (!query.trim()) return [];
-    const haystack = tasks.map((t) => t.title);
     const [idxs] = uf.search(haystack, query);
     if (!idxs) return [];
     return idxs.map((i) => ({
       task: tasks[i],
       listName: tasks[i].list_id ? (listNames[tasks[i].list_id!] || 'Unknown') : 'Inbox',
     }));
-  }, [query, tasks, listNames]);
+  }, [query, haystack, tasks, listNames]);
 
   useEffect(() => {
     setSelectedIndex(0);
