@@ -123,7 +123,7 @@ export function Sidebar({
       </ul>
       <div className="sidebar-divider" />
       <ul className="item-list">
-        {sidebarItems.slice(SMART_LISTS.length, -1).map((item, idx) => {
+        {sidebarItems.slice(SMART_LISTS.length, trashIndex).map((item, idx) => {
           const i = idx + SMART_LISTS.length;
           const isSelected = i === selectedSidebarIndex;
           const isMoveTarget = moveMode && i === moveTargetIndex;
