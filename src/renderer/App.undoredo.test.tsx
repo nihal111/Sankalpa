@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import App from './App';
 import type { Task } from '../shared/types';
 import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
@@ -365,5 +365,32 @@ describe('App undo/redo', () => {
       const calls = (window.api.listsUpdate as ReturnType<typeof vi.fn>).mock.calls;
       expect(calls[calls.length - 1]).toEqual(['1', 'Renamed List']);
     });
+  });
+
+  it('undo list creation deletes list, redo restores it', async () => {
+    const newList = { id: 'new-list', folder_id: null, name: '', sort_key: 3, created_at: 100, updated_at: 100 };
+    setupMockApi({
+      listsCreate: vi.fn().mockResolvedValue(newList),
+      listsDelete: vi.fn().mockResolvedValue(undefined),
+      listsRestore: vi.fn().mockResolvedValue(newList),
+    });
+    render(<App />);
+    await navigateToUserList();
+
+    // Create new list
+    fireEvent.keyDown(window, { key: 'n', metaKey: true, shiftKey: true });
+    await waitFor(() => expect(window.api.listsCreate).toHaveBeenCalled());
+    // Wait for edit mode to appear and dismiss it
+    await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeNull());
+
+    // Undo → delete the list
+    undo();
+    await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalledWith('new-list'));
+
+    // Redo → restore the list
+    redo();
+    await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalledWith('new-list', null, '', 3, 100, 100));
   });
 });

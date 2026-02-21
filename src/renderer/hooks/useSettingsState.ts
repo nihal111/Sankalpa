@@ -85,7 +85,7 @@ export function useSettingsState(): [
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleHardcore(); return true; }
     }
     return true;
-  }, [settingsOpen, settingsCategory, settingsThemeIndex, applyAndClose, toggleHardcore]);
+  }, [settingsOpen, settingsCategory, applyAndClose, toggleHardcore]);
 
   return [
     { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory },

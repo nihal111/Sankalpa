@@ -4,7 +4,7 @@ import {
   getDb, closeDb, saveDb,
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
-  getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
+  getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, reorderTask, moveTask,
   restoreTask, restoreList, setTaskListId, setTaskDueDate,
   getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   calcSortKeyBetween, getAllSettings, setSetting,

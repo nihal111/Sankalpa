@@ -358,7 +358,7 @@ describe('settings', () => {
 
   it('setTaskListId moves task to a different list', () => {
     const list = createList(db, 'sl1', 'Target');
-    const task = createTask(db, 'st1', null, 'Move me');
+    createTask(db, 'st1', null, 'Move me');
     expect(getInboxTasks(db).find((t) => t.id === 'st1')).toBeDefined();
     setTaskListId(db, 'st1', 'sl1');
     expect(getInboxTasks(db).find((t) => t.id === 'st1')).toBeUndefined();
@@ -366,7 +366,7 @@ describe('settings', () => {
   });
 
   it('softDeleteTask and restoreFromTrash round-trip', () => {
-    const task = createTask(db, 'sd1', null, 'Soft delete me');
+    createTask(db, 'sd1', null, 'Soft delete me');
     softDeleteTask(db, 'sd1');
     expect(getInboxTasks(db).find((t) => t.id === 'sd1')).toBeUndefined();
     expect(getTrashedTasks(db).find((t) => t.id === 'sd1')).toBeDefined();

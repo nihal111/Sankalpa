@@ -9,9 +9,14 @@ export default defineConfig({
     pool: 'vmThreads',
     exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/main/db/migrations.ts',
         'src/main/db/connection.ts',
+        'src/main/index.ts',
+        'src/renderer/main.tsx',
+        '**/*.test.{ts,tsx}',
+        '**/test-utils.ts',
       ],
       thresholds: {
         lines: 95,

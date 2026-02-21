@@ -178,4 +178,22 @@ describe('App trash', () => {
     fireEvent.keyDown(window, { key: 'r' });
     expect(window.api.tasksRestoreFromTrash).not.toHaveBeenCalled();
   });
+
+  it('undo restore soft-deletes task again, redo re-restores', async () => {
+    setupMockApi({
+      tasksGetTrashed: vi.fn().mockResolvedValue([trashedTask]),
+      tasksSoftDelete: vi.fn().mockResolvedValue(undefined),
+    });
+    render(<App />);
+    await navigateToTrashTasks();
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'r' });
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('trash1'));
+    // Undo → soft delete again
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('trash1'));
+    // Redo → restore again
+    fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledTimes(2));
+  });
 });

@@ -286,4 +286,52 @@ describe('App navigation', () => {
     // reloadTasks should call tasksGetCompleted again
     await waitFor(() => expect(getCompletedMock.mock.calls.length).toBeGreaterThan(callsBefore));
   });
+
+  it('completed filter bar changes list filter', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    const getCompletedMock = vi.fn().mockResolvedValue(completedTasks);
+    setupMockApi({ tasksGetCompleted: getCompletedMock });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
+    const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: '1' } });
+    await waitFor(() => expect(getCompletedMock).toHaveBeenCalled());
+  });
+
+  it('completed filter bar changes date range filter', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by date range')).toBeDefined());
+    const select = screen.getByLabelText('Filter by date range') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'today' } });
+    expect(select.value).toBe('today');
+  });
+
+  it('completed filter bar shows custom date inputs when custom selected', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by date range')).toBeDefined());
+    const select = screen.getByLabelText('Filter by date range') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'custom' } });
+    await waitFor(() => expect(screen.getByLabelText('Start date')).toBeDefined());
+    expect(screen.getByLabelText('End date')).toBeDefined();
+    // Change custom dates
+    const startInput = screen.getByLabelText('Start date') as HTMLInputElement;
+    const endInput = screen.getByLabelText('End date') as HTMLInputElement;
+    fireEvent.change(startInput, { target: { value: '2026-01-01' } });
+    fireEvent.change(endInput, { target: { value: '2026-01-31' } });
+    expect(startInput.value).toBe('2026-01-01');
+    expect(endInput.value).toBe('2026-01-31');
+  });
 });

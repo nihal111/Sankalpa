@@ -154,10 +154,11 @@ describe('Checkbox interactions', () => {
 
   it('clicking a smart list selects it', async () => {
     render(<App />);
-    await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
-    const completedItem = screen.getByText('Completed').closest('li');
-    fireEvent.click(completedItem!);
-    await waitFor(() => expect(completedItem?.classList.contains('selected')).toBe(true));
+    const sidebar = document.querySelector('.lists-pane')!;
+    await waitFor(() => expect(sidebar.querySelector('.item-name')?.textContent).toBe('Inbox'));
+    const completedItem = Array.from(sidebar.querySelectorAll('li')).find(li => li.textContent?.includes('Completed'))!;
+    fireEvent.click(completedItem);
+    await waitFor(() => expect(completedItem.classList.contains('selected')).toBe(true));
   });
 
   it('completed view shows origin list name for each task', async () => {
