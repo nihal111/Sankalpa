@@ -18,12 +18,18 @@ const DATE_PRESETS: { value: DateRangePreset; label: string }[] = [
   { value: 'custom', label: 'Custom...' },
 ];
 
+function parseListIdValue(value: string): string | null | 'all' {
+  if (value === 'all') return 'all';
+  if (value === 'null') return null;
+  return value;
+}
+
 export function CompletedFilterBar({ filter, onFilterChange, listsWithCompletedTasks }: CompletedFilterBarProps): ReactNode {
   return (
     <div className="completed-filter-bar">
       <select
         value={filter.listId ?? 'null'}
-        onChange={(e) => onFilterChange({ ...filter, listId: e.target.value === 'all' ? 'all' : e.target.value === 'null' ? null : e.target.value })}
+        onChange={(e) => onFilterChange({ ...filter, listId: parseListIdValue(e.target.value) })}
         aria-label="Filter by project"
       >
         <option value="all">All Projects</option>
