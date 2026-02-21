@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode, type JSX } from 'react';
 import uFuzzy from '@leeoniya/ufuzzy';
 import type { Task, List } from '../shared/types';
 
 interface SearchResult {
   task: Task;
   listName: string;
+  notesSnippet: JSX.Element | null;
 }
 
 interface SearchModalProps {
@@ -16,6 +17,46 @@ interface SearchModalProps {
 }
 
 const uf = new uFuzzy();
+
+const SNIPPET_CONTEXT = 40;
+
+function buildNotesSnippet(notes: string, ranges: number[], titleLen: number): JSX.Element {
+  // Collect match intervals within notes, adjusted to notes-local offsets
+  const intervals: [number, number][] = [];
+  for (let i = 0; i < ranges.length; i += 2) {
+    const start = ranges[i];
+    const end = ranges[i + 1];
+    if (end > titleLen) {
+      intervals.push([Math.max(0, start - titleLen), end - titleLen]);
+    }
+  }
+  if (intervals.length === 0) return <span className="search-result-notes" />;
+
+  // Build a snippet window around the first match
+  const firstStart = intervals[0][0];
+  const lastEnd = intervals[intervals.length - 1][1];
+  const snippetStart = Math.max(0, firstStart - SNIPPET_CONTEXT);
+  const snippetEnd = Math.min(notes.length, lastEnd + SNIPPET_CONTEXT);
+  const snippet = (snippetStart > 0 ? '…' : '') + notes.slice(snippetStart, snippetEnd) + (snippetEnd < notes.length ? '…' : '');
+
+  // Build elements with bold matches
+  const parts: JSX.Element[] = [];
+  let cursor = 0;
+  for (const [s, e] of intervals) {
+    const localS = s - snippetStart + (snippetStart > 0 ? 1 : 0); // +1 for ellipsis
+    const localE = e - snippetStart + (snippetStart > 0 ? 1 : 0);
+    if (localS > cursor) {
+      parts.push(<span key={`t${cursor}`}>{snippet.slice(cursor, localS)}</span>);
+    }
+    parts.push(<b key={`b${localS}`}>{snippet.slice(localS, localE)}</b>);
+    cursor = localE;
+  }
+  if (cursor < snippet.length) {
+    parts.push(<span key={`t${cursor}`}>{snippet.slice(cursor)}</span>);
+  }
+
+  return <span className="search-result-notes">{parts}</span>;
+}
 
 export function SearchModal({ isOpen, lastQuery, onClose, onSelectTask, onQueryChange }: SearchModalProps): ReactNode {
   const [query, setQuery] = useState(lastQuery);
@@ -42,16 +83,28 @@ export function SearchModal({ isOpen, lastQuery, onClose, onSelectTask, onQueryC
     return map;
   }, [lists]);
 
-  const haystack = useMemo(() => tasks.map((t) => t.title), [tasks]);
+  const haystack = useMemo(() => tasks.map((t) => t.notes ? `${t.title} ${t.notes}` : t.title), [tasks]);
 
   const results = useMemo((): SearchResult[] => {
     if (!query.trim()) return [];
-    const [idxs] = uf.search(haystack, query);
-    if (!idxs) return [];
-    return idxs.map((i) => ({
-      task: tasks[i],
-      listName: tasks[i].list_id ? (listNames[tasks[i].list_id!] || 'Unknown') : 'Inbox',
-    }));
+    const [idxs, info, order] = uf.search(haystack, query);
+    if (!idxs || !info || !order) return [];
+    return order.map((oi) => {
+      const idx = info.idx[oi];
+      const task = tasks[idx];
+      const listName = task.list_id ? (listNames[task.list_id!] || 'Unknown') : 'Inbox';
+      let notesSnippet: JSX.Element | null = null;
+      if (task.notes && info.ranges[oi]) {
+        const titleLen = task.title.length + 1; // +1 for the space separator
+        const ranges = info.ranges[oi];
+        // Check if any match range falls within the notes portion
+        const hasNotesMatch = ranges.some((_, ri) => ri % 2 === 0 && ranges[ri + 1] > titleLen);
+        if (hasNotesMatch) {
+          notesSnippet = buildNotesSnippet(task.notes, ranges, titleLen);
+        }
+      }
+      return { task, listName, notesSnippet };
+    });
   }, [query, haystack, tasks, listNames]);
 
   useEffect(() => {
@@ -103,7 +156,10 @@ export function SearchModal({ isOpen, lastQuery, onClose, onSelectTask, onQueryC
               key={r.task.id}
               className={`search-result-item${i === selectedIndex ? ' selected' : ''}`}
             >
-              <span className="search-result-title">{r.task.title || 'Untitled'}</span>
+              <div className="search-result-content">
+                <span className="search-result-title">{r.task.title || 'Untitled'}</span>
+                {r.notesSnippet}
+              </div>
               <span className="search-result-list">{r.listName}</span>
             </div>
           ))}

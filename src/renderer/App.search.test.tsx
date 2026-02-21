@@ -2,6 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import { setupMockApi, mockTasks, mockLists } from './test-utils';
+import type { Task } from '../shared/types';
 
 beforeEach(() => {
   setupMockApi({
@@ -95,6 +96,45 @@ describe('App search', () => {
     // Click the due date input itself (covers stopPropagation onClick)
     fireEvent.click(document.querySelector('.detail-pane .due-date-input')!);
     expect(document.querySelector('.detail-pane .due-date-input')).toBeDefined();
+  });
+
+  it('shows notes snippet with bold match when search matches notes', async () => {
+    const tasksWithNotes: Task[] = [
+      { id: 't1', list_id: '1', title: 'Buy groceries', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: 'Remember to get organic apples and bananas', sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    setupMockApi({
+      tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
+    openSearch();
+    const input = await screen.findByPlaceholderText('Search tasks...');
+    fireEvent.change(input, { target: { value: 'organic' } });
+    await waitFor(() => expect(screen.getByText('Buy groceries')).toBeDefined());
+    const notesSnippet = document.querySelector('.search-result-notes');
+    expect(notesSnippet).not.toBeNull();
+    expect(notesSnippet!.querySelector('b')).not.toBeNull();
+    expect(notesSnippet!.querySelector('b')!.textContent).toContain('organic');
+  });
+
+  it('shows ellipsis in notes snippet when match is deep in long notes', async () => {
+    const longNotes = 'A'.repeat(80) + ' findme ' + 'B'.repeat(80);
+    const tasksWithNotes: Task[] = [
+      { id: 't1', list_id: '1', title: 'Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: longNotes, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    setupMockApi({
+      tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
+    openSearch();
+    const input = await screen.findByPlaceholderText('Search tasks...');
+    fireEvent.change(input, { target: { value: 'findme' } });
+    await waitFor(() => expect(screen.getByText('Task')).toBeDefined());
+    const notesSnippet = document.querySelector('.search-result-notes');
+    expect(notesSnippet).not.toBeNull();
+    expect(notesSnippet!.textContent).toContain('…');
+    expect(notesSnippet!.querySelector('b')!.textContent).toContain('findme');
   });
 
   it('clicking sidebar trash item triggers onClick', async () => {
