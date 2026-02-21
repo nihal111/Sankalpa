@@ -36,6 +36,10 @@ contextBridge.exposeInMainWorld('api', {
   tasksMove: (id: string, newListId: string) => ipcRenderer.invoke('tasks:move', id, newListId),
   tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => ipcRenderer.invoke('tasks:restore', id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt),
   tasksSetListId: (id: string, listId: string | null) => ipcRenderer.invoke('tasks:setListId', id, listId),
+  tasksSetDueDate: (id: string, dueDate: number | null) => ipcRenderer.invoke('tasks:setDueDate', id, dueDate),
+  tasksGetDueBetween: (start: number, end: number) => ipcRenderer.invoke('tasks:getDueBetween', start, end),
+  tasksGetOverdue: (before: number) => ipcRenderer.invoke('tasks:getOverdue', before),
+  tasksGetUpcoming: (from: number) => ipcRenderer.invoke('tasks:getUpcoming', from),
 
   // Lists undo
   listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => ipcRenderer.invoke('lists:restore', id, folderId, name, sortKey, createdAt, updatedAt),

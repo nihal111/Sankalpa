@@ -10,8 +10,8 @@ export const mockLists: List[] = [
 ];
 
 export const mockTasks: Task[] = [
-  { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
-  { id: 't2', list_id: '1', title: 'Task 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 2, created_at: 0, updated_at: 0 },
+  { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0 },
+  { id: 't2', list_id: '1', title: 'Task 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 2, created_at: 0, updated_at: 0 },
 ];
 
 export function setupMockApi(overrides: Record<string, unknown> = {}): void {
@@ -27,7 +27,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     tasksGetCompleted: vi.fn().mockResolvedValue([]),
     tasksGetInboxCount: vi.fn().mockResolvedValue(0),
     tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
-    tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 3, created_at: 0, updated_at: 0 }),
+    tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0 }),
     listsUpdate: vi.fn().mockResolvedValue(undefined),
     tasksUpdate: vi.fn().mockResolvedValue(undefined),
     tasksToggleCompleted: vi.fn().mockResolvedValue(undefined),
@@ -37,6 +37,10 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     tasksDelete: vi.fn().mockResolvedValue(undefined),
     tasksRestore: vi.fn().mockResolvedValue(undefined),
     tasksSetListId: vi.fn().mockResolvedValue(undefined),
+    tasksSetDueDate: vi.fn().mockResolvedValue(undefined),
+    tasksGetDueBetween: vi.fn().mockResolvedValue([]),
+    tasksGetOverdue: vi.fn().mockResolvedValue([]),
+    tasksGetUpcoming: vi.fn().mockResolvedValue([]),
     listsRestore: vi.fn().mockResolvedValue(undefined),
     settingsGetAll: vi.fn().mockResolvedValue({}),
     settingsSet: vi.fn().mockResolvedValue(undefined),

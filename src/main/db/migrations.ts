@@ -15,4 +15,7 @@ export function migrateTasksTable(db: Database): void {
   if (!columnNames.includes('completed_timestamp')) {
     db.run('ALTER TABLE tasks ADD COLUMN completed_timestamp INTEGER');
   }
+  if (!columnNames.includes('due_date')) {
+    db.run('ALTER TABLE tasks ADD COLUMN due_date INTEGER');
+  }
 }

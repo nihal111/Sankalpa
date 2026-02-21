@@ -112,8 +112,8 @@ export function getTasksByList(db: Database, listId: string): Task[] {
 export function createTask(db: Database, id: string, listId: string | null, title: string): Task {
   const sortKey = listId ? getNextSortKey(db, 'tasks', listId) : getNextSortKey(db, 'tasks');
   const now = Date.now();
-  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, listId, title, 'PENDING', now, null, sortKey, now, now]);
+  db.run('INSERT INTO tasks (id, list_id, title, status, created_timestamp, completed_timestamp, due_date, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, listId, title, 'PENDING', now, null, null, sortKey, now, now]);
   return {
     id,
     list_id: listId,
@@ -121,6 +121,7 @@ export function createTask(db: Database, id: string, listId: string | null, titl
     status: 'PENDING',
     created_timestamp: now,
     completed_timestamp: null,
+    due_date: null,
     sort_key: sortKey,
     created_at: now,
     updated_at: now,
@@ -171,6 +172,22 @@ export function restoreList(db: Database, id: string, folderId: string | null, n
 
 export function setTaskListId(db: Database, id: string, listId: string | null): void {
   db.run('UPDATE tasks SET list_id = ?, updated_at = ? WHERE id = ?', [listId, Date.now(), id]);
+}
+
+export function setTaskDueDate(db: Database, id: string, dueDate: number | null): void {
+  db.run('UPDATE tasks SET due_date = ?, updated_at = ? WHERE id = ?', [dueDate, Date.now(), id]);
+}
+
+export function getTasksDueBetween(db: Database, start: number, end: number): Task[] {
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date >= ? AND due_date < ? AND status = 'PENDING' ORDER BY due_date", [start, end]);
+}
+
+export function getOverdueTasks(db: Database, before: number): Task[] {
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date < ? AND status = 'PENDING' ORDER BY due_date", [before]);
+}
+
+export function getUpcomingTasks(db: Database, from: number): Task[] {
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date >= ? AND status = 'PENDING' ORDER BY due_date", [from]);
 }
 
 // Settings

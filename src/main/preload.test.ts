@@ -130,6 +130,18 @@ describe('preload', () => {
 
     api.tasksMove('t1', 'list2');
     expect(mockInvoke).toHaveBeenCalledWith('tasks:move', 't1', 'list2');
+
+    api.tasksSetDueDate('t1', 1000);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:setDueDate', 't1', 1000);
+
+    api.tasksGetDueBetween(100, 200);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getDueBetween', 100, 200);
+
+    api.tasksGetOverdue(300);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getOverdue', 300);
+
+    api.tasksGetUpcoming(400);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getUpcoming', 400);
   });
 
   it('settings methods invoke correct IPC channels', async () => {

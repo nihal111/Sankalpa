@@ -5,7 +5,8 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
-  restoreTask, restoreList, setTaskListId,
+  restoreTask, restoreList, setTaskListId, setTaskDueDate,
+  getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   calcSortKeyBetween, getAllSettings, setSetting,
 } from './db';
 
@@ -87,6 +88,10 @@ app.whenReady().then(async () => {
   ipcMain.handle('tasks:move', (_, id: string, newListId: string) => { moveTask(db, id, newListId); saveDb(); });
   ipcMain.handle('tasks:restore', (_, id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => { restoreTask(db, id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt); saveDb(); });
   ipcMain.handle('tasks:setListId', (_, id: string, listId: string | null) => { setTaskListId(db, id, listId); saveDb(); });
+  ipcMain.handle('tasks:setDueDate', (_, id: string, dueDate: number | null) => { setTaskDueDate(db, id, dueDate); saveDb(); });
+  ipcMain.handle('tasks:getDueBetween', (_, start: number, end: number) => getTasksDueBetween(db, start, end));
+  ipcMain.handle('tasks:getOverdue', (_, before: number) => getOverdueTasks(db, before));
+  ipcMain.handle('tasks:getUpcoming', (_, from: number) => getUpcomingTasks(db, from));
 
   // List undo
   ipcMain.handle('lists:restore', (_, id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => { restoreList(db, id, folderId, name, sortKey, createdAt, updatedAt); saveDb(); });

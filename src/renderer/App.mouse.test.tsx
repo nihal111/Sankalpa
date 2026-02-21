@@ -164,8 +164,8 @@ describe('Checkbox interactions', () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
       tasksGetCompleted: () => Promise.resolve([
-        { id: 'c1', list_id: '2', title: 'Done task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 1, created_at: 0, updated_at: 0 },
-        { id: 'c2', list_id: null, title: 'Inbox task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, sort_key: 2, created_at: 0, updated_at: 0 },
+        { id: 'c1', list_id: '2', title: 'Done task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0 },
+        { id: 'c2', list_id: null, title: 'Inbox task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 2, created_at: 0, updated_at: 0 },
       ]),
     });
     render(<App />);

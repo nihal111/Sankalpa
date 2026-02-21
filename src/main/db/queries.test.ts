@@ -5,7 +5,7 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
-  restoreList,
+  restoreList, setTaskDueDate, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
 } from './queries';
 
@@ -262,6 +262,46 @@ describe('tasks', () => {
     const completed = getCompletedTasks(db);
     expect(completed).toHaveLength(1);
     expect(completed[0].title).toBe('Done');
+  });
+
+  it('setTaskDueDate sets and clears due date', () => {
+    createTask(db, 't1', 'inbox', 'Task');
+    setTaskDueDate(db, 't1', 1000);
+    expect(getTasksByList(db, 'inbox')[0].due_date).toBe(1000);
+    setTaskDueDate(db, 't1', null);
+    expect(getTasksByList(db, 'inbox')[0].due_date).toBeNull();
+  });
+
+  it('getOverdueTasks returns tasks due before given time', () => {
+    createTask(db, 't1', 'inbox', 'Overdue');
+    createTask(db, 't2', 'inbox', 'Future');
+    setTaskDueDate(db, 't1', 100);
+    setTaskDueDate(db, 't2', 500);
+    const overdue = getOverdueTasks(db, 300);
+    expect(overdue).toHaveLength(1);
+    expect(overdue[0].id).toBe('t1');
+  });
+
+  it('getTasksDueBetween returns tasks in range', () => {
+    createTask(db, 't1', 'inbox', 'A');
+    createTask(db, 't2', 'inbox', 'B');
+    createTask(db, 't3', 'inbox', 'C');
+    setTaskDueDate(db, 't1', 100);
+    setTaskDueDate(db, 't2', 200);
+    setTaskDueDate(db, 't3', 300);
+    const between = getTasksDueBetween(db, 150, 250);
+    expect(between).toHaveLength(1);
+    expect(between[0].id).toBe('t2');
+  });
+
+  it('getUpcomingTasks returns tasks due from given time', () => {
+    createTask(db, 't1', 'inbox', 'Past');
+    createTask(db, 't2', 'inbox', 'Future');
+    setTaskDueDate(db, 't1', 100);
+    setTaskDueDate(db, 't2', 500);
+    const upcoming = getUpcomingTasks(db, 300);
+    expect(upcoming).toHaveLength(1);
+    expect(upcoming[0].id).toBe('t2');
   });
 });
 

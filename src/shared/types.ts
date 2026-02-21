@@ -23,6 +23,7 @@ export interface Task {
   status: 'PENDING' | 'COMPLETED';
   created_timestamp: number;
   completed_timestamp: number | null;
+  due_date: number | null;
   sort_key: number;
   created_at: number;
   updated_at: number;
@@ -57,6 +58,10 @@ export interface Api {
   tasksMove: (id: string, newListId: string) => Promise<void>;
   tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
   tasksSetListId: (id: string, listId: string | null) => Promise<void>;
+  tasksSetDueDate: (id: string, dueDate: number | null) => Promise<void>;
+  tasksGetDueBetween: (start: number, end: number) => Promise<Task[]>;
+  tasksGetOverdue: (before: number) => Promise<Task[]>;
+  tasksGetUpcoming: (from: number) => Promise<Task[]>;
 
   listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
 

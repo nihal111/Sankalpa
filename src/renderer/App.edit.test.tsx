@@ -164,7 +164,7 @@ describe('App edit mode', () => {
 
   it('deletes task from inbox and reloads', async () => {
     const inboxTasks = [
-      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: 'inbox-t1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),
