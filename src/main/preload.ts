@@ -28,13 +28,16 @@ contextBridge.exposeInMainWorld('api', {
   tasksGetCompleted: () => ipcRenderer.invoke('tasks:getCompleted'),
   tasksGetInboxCount: () => ipcRenderer.invoke('tasks:getInboxCount'),
   tasksGetByList: (listId: string) => ipcRenderer.invoke('tasks:getByList', listId),
+  tasksGetTrashed: () => ipcRenderer.invoke('tasks:getTrashed'),
   tasksCreate: (id: string, listId: string | null, title: string) => ipcRenderer.invoke('tasks:create', id, listId, title),
   tasksUpdate: (id: string, title: string) => ipcRenderer.invoke('tasks:update', id, title),
   tasksToggleCompleted: (id: string) => ipcRenderer.invoke('tasks:toggleCompleted', id),
   tasksDelete: (id: string) => ipcRenderer.invoke('tasks:delete', id),
+  tasksSoftDelete: (id: string) => ipcRenderer.invoke('tasks:softDelete', id),
+  tasksRestoreFromTrash: (id: string) => ipcRenderer.invoke('tasks:restoreFromTrash', id),
   tasksReorder: (id: string, sortKey: number) => ipcRenderer.invoke('tasks:reorder', id, sortKey),
   tasksMove: (id: string, newListId: string) => ipcRenderer.invoke('tasks:move', id, newListId),
-  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => ipcRenderer.invoke('tasks:restore', id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt),
+  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number, deletedAt?: number | null) => ipcRenderer.invoke('tasks:restore', id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt, deletedAt),
   tasksSetListId: (id: string, listId: string | null) => ipcRenderer.invoke('tasks:setListId', id, listId),
 
   // Lists undo

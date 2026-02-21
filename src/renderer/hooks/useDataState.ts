@@ -10,6 +10,7 @@ interface DataState {
   sidebarItems: SidebarItem[];
   selectedSidebarItem: SidebarItem | undefined;
   selectedListId: string | null;
+  trashIndex: number;
 }
 
 interface DataActions {
@@ -30,6 +31,7 @@ export function useDataState(
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
 
   const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
+  const trashIndex = useMemo(() => sidebarItems.length - 1, [sidebarItems]);
   const selectedSidebarItem = useMemo(() => sidebarItems[selectedSidebarIndex], [sidebarItems, selectedSidebarIndex]);
   const selectedListId = useMemo(() =>
     selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id
@@ -52,6 +54,10 @@ export function useDataState(
       setTasks(await window.api.tasksGetCompleted());
       return;
     }
+    if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
+      setTasks(await window.api.tasksGetTrashed());
+      return;
+    }
     if (selectedListId && selectedSidebarItem?.type === 'list') {
       setTasks(await window.api.tasksGetByList(selectedListId));
     }
@@ -69,6 +75,7 @@ export function useDataState(
       const counts: Record<string, number> = {};
       counts['inbox'] = await window.api.tasksGetInboxCount();
       counts['completed'] = (await window.api.tasksGetCompleted()).length;
+      counts['trash'] = (await window.api.tasksGetTrashed()).length;
       for (const list of lists) {
         counts[list.id] = await window.api.listsGetTaskCount(list.id);
       }
@@ -88,6 +95,11 @@ export function useDataState(
         setTasks(t);
         setSelectedTaskIndex(0);
       });
+    } else if (selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash') {
+      window.api.tasksGetTrashed().then((t) => {
+        setTasks(t);
+        setSelectedTaskIndex(0);
+      });
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
         setTasks(t);
@@ -99,7 +111,7 @@ export function useDataState(
   }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex]);
 
   return [
-    { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId },
+    { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex },
     { reloadData, reloadTasks, setTasks, setFolders, setLists },
   ];
 }

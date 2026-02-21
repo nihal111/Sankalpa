@@ -1,7 +1,7 @@
 import { type ReactNode, type RefObject, useCallback, useRef } from 'react';
 import type { List } from '../shared/types';
 import type { SidebarItem, SmartList, EditMode, Pane } from './types';
-import { SMART_LISTS } from './types';
+import { SMART_LISTS, TRASH_SMART_LIST } from './types';
 import { Icons } from './icons';
 
 interface EditableItemNameProps {
@@ -62,6 +62,7 @@ interface SidebarProps {
   onItemClick: (index: number) => void;
   onFolderToggle: (folderId: string) => void;
   flashIds: Set<string>;
+  trashIndex: number;
 }
 
 export function Sidebar({
@@ -80,6 +81,7 @@ export function Sidebar({
   onItemClick,
   onFolderToggle,
   flashIds,
+  trashIndex,
 }: SidebarProps): ReactNode {
   const paneRef = useRef<HTMLDivElement>(null);
 
@@ -121,7 +123,7 @@ export function Sidebar({
       </ul>
       <div className="sidebar-divider" />
       <ul className="item-list">
-        {sidebarItems.slice(SMART_LISTS.length).map((item, idx) => {
+        {sidebarItems.slice(SMART_LISTS.length, -1).map((item, idx) => {
           const i = idx + SMART_LISTS.length;
           const isSelected = i === selectedSidebarIndex;
           const isMoveTarget = moveMode && i === moveTargetIndex;
@@ -165,6 +167,17 @@ export function Sidebar({
             </li>
           );
         })}
+      </ul>
+      <div className="sidebar-spacer" />
+      <ul className="item-list trash-list">
+        <li
+          key="trash"
+          className={`item smart-list ${trashIndex === selectedSidebarIndex ? 'selected' : ''}`}
+          onClick={() => onItemClick(trashIndex)}
+        >
+          <span className="item-icon" dangerouslySetInnerHTML={{ __html: TRASH_SMART_LIST.icon }} />
+          <span className="item-name">{TRASH_SMART_LIST.name}</span>
+        </li>
       </ul>
       <div className="sidebar-resize-handle" onMouseDown={handleResizeStart} role="separator" aria-orientation="vertical" />
     </div>

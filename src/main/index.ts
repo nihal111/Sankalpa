@@ -7,6 +7,7 @@ import {
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   restoreTask, restoreList, setTaskListId,
   calcSortKeyBetween, getAllSettings, setSetting,
+  getTrashedTasks, softDeleteTask, restoreFromTrash,
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
@@ -79,13 +80,16 @@ app.whenReady().then(async () => {
   ipcMain.handle('tasks:getInboxCount', () => getInboxTaskCount(db));
   ipcMain.handle('tasks:getCompleted', () => getCompletedTasks(db));
   ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
+  ipcMain.handle('tasks:getTrashed', () => getTrashedTasks(db));
   ipcMain.handle('tasks:create', (_, id: string, listId: string | null, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
   ipcMain.handle('tasks:update', (_, id: string, title: string) => { updateTask(db, id, title); saveDb(); });
   ipcMain.handle('tasks:toggleCompleted', (_, id: string) => { toggleTaskCompleted(db, id); saveDb(); });
-  ipcMain.handle('tasks:delete', (_, id: string) => { deleteTask(db, id); saveDb(); });
+  ipcMain.handle('tasks:delete', (_, id: string) => { softDeleteTask(db, id); saveDb(); });
+  ipcMain.handle('tasks:softDelete', (_, id: string) => { softDeleteTask(db, id); saveDb(); });
+  ipcMain.handle('tasks:restoreFromTrash', (_, id: string) => { restoreFromTrash(db, id); saveDb(); });
   ipcMain.handle('tasks:reorder', (_, id: string, sortKey: number) => { reorderTask(db, id, sortKey); saveDb(); });
   ipcMain.handle('tasks:move', (_, id: string, newListId: string) => { moveTask(db, id, newListId); saveDb(); });
-  ipcMain.handle('tasks:restore', (_, id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => { restoreTask(db, id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt); saveDb(); });
+  ipcMain.handle('tasks:restore', (_, id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number, deletedAt?: number | null) => { restoreTask(db, id, listId, title, status, createdTimestamp, completedTimestamp, sortKey, createdAt, updatedAt, deletedAt); saveDb(); });
   ipcMain.handle('tasks:setListId', (_, id: string, listId: string | null) => { setTaskListId(db, id, listId); saveDb(); });
 
   // List undo

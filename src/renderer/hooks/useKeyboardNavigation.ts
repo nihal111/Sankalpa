@@ -24,6 +24,7 @@ export interface KeyboardActions {
   startMove: Command;
   undo: Command;
   redo: Command;
+  restoreTask: Command;
 }
 
 export interface KeyboardState {
@@ -34,6 +35,7 @@ export interface KeyboardState {
   cmdHeld: boolean;
   hasSelection: boolean;
   canEdit: boolean;
+  isTrashView: boolean;
 }
 
 export function useKeyboardNavigation(
@@ -70,6 +72,7 @@ export function useKeyboardNavigation(
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
+    if ((e.key === 'r' || e.key === 'R') && state.isTrashView && state.focusedPane === 'tasks') { e.preventDefault(); actions.restoreTask(); return; }
   }, [actions, state]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {

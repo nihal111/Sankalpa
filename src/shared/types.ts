@@ -26,6 +26,7 @@ export interface Task {
   sort_key: number;
   created_at: number;
   updated_at: number;
+  deleted_at: number | null;
 }
 
 export interface Api {
@@ -49,13 +50,16 @@ export interface Api {
   tasksGetCompleted: () => Promise<Task[]>;
   tasksGetInboxCount: () => Promise<number>;
   tasksGetByList: (listId: string) => Promise<Task[]>;
+  tasksGetTrashed: () => Promise<Task[]>;
   tasksCreate: (id: string, listId: string | null, title: string) => Promise<Task>;
   tasksUpdate: (id: string, title: string) => Promise<void>;
   tasksToggleCompleted: (id: string) => Promise<void>;
   tasksDelete: (id: string) => Promise<void>;
+  tasksSoftDelete: (id: string) => Promise<void>;
+  tasksRestoreFromTrash: (id: string) => Promise<void>;
   tasksReorder: (id: string, sortKey: number) => Promise<void>;
   tasksMove: (id: string, newListId: string) => Promise<void>;
-  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
+  tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number, deletedAt?: number | null) => Promise<void>;
   tasksSetListId: (id: string, listId: string | null) => Promise<void>;
 
   listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
