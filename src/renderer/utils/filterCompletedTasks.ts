@@ -24,8 +24,11 @@ export function filterCompletedTasks(tasks: Task[], filter: CompletedFilter): Ta
     result = result.filter((t) => t.list_id === filter.listId);
   }
 
-  if (filter.dateRange === 'custom' && filter.customStart !== undefined && filter.customEnd !== undefined) {
-    result = result.filter((t) => t.completed_timestamp !== null && t.completed_timestamp >= filter.customStart! && t.completed_timestamp <= filter.customEnd!);
+  if (filter.dateRange === 'custom') {
+    const { customStart, customEnd } = filter;
+    if (customStart !== undefined && customEnd !== undefined) {
+      result = result.filter((t) => t.completed_timestamp !== null && t.completed_timestamp >= customStart && t.completed_timestamp <= customEnd);
+    }
   } else {
     const boundary = getDateBoundary(filter.dateRange);
     if (boundary) {
