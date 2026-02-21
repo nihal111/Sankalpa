@@ -27,6 +27,15 @@ export type SidebarItem =
   | { type: 'folder'; folder: Folder }
   | { type: 'list'; list: List };
 
+export type DateRangePreset = 'all' | 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth' | 'custom';
+
+export interface CompletedFilter {
+  listId: string | null | 'all';
+  dateRange: DateRangePreset;
+  customStart?: number;
+  customEnd?: number;
+}
+
 export const THEME_COLORS = {
   dark: {
     bgPrimary: '#2a2a28',

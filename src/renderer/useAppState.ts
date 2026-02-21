@@ -34,8 +34,8 @@ export function useAppState() {
   const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
-  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex } = data;
-  const { reloadData, reloadTasks, setTasks, setFolders, setLists } = dataActions;
+  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
+  const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
 
   const listNames = useMemo(() => {
     const map: Record<string, string> = {};
@@ -361,5 +361,8 @@ export function useAppState() {
     lists,
     confirmationDialog,
     closeConfirmationDialog,
+    completedFilter: isCompletedView ? completedFilter : undefined,
+    onFilterChange: isCompletedView ? setCompletedFilter : undefined,
+    listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined,
   };
 }

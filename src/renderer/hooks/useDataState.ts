@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { Folder, List, Task } from '../../shared/types';
 import { buildSidebarItems, SidebarItem } from '../utils/buildSidebarItems';
 import { todayBounds } from '../utils/dateBounds';
+import type { CompletedFilter } from '../types';
+import { filterCompletedTasks } from '../utils/filterCompletedTasks';
 
 interface DataState {
   folders: Folder[];
@@ -12,6 +14,8 @@ interface DataState {
   selectedSidebarItem: SidebarItem | undefined;
   selectedListId: string | null;
   trashIndex: number;
+  completedFilter: CompletedFilter;
+  listsWithCompletedTasks: List[];
 }
 
 interface DataActions {
@@ -20,6 +24,7 @@ interface DataActions {
   setTasks: (tasks: Task[]) => void;
   setFolders: (folders: Folder[]) => void;
   setLists: (lists: List[]) => void;
+  setCompletedFilter: (filter: CompletedFilter) => void;
 }
 
 export function useDataState(
@@ -29,7 +34,9 @@ export function useDataState(
   const [folders, setFolders] = useState<Folder[]>([]);
   const [lists, setLists] = useState<List[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allCompletedTasks, setAllCompletedTasks] = useState<Task[]>([]);
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
+  const [completedFilter, setCompletedFilter] = useState<CompletedFilter>({ listId: 'all', dateRange: 'all' });
 
   const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
   const trashIndex = useMemo(() => sidebarItems.length - 1, [sidebarItems]);
@@ -39,6 +46,19 @@ export function useDataState(
       : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
       : null,
   [selectedSidebarItem]);
+
+  const isCompletedView = useMemo(() =>
+    selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed',
+  [selectedSidebarItem]);
+
+  const listsWithCompletedTasks = useMemo(() => {
+    const listIdsWithTasks = new Set(allCompletedTasks.map((t) => t.list_id).filter((id): id is string => id !== null));
+    return lists.filter((l) => listIdsWithTasks.has(l.id));
+  }, [allCompletedTasks, lists]);
+
+  const filteredTasks = useMemo(() =>
+    isCompletedView ? filterCompletedTasks(allCompletedTasks, completedFilter) : tasks,
+  [isCompletedView, allCompletedTasks, completedFilter, tasks]);
 
   const reloadData = useCallback(async () => {
     const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
@@ -61,7 +81,14 @@ export function useDataState(
 
   const reloadTasks = useCallback(async () => {
     if (selectedSidebarItem?.type === 'smart') {
-      setTasks(await loadSmartTasks(selectedSidebarItem.smartList.id));
+      const smartId = selectedSidebarItem.smartList.id;
+      if (smartId === 'completed') {
+        const completed = await window.api.tasksGetCompleted();
+        setAllCompletedTasks(completed);
+        setTasks(completed);
+      } else {
+        setTasks(await loadSmartTasks(smartId));
+      }
       return;
     }
     if (selectedListId && selectedSidebarItem?.type === 'list') {
@@ -97,9 +124,20 @@ export function useDataState(
   useEffect(() => {
     let stale = false;
     if (selectedSidebarItem?.type === 'smart') {
-      loadSmartTasks(selectedSidebarItem.smartList.id).then((t) => {
-        if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
-      });
+      const smartId = selectedSidebarItem.smartList.id;
+      if (smartId === 'completed') {
+        window.api.tasksGetCompleted().then((t) => {
+          if (!stale) {
+            setAllCompletedTasks(t);
+            setTasks(t);
+            setSelectedTaskIndex(0);
+          }
+        });
+      } else {
+        loadSmartTasks(smartId).then((t) => {
+          if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
+        });
+      }
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
         if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
@@ -111,7 +149,7 @@ export function useDataState(
   }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex, loadSmartTasks]);
 
   return [
-    { folders, lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex },
-    { reloadData, reloadTasks, setTasks, setFolders, setLists },
+    { folders, lists, tasks: filteredTasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks },
+    { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter },
   ];
 }

@@ -51,6 +51,9 @@ export default function App(): ReactNode {
         onDueDateCommit={state.commitDueDate}
         showSourceList={state.isTrashView}
         lists={state.lists}
+        completedFilter={state.completedFilter}
+        onFilterChange={state.onFilterChange}
+        listsWithCompletedTasks={state.listsWithCompletedTasks}
       />
       {state.moveMode && (
         <div className="move-overlay">

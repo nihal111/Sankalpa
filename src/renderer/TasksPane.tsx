@@ -1,6 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 import type { Task, List } from '../shared/types';
-import type { EditMode, Pane } from './types';
+import type { EditMode, Pane, CompletedFilter } from './types';
+import { CompletedFilterBar } from './CompletedFilterBar';
 
 function toDatetimeLocal(ms: number): string {
   const d = new Date(ms);
@@ -37,6 +38,9 @@ interface TasksPaneProps {
   onDueDateCommit: (value: string) => void;
   showSourceList?: boolean;
   lists?: List[];
+  completedFilter?: CompletedFilter;
+  onFilterChange?: (filter: CompletedFilter) => void;
+  listsWithCompletedTasks?: List[];
 }
 
 export function TasksPane({
@@ -62,6 +66,9 @@ export function TasksPane({
   onDueDateCommit,
   showSourceList,
   lists,
+  completedFilter,
+  onFilterChange,
+  listsWithCompletedTasks,
 }: TasksPaneProps): ReactNode {
   const getSourceListName = (task: Task): string | null => {
     if (!showSourceList || !lists) return null;
@@ -73,6 +80,13 @@ export function TasksPane({
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
       <h2>{headerName}</h2>
+      {completedFilter && onFilterChange && listsWithCompletedTasks && (
+        <CompletedFilterBar
+          filter={completedFilter}
+          onFilterChange={onFilterChange}
+          listsWithCompletedTasks={listsWithCompletedTasks}
+        />
+      )}
       <ul className="item-list">
         {tasks.map((task, i) => {
           const sourceListName = getSourceListName(task);
