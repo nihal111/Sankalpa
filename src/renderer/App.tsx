@@ -45,6 +45,9 @@ export default function App(): ReactNode {
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
+        dueDateIndex={state.dueDateIndex}
+        onDueDateCommit={state.commitDueDate}
+        onDueDateCancel={state.cancelDueDate}
       />
       {state.moveMode && (
         <div className="move-overlay">

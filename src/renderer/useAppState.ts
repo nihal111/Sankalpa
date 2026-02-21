@@ -17,6 +17,7 @@ export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
   const [selectedSidebarIndex, setSelectedSidebarIndex] = useState(0);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(0);
+  const [dueDateIndex, setDueDateIndex] = useState<number | null>(null);
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
@@ -143,6 +144,20 @@ export function useAppState() {
     if (focusedPane === 'tasks') moveActions.start();
   }, [focusedPane, moveActions]);
 
+  const startDueDate = useCallback(() => {
+    if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) setDueDateIndex(selectedTaskIndex);
+  }, [focusedPane, tasks, selectedTaskIndex]);
+
+  const commitDueDate = useCallback(async (value: string) => {
+    const task = tasks[dueDateIndex!];
+    const dueDate = value ? new Date(value).getTime() : null;
+    await window.api.tasksSetDueDate(task.id, dueDate);
+    setDueDateIndex(null);
+    await reloadTasks();
+  }, [dueDateIndex, tasks, reloadTasks]);
+
+  const cancelDueDate = useCallback(() => setDueDateIndex(null), []);
+
   const switchPane = useCallback(() => {
     setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
   }, []);
@@ -155,7 +170,7 @@ export function useAppState() {
     handleShiftUp: multiSelectActions.handleShiftUp,
     handleCmdDown: () => multiSelectActions.handleCmdDown(selectedTaskIndex),
     handleCmdUp: multiSelectActions.handleCmdUp,
-    cancelEdit: editActions.cancel,
+    cancelEdit: () => { editActions.cancel(); cancelDueDate(); },
     clearSelection: multiSelectActions.clear,
     toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
     toggleTaskCompleted,
@@ -163,15 +178,16 @@ export function useAppState() {
     handleArrowNavigation, handleHorizontalArrow,
     startEdit: editActions.start,
     startMove,
+    startDueDate,
     undo,
     redo,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo]);
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, cancelDueDate, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, startDueDate, undo, redo]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
-    editMode, moveMode, focusedPane, shiftHeld, cmdHeld,
+    editMode: editMode || dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
     hasSelection: selectedTaskIndices.size > 0,
     canEdit: selectedSidebarItem?.type !== 'smart',
-  }), [editMode, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type]);
+  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type]);
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
@@ -244,5 +260,8 @@ export function useAppState() {
     flashIds,
     listNames,
     isCompletedView,
+    dueDateIndex,
+    commitDueDate,
+    cancelDueDate,
   };
 }

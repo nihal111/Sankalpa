@@ -203,6 +203,27 @@ h2 {
   color: var(--text-secondary);
 }
 
+.task-due-date {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.task-due-date.overdue {
+  color: #e55;
+}
+
+.due-date-input {
+  margin-left: auto;
+  font-size: 11px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
 
 .edit-input {
   width: 100%;

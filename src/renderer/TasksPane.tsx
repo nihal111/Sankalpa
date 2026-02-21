@@ -2,6 +2,18 @@ import type { ReactNode, RefObject } from 'react';
 import type { Task } from '../shared/types';
 import type { EditMode, Pane } from './types';
 
+function toDatetimeLocal(ms: number): string {
+  const d = new Date(ms);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatDueDate(ms: number): string {
+  const d = new Date(ms);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
+    d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
 interface TasksPaneProps {
   tasks: Task[];
   selectedTaskIndex: number;
@@ -21,6 +33,9 @@ interface TasksPaneProps {
   onTaskToggle: (taskId: string) => void;
   flashIds: Set<string>;
   listNames?: Record<string, string>;
+  dueDateIndex: number | null;
+  onDueDateCommit: (value: string) => void;
+  onDueDateCancel: () => void;
 }
 
 export function TasksPane({
@@ -42,6 +57,9 @@ export function TasksPane({
   onTaskToggle,
   flashIds,
   listNames,
+  dueDateIndex,
+  onDueDateCommit,
+  onDueDateCancel,
 }: TasksPaneProps): ReactNode {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
@@ -73,6 +91,18 @@ export function TasksPane({
             ) : (
               task.title || '\u00A0'
             )}
+            {dueDateIndex === i ? (
+              <input
+                type="datetime-local"
+                className="due-date-input"
+                defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onDueDateCommit(e.currentTarget.value); } }}
+                onBlur={() => onDueDateCancel()}
+              />
+            ) : task.due_date ? (
+              <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
+            ) : null}
             {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}
           </li>
         ))}

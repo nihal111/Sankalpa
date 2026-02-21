@@ -22,6 +22,7 @@ export interface KeyboardActions {
   handleHorizontalArrow: (dir: 'left' | 'right') => void;
   startEdit: Command;
   startMove: Command;
+  startDueDate: Command;
   undo: Command;
   redo: Command;
 }
@@ -70,6 +71,7 @@ export function useKeyboardNavigation(
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
+    if (e.key === 'd' || e.key === 'D') { e.preventDefault(); if (!state.hasSelection) actions.startDueDate(); return; }
   }, [actions, state]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {

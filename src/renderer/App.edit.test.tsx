@@ -185,4 +185,87 @@ describe('App edit mode', () => {
     fireEvent.keyDown(window, { key: 'Delete' });
     expect(window.api.tasksDelete).not.toHaveBeenCalled();
   });
+
+  it('D key opens due date input and Enter commits it', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'd' });
+    await waitFor(() => expect(document.querySelector('.due-date-input')).not.toBeNull());
+    const input = document.querySelector('.due-date-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2026-03-01T14:30' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', new Date('2026-03-01T14:30').getTime()));
+  });
+
+  it('D key on task with existing due date shows current value', async () => {
+    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: new Date('2026-06-15T09:00').getTime(), sort_key: 1, created_at: 0, updated_at: 0 };
+    setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
+    render(<App />);
+    await navigateToTasksPane();
+    await waitFor(() => expect(screen.getByText(/Jun 15/)).toBeDefined());
+    fireEvent.keyDown(window, { key: 'd' });
+    await waitFor(() => {
+      const input = document.querySelector('.due-date-input') as HTMLInputElement;
+      expect(input.value).toBe('2026-06-15T09:00');
+    });
+  });
+
+  it('Escape cancels due date input', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'd' });
+    await waitFor(() => expect(document.querySelector('.due-date-input')).not.toBeNull());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(document.querySelector('.due-date-input')).toBeNull());
+    expect(window.api.tasksSetDueDate).not.toHaveBeenCalled();
+  });
+
+  it('overdue task shows red due date', async () => {
+    const pastDate = Date.now() - 86400000;
+    const overdueTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0 };
+    setupMockApi({ tasksGetByList: () => Promise.resolve([overdueTask]) });
+    render(<App />);
+    await navigateToTasksPane();
+    await waitFor(() => expect(document.querySelector('.task-due-date.overdue')).not.toBeNull());
+  });
+
+  it('D key with empty value clears due date', async () => {
+    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: 1000, sort_key: 1, created_at: 0, updated_at: 0 };
+    setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'd' });
+    await waitFor(() => expect(document.querySelector('.due-date-input')).not.toBeNull());
+    const input = document.querySelector('.due-date-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', null));
+  });
+
+  it('completed task with due date does not show overdue class', async () => {
+    const pastDate = Date.now() - 86400000;
+    const completedTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'COMPLETED' as const, created_timestamp: 0, completed_timestamp: 1, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0 };
+    setupMockApi({ tasksGetByList: () => Promise.resolve([completedTask]) });
+    render(<App />);
+    await navigateToTasksPane();
+    await waitFor(() => expect(document.querySelector('.task-due-date')).not.toBeNull());
+    expect(document.querySelector('.task-due-date.overdue')).toBeNull();
+  });
+
+  it('D key does nothing in lists pane', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'd' });
+    expect(document.querySelector('.due-date-input')).toBeNull();
+  });
+
+  it('D key does nothing with multi-selection', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown', shiftKey: true });
+    fireEvent.keyUp(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'd' });
+    expect(document.querySelector('.due-date-input')).toBeNull();
+  });
 });
