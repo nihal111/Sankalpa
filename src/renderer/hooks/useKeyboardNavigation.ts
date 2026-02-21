@@ -27,6 +27,7 @@ export interface KeyboardActions {
   undo: Command;
   redo: Command;
   restoreTask: Command;
+  openSearch: Command;
 }
 
 export interface KeyboardState {
@@ -40,6 +41,7 @@ export interface KeyboardState {
   canEdit: boolean;
   isTrashView: boolean;
   hasSelectedTask: boolean;
+  isSearchOpen: boolean;
 }
 
 export function useKeyboardNavigation(
@@ -49,6 +51,8 @@ export function useKeyboardNavigation(
 ): void {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.metaKey && e.key === ',') { e.preventDefault(); actions.openSettings(); return; }
+    if (e.metaKey && e.shiftKey && e.key === 'f') { e.preventDefault(); actions.openSearch(); return; }
+    if (state.isSearchOpen) return;
     if (actions.handleSettingsKeyDown(e)) return;
     if (e.key === 'Shift' && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode) {
       if (!state.shiftHeld) actions.handleShiftDown();

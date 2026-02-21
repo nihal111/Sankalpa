@@ -113,6 +113,10 @@ export function getTrashedTasks(db: Database): Task[] {
   return queryAll<Task>(db, 'SELECT * FROM tasks WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC', []);
 }
 
+export function getAllTasks(db: Database): Task[] {
+  return queryAll<Task>(db, 'SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY sort_key', []);
+}
+
 export function createTask(db: Database, id: string, listId: string | null, title: string): Task {
   const sortKey = listId ? getNextSortKey(db, 'tasks', listId) : getNextSortKey(db, 'tasks');
   const now = Date.now();

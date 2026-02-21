@@ -8,7 +8,7 @@ import {
   restoreTask, restoreList, setTaskListId, setTaskDueDate,
   getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   calcSortKeyBetween, getAllSettings, setSetting,
-  getTrashedTasks, softDeleteTask, restoreFromTrash,
+  getTrashedTasks, softDeleteTask, restoreFromTrash, getAllTasks,
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
@@ -82,6 +82,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('tasks:getCompleted', () => getCompletedTasks(db));
   ipcMain.handle('tasks:getByList', (_, listId: string) => getTasksByList(db, listId));
   ipcMain.handle('tasks:getTrashed', () => getTrashedTasks(db));
+  ipcMain.handle('tasks:getAll', () => getAllTasks(db));
   ipcMain.handle('tasks:create', (_, id: string, listId: string | null, title: string) => { const r = createTask(db, id, listId, title); saveDb(); return r; });
   ipcMain.handle('tasks:update', (_, id: string, title: string) => { updateTask(db, id, title); saveDb(); });
   ipcMain.handle('tasks:toggleCompleted', (_, id: string) => { toggleTaskCompleted(db, id); saveDb(); });

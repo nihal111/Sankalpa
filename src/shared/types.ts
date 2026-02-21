@@ -52,6 +52,7 @@ export interface Api {
   tasksGetInboxCount: () => Promise<number>;
   tasksGetByList: (listId: string) => Promise<Task[]>;
   tasksGetTrashed: () => Promise<Task[]>;
+  tasksGetAll: () => Promise<Task[]>;
   tasksCreate: (id: string, listId: string | null, title: string) => Promise<Task>;
   tasksUpdate: (id: string, title: string) => Promise<void>;
   tasksToggleCompleted: (id: string) => Promise<void>;

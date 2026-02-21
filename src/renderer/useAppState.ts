@@ -24,6 +24,9 @@ export function useAppState() {
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
   const { flashIds, flash } = useFlash();
+  const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
@@ -109,6 +112,36 @@ export function useAppState() {
     });
   }, [selectedTask]);
 
+  const openSearch = useCallback(() => {
+    setIsSearchOpen(true);
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setIsSearchOpen(false);
+  }, []);
+
+  const handleSearchSelect = useCallback(async (taskId: string, listId: string | null) => {
+    setIsSearchOpen(false);
+    // Find sidebar index for the list
+    let targetIndex: number;
+    if (listId === null) {
+      targetIndex = 0; // Inbox
+    } else {
+      targetIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === listId);
+      if (targetIndex < 0) targetIndex = 0;
+    }
+    setSelectedSidebarIndex(targetIndex);
+    // Load tasks for that list and find task index
+    const newTasks = listId === null
+      ? await window.api.tasksGetInbox()
+      : await window.api.tasksGetByList(listId);
+    setTasks(newTasks);
+    const taskIndex = newTasks.findIndex((t) => t.id === taskId);
+    setSelectedTaskIndex(taskIndex >= 0 ? taskIndex : 0);
+    setFocusedPane('tasks');
+    flash(taskId);
+  }, [sidebarItems, setTasks, flash]);
+
   const keyboardActions: KeyboardActions = useMemo(() => ({
     openSettings: settingsActions.open, handleSettingsKeyDown: settingsActions.handleKeyDown, handleMoveKeyDown: moveActions.handleKeyDown,
     handleShiftDown: () => multiSelectActions.handleShiftDown(selectedTaskIndex), handleShiftUp: multiSelectActions.handleShiftUp,
@@ -117,12 +150,13 @@ export function useAppState() {
     clearSelection: multiSelectActions.clear, toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
     toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
     startEdit: editActions.start, startMove, startDueDate: dueDateActions.start, commitDueDate: dueDateActions.blur, undo, redo, restoreTask: handleRestoreTask,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, dueDateActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo, handleRestoreTask]);
+    openSearch,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, dueDateActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo, handleRestoreTask, openSearch]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
     editMode: editMode || dueDateIndex !== null, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
-    hasSelection: selectedTaskIndices.size > 0, canEdit: selectedSidebarItem?.type !== 'smart', isTrashView, hasSelectedTask: selectedTask !== null,
-  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask]);
+    hasSelection: selectedTaskIndices.size > 0, canEdit: selectedSidebarItem?.type !== 'smart', isTrashView, hasSelectedTask: selectedTask !== null, isSearchOpen,
+  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen]);
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
@@ -150,5 +184,6 @@ export function useAppState() {
     trashIndex, isTrashView, lists, confirmationDialog, closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
+    isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
   };
 }

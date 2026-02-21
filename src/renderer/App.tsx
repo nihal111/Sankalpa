@@ -5,6 +5,7 @@ import { TasksPane } from './TasksPane';
 import { TaskDetailPane } from './TaskDetailPane';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { SearchModal } from './SearchModal';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -84,6 +85,13 @@ export default function App(): ReactNode {
           onCancel={state.closeConfirmationDialog}
         />
       )}
+      <SearchModal
+        isOpen={state.isSearchOpen}
+        lastQuery={state.lastSearchQuery}
+        onClose={state.closeSearch}
+        onSelectTask={state.handleSearchSelect}
+        onQueryChange={state.setLastSearchQuery}
+      />
     </div>
   );
 }
