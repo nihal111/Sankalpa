@@ -8,7 +8,8 @@ import { useSidebarNavigation } from './hooks/useSidebarNavigation';
 import { useTaskActions } from './hooks/useTaskActions';
 import { useArrowNavigation } from './hooks/useArrowNavigation';
 import { useDataState } from './hooks/useDataState';
-import { useKeyboardNavigation, KeyboardActions, KeyboardState } from './hooks/useKeyboardNavigation';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
+import { useKeyboardActions, useKeyboardState } from './hooks/useKeyboardActions';
 import { useFlash } from './hooks/useFlash';
 import { useUndoStack } from './hooks/useUndoStack';
 import { useTrashActions } from './hooks/useTrashActions';
@@ -101,33 +102,25 @@ export function useAppState() {
     setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn), setFocusedPane, reloadData,
   });
 
-  const startMove = useCallback(() => { if (focusedPane === 'tasks') moveActions.start(); }, [focusedPane, moveActions]);
   const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
 
   const switchPane = useCallback(() => {
     setFocusedPane((p) => p === 'lists' ? 'tasks' : 'lists');
   }, []);
 
-  const openSearch = useCallback(() => {
-    setIsSearchOpen(true);
-  }, []);
-
-  const closeSearch = useCallback(() => {
-    setIsSearchOpen(false);
-  }, []);
+  const openSearch = useCallback(() => { setIsSearchOpen(true); }, []);
+  const closeSearch = useCallback(() => { setIsSearchOpen(false); }, []);
 
   const handleSearchSelect = useCallback(async (taskId: string, listId: string | null) => {
     setIsSearchOpen(false);
-    // Find sidebar index for the list
     let targetIndex: number;
     if (listId === null) {
-      targetIndex = 0; // Inbox
+      targetIndex = 0;
     } else {
       targetIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === listId);
       if (targetIndex < 0) targetIndex = 0;
     }
     setSelectedSidebarIndex(targetIndex);
-    // Load tasks for that list and find task index
     const newTasks = listId === null
       ? await window.api.tasksGetInbox()
       : await window.api.tasksGetByList(listId);
@@ -150,21 +143,17 @@ export function useAppState() {
   }, [selectedTask, reloadTasks]);
   const handleNotesCancelEdit = useCallback(() => { setNotesEditing(false); }, []);
 
-  const keyboardActions: KeyboardActions = useMemo(() => ({
-    openSettings: settingsActions.open, handleSettingsKeyDown: settingsActions.handleKeyDown, handleMoveKeyDown: moveActions.handleKeyDown,
-    handleShiftDown: () => multiSelectActions.handleShiftDown(selectedTaskIndex), handleShiftUp: multiSelectActions.handleShiftUp,
-    handleCmdDown: () => multiSelectActions.handleCmdDown(selectedTaskIndex), handleCmdUp: multiSelectActions.handleCmdUp,
-    cancelEdit: () => { editActions.cancel(); dueDateActions.cancel(); },
-    clearSelection: multiSelectActions.clear, toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
-    toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
-    startEdit: editActions.start, startMove, startDueDate: dueDateActions.start, commitDueDate: dueDateActions.blur, undo, redo, restoreTask: handleRestoreTask,
-    openSearch, startNotes: handleStartNotesEdit,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, dueDateActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit]);
+  const keyboardActions = useKeyboardActions({
+    settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
+    selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
+    switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
+    handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+  });
 
-  const keyboardState: KeyboardState = useMemo(() => ({
-    editMode: editMode || dueDateIndex !== null || notesEditing, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
-    hasSelection: selectedTaskIndices.size > 0, canEdit: selectedSidebarItem?.type !== 'smart', isTrashView, hasSelectedTask: selectedTask !== null, isSearchOpen,
-  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen]);
+  const keyboardState = useKeyboardState({
+    editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
+    selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen,
+  });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 

@@ -118,7 +118,8 @@ export function useDataState(
       }
       setTaskCounts(counts);
     };
-    loadCounts();
+    const timer = setTimeout(loadCounts, 300);
+    return () => clearTimeout(timer);
   }, [lists, tasks.length]);
 
   useEffect(() => {
