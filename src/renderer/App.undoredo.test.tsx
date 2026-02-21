@@ -36,7 +36,7 @@ describe('App undo/redo', () => {
 
     redo();
     await waitFor(() => expect(window.api.tasksUpdate).toHaveBeenCalledWith('t1', 'Renamed'));
-    await waitFor(() => expect(screen.getByText('Renamed')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Renamed', { selector: '.task-content' })).toBeDefined());
   });
 
   it('undo delete restores task, redo re-deletes it', async () => {
@@ -165,7 +165,7 @@ describe('App undo/redo', () => {
     // Undo B → A
     undo();
     await waitFor(() => expect(window.api.tasksUpdate).toHaveBeenCalledWith('t1', 'A'));
-    await waitFor(() => expect(screen.getByText('A')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('A', { selector: '.task-content' })).toBeDefined());
 
     // Instead of redo, do a NEW action: rename to C — this should clear redo stack
     await renameTask('C');

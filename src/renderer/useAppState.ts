@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useMultiSelect } from './useMultiSelect';
 import type { Pane } from './types';
 import { buildSidebarItems } from './utils/buildSidebarItems';
@@ -227,11 +227,14 @@ export function useAppState() {
     if (focusedPane === 'tasks') moveActions.start();
   }, [focusedPane, moveActions]);
 
+  const dueDateCancelRef = useRef(false);
+
   const startDueDate = useCallback(() => {
-    if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) setDueDateIndex(selectedTaskIndex);
+    if ((focusedPane === 'tasks' || focusedPane === 'detail') && tasks[selectedTaskIndex]) setDueDateIndex(selectedTaskIndex);
   }, [focusedPane, tasks, selectedTaskIndex]);
 
   const commitDueDate = useCallback(async (value: string) => {
+    if (dueDateCancelRef.current) { dueDateCancelRef.current = false; return; }
     const task = tasks[dueDateIndex!];
     const dueDate = value ? new Date(value).getTime() : null;
     await window.api.tasksSetDueDate(task.id, dueDate);
@@ -239,15 +242,24 @@ export function useAppState() {
     await reloadTasks();
   }, [dueDateIndex, tasks, reloadTasks]);
 
-  const cancelDueDate = useCallback(() => setDueDateIndex(null), []);
+  const cancelDueDate = useCallback(() => { dueDateCancelRef.current = true; setDueDateIndex(null); }, []);
 
   const blurDueDate = useCallback(() => {
     (document.activeElement as HTMLElement)?.blur();
   }, []);
 
+  const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
+
   const switchPane = useCallback(() => {
-    setFocusedPane((p) => (p === 'lists' ? 'tasks' : 'lists'));
-  }, []);
+    setFocusedPane((p) => {
+      if (selectedTask) {
+        if (p === 'lists') return 'tasks';
+        if (p === 'tasks') return 'detail';
+        return 'lists';
+      }
+      return p === 'lists' ? 'tasks' : 'lists';
+    });
+  }, [selectedTask]);
 
   const closeConfirmationDialog = useCallback(() => {
     setConfirmationDialog(null);
@@ -281,7 +293,8 @@ export function useAppState() {
     hasSelection: selectedTaskIndices.size > 0,
     canEdit: selectedSidebarItem?.type !== 'smart',
     isTrashView,
-  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView]);
+    hasSelectedTask: selectedTask !== null,
+  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask]);
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
@@ -309,6 +322,17 @@ export function useAppState() {
     await window.api.foldersToggleExpanded(folderId);
     await reloadData();
   }, [hardcoreMode, reloadData]);
+
+  const handleDetailEditTitle = useCallback(() => {
+    if (selectedTask) {
+      setFocusedPane('tasks');
+      editActions.start();
+    }
+  }, [selectedTask, editActions]);
+
+  const handleDetailEditDueDate = useCallback(() => {
+    if (selectedTask) setDueDateIndex(selectedTaskIndex);
+  }, [selectedTask, selectedTaskIndex]);
 
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
@@ -364,5 +388,8 @@ export function useAppState() {
     completedFilter: isCompletedView ? completedFilter : undefined,
     onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined,
+    selectedTask,
+    handleDetailEditTitle,
+    handleDetailEditDueDate,
   };
 }

@@ -1,4 +1,4 @@
-import { waitFor, fireEvent, screen } from '@testing-library/react';
+import { waitFor, fireEvent } from '@testing-library/react';
 import { vi, expect } from 'vitest';
 import type { Folder, List, Task } from '../shared/types';
 
@@ -65,7 +65,7 @@ export async function navigateToUserList(): Promise<void> {
   for (let i = 0; i < 5; i++) {
     fireEvent.keyDown(window, { key: 'ArrowDown' });
   }
-  await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+  await waitFor(() => expect(document.querySelector('.tasks-pane .task-content')).toBeDefined());
 }
 
 export async function navigateToTasksPane(): Promise<void> {

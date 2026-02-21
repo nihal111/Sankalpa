@@ -202,7 +202,7 @@ describe('App edit mode', () => {
     setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
     render(<App />);
     await navigateToTasksPane();
-    await waitFor(() => expect(screen.getByText(/Jun 15/)).toBeDefined());
+    await waitFor(() => expect(document.querySelector('.task-due-date')).not.toBeNull());
     fireEvent.keyDown(window, { key: 'd' });
     await waitFor(() => {
       const input = document.querySelector('.due-date-input') as HTMLInputElement;

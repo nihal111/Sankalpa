@@ -205,7 +205,7 @@ describe('App navigation', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     fireEvent.keyDown(window, { key: 'Tab' });
-    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     expect(window.api.tasksGetCompleted).toHaveBeenCalled();
   });
 
@@ -213,7 +213,7 @@ describe('App navigation', () => {
     render(<App />);
     await navigateToUserList();
     fireEvent.keyDown(window, { key: 'Tab' });
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
   });
@@ -279,7 +279,7 @@ describe('App navigation', () => {
     await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
     for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'Tab' });
-    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     const callsBefore = getCompletedMock.mock.calls.length;
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('ct1'));

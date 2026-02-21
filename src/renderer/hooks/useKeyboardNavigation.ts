@@ -33,12 +33,13 @@ export interface KeyboardState {
   editMode: unknown;
   dueDateMode: boolean;
   moveMode: boolean;
-  focusedPane: 'lists' | 'tasks';
+  focusedPane: 'lists' | 'tasks' | 'detail';
   shiftHeld: boolean;
   cmdHeld: boolean;
   hasSelection: boolean;
   canEdit: boolean;
   isTrashView: boolean;
+  hasSelectedTask: boolean;
 }
 
 export function useKeyboardNavigation(

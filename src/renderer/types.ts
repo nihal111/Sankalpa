@@ -1,7 +1,7 @@
 import type { Folder, List } from '../shared/types';
 import { Icons } from './icons';
 
-export type Pane = 'lists' | 'tasks';
+export type Pane = 'lists' | 'tasks' | 'detail';
 export type EditMode = { type: 'list'; id: string } | { type: 'task'; index: number } | { type: 'folder'; id: string } | null;
 export type Theme = 'system' | 'light' | 'dark';
 

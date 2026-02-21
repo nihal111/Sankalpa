@@ -65,9 +65,9 @@ describe('App mouse interactions', () => {
     // Navigate to tasks via keyboard
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'Tab' });
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
-    const task1 = screen.getByText('Task 1').closest('li');
-    const task2 = screen.getByText('Task 2').closest('li');
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li');
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li');
     expect(task1?.classList.contains('selected')).toBe(true);
     fireEvent.click(task2!);
     // Should still be on Task 1

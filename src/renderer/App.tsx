@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useAppState } from './useAppState';
 import { Sidebar } from './Sidebar';
 import { TasksPane } from './TasksPane';
+import { TaskDetailPane } from './TaskDetailPane';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 
@@ -47,13 +48,21 @@ export default function App(): ReactNode {
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
-        dueDateIndex={state.dueDateIndex}
+        dueDateIndex={state.focusedPane === 'lists' || !state.selectedTask ? state.dueDateIndex : null}
         onDueDateCommit={state.commitDueDate}
         showSourceList={state.isTrashView}
         lists={state.lists}
         completedFilter={state.completedFilter}
         onFilterChange={state.onFilterChange}
         listsWithCompletedTasks={state.listsWithCompletedTasks}
+      />
+      <TaskDetailPane
+        task={state.focusedPane !== 'lists' ? state.selectedTask : null}
+        focusedPane={state.focusedPane}
+        onEditTitle={state.handleDetailEditTitle}
+        onEditDueDate={state.handleDetailEditDueDate}
+        dueDateEditing={state.dueDateIndex === state.selectedTaskIndex && state.selectedTask !== null}
+        onDueDateCommit={state.commitDueDate}
       />
       {state.moveMode && (
         <div className="move-overlay">

@@ -45,7 +45,7 @@ describe('App trash', () => {
   it('shows trashed tasks when navigating to Trash', async () => {
     render(<App />);
     await navigateToTrash();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
   });
 
   it('shows source list name in trash view', async () => {
@@ -60,14 +60,14 @@ describe('App trash', () => {
     });
     render(<App />);
     await navigateToTrash();
-    await waitFor(() => expect(screen.getByText('Inbox Trashed')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Inbox Trashed', { selector: '.task-content' })).toBeDefined());
     await waitFor(() => expect(document.querySelector('.task-source-list')?.textContent).toBe('Inbox'));
   });
 
   it('Delete in trash view shows permanent delete confirmation', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(screen.getByText('Permanently Delete')).toBeDefined());
   });
@@ -75,7 +75,7 @@ describe('App trash', () => {
   it('confirming permanent delete calls tasksDelete', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(screen.getByText('Permanently Delete')).toBeDefined());
     fireEvent.click(screen.getByText('Delete'));
@@ -85,7 +85,7 @@ describe('App trash', () => {
   it('Cancel dismisses confirmation dialog', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(document.querySelector('.confirmation-dialog')).not.toBeNull());
     fireEvent.click(screen.getByText('Cancel'));
@@ -95,7 +95,7 @@ describe('App trash', () => {
   it('clicking overlay dismisses confirmation dialog', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(document.querySelector('.modal-overlay')).not.toBeNull());
     fireEvent.click(document.querySelector('.modal-overlay')!);
@@ -105,7 +105,7 @@ describe('App trash', () => {
   it('clicking dialog body does not dismiss it', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(document.querySelector('.confirmation-dialog')).not.toBeNull());
     fireEvent.click(document.querySelector('.confirmation-dialog')!);
@@ -115,7 +115,7 @@ describe('App trash', () => {
   it('R key restores task from trash', async () => {
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Trashed Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Trashed Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('trash1'));
   });
@@ -126,7 +126,7 @@ describe('App trash', () => {
     });
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Orphan Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Orphan Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => expect(screen.getByText('Restore Task')).toBeDefined());
     expect(screen.getByText('Restore to Inbox')).toBeDefined();
@@ -138,7 +138,7 @@ describe('App trash', () => {
     });
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Orphan Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Orphan Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => expect(screen.getByText('Restore to Inbox')).toBeDefined());
     fireEvent.click(screen.getByText('Restore to Inbox'));
@@ -153,7 +153,7 @@ describe('App trash', () => {
     });
     render(<App />);
     await navigateToTrashTasks();
-    await waitFor(() => expect(screen.getByText('Orphan Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Orphan Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => expect(screen.getByText(/Create "deleted-list" and restore/)).toBeDefined());
     fireEvent.click(screen.getByText(/Create "deleted-list" and restore/));
