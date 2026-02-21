@@ -24,7 +24,6 @@ export function useAppState() {
   const [settings, settingsActions] = useSettingsState();
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
   const { flashIds, flash } = useFlash();
-  const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
 

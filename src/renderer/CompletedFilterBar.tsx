@@ -18,6 +18,11 @@ const DATE_PRESETS: { value: DateRangePreset; label: string }[] = [
   { value: 'custom', label: 'Custom...' },
 ];
 
+function toLocalDateString(ts: number): string {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function parseListIdValue(value: string): string | null | 'all' {
   if (value === 'all') return 'all';
   if (value === 'null') return null;
@@ -51,13 +56,13 @@ export function CompletedFilterBar({ filter, onFilterChange, listsWithCompletedT
         <>
           <input
             type="date"
-            value={filter.customStart ? new Date(filter.customStart).toISOString().split('T')[0] : ''}
-            onChange={(e) => onFilterChange({ ...filter, customStart: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+            value={filter.customStart ? toLocalDateString(filter.customStart) : ''}
+            onChange={(e) => onFilterChange({ ...filter, customStart: e.target.value ? new Date(e.target.value + 'T00:00:00').getTime() : undefined })}
             aria-label="Start date"
           />
           <input
             type="date"
-            value={filter.customEnd ? new Date(filter.customEnd).toISOString().split('T')[0] : ''}
+            value={filter.customEnd ? toLocalDateString(filter.customEnd) : ''}
             onChange={(e) => onFilterChange({ ...filter, customEnd: e.target.value ? new Date(e.target.value + 'T23:59:59').getTime() : undefined })}
             aria-label="End date"
           />
