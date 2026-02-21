@@ -24,6 +24,7 @@ export interface Task {
   created_timestamp: number;
   completed_timestamp: number | null;
   due_date: number | null;
+  notes: string | null;
   sort_key: number;
   created_at: number;
   updated_at: number;
@@ -64,6 +65,7 @@ export interface Api {
   tasksRestore: (id: string, listId: string | null, title: string, status: string, createdTimestamp: number, completedTimestamp: number | null, sortKey: number, createdAt: number, updatedAt: number, deletedAt?: number | null) => Promise<void>;
   tasksSetListId: (id: string, listId: string | null) => Promise<void>;
   tasksSetDueDate: (id: string, dueDate: number | null) => Promise<void>;
+  tasksUpdateNotes: (id: string, notes: string | null) => Promise<void>;
   tasksGetDueBetween: (start: number, end: number) => Promise<Task[]>;
   tasksGetOverdue: (before: number) => Promise<Task[]>;
   tasksGetUpcoming: (from: number) => Promise<Task[]>;

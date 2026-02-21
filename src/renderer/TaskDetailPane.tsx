@@ -1,7 +1,9 @@
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Task } from '../shared/types';
 import type { Pane } from './types';
 import { toDatetimeLocal } from './utils/toDatetimeLocal';
+import { marked } from 'marked';
 
 function formatDueDate(ms: number | null): string {
   if (!ms) return 'None';
@@ -24,6 +26,10 @@ interface TaskDetailPaneProps {
   onEditDueDate: () => void;
   dueDateEditing: boolean;
   onDueDateCommit: (value: string) => void;
+  notesEditing: boolean;
+  onStartNotesEdit: () => void;
+  onNotesCommit: (value: string) => void;
+  onNotesCancelEdit: () => void;
 }
 
 export function TaskDetailPane({
@@ -33,7 +39,34 @@ export function TaskDetailPane({
   onEditDueDate,
   dueDateEditing,
   onDueDateCommit,
+  notesEditing,
+  onStartNotesEdit,
+  onNotesCommit,
+  onNotesCancelEdit,
 }: TaskDetailPaneProps): ReactNode {
+  const [notesValue, setNotesValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (notesEditing) {
+      setNotesValue(task?.notes ?? '');
+      setTimeout(() => textareaRef.current?.focus(), 0);
+    }
+  }, [notesEditing, task?.notes]);
+
+  const handleNotesBlur = useCallback(() => {
+    onNotesCommit(notesValue);
+  }, [notesValue, onNotesCommit]);
+
+  const handleNotesKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onNotesCancelEdit(); }
+  }, [onNotesCancelEdit]);
+
+  const renderedNotes = useMemo(() => {
+    if (!task?.notes) return '';
+    return marked.parse(task.notes, { async: false }) as string;
+  }, [task?.notes]);
+
   if (!task) return null;
 
   return (
@@ -62,22 +95,25 @@ export function TaskDetailPane({
         <span className="hotkey-badge">D</span>
       </div>
       <div className="detail-separator" />
-      <div className="detail-section">
-        <span className="detail-icon">🏷️</span>
-        <span className="detail-label">Labels</span>
-        <span className="hotkey-badge">L</span>
-      </div>
-      <div className="detail-separator" />
-      <div className="detail-section">
-        <span className="detail-icon">📎</span>
-        <span className="detail-label">Attachments</span>
-        <span className="hotkey-badge">A</span>
-      </div>
-      <div className="detail-separator" />
-      <div className="detail-section">
-        <span className="detail-icon">📄</span>
-        <span className="detail-label">Notes</span>
-        <span className="hotkey-badge">N</span>
+      <div className="detail-section detail-notes-section" onClick={!notesEditing ? onStartNotesEdit : undefined}>
+        <div className="detail-notes-header">
+          <span className="detail-icon">📄</span>
+          <span className="detail-label">Notes</span>
+          <span className="hotkey-badge">N</span>
+        </div>
+        {notesEditing ? (
+          <textarea
+            ref={textareaRef}
+            className="notes-textarea"
+            value={notesValue}
+            onChange={(e) => setNotesValue(e.target.value)}
+            onBlur={handleNotesBlur}
+            onKeyDown={handleNotesKeyDown}
+            placeholder="Write notes in markdown..."
+          />
+        ) : task.notes ? (
+          <div className="notes-rendered" dangerouslySetInnerHTML={{ __html: renderedNotes }} />
+        ) : null}
       </div>
       <div className="detail-created">{formatCreatedDate(task.created_timestamp)}</div>
     </div>

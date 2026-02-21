@@ -28,6 +28,7 @@ export interface KeyboardActions {
   redo: Command;
   restoreTask: Command;
   openSearch: Command;
+  startNotes: Command;
 }
 
 export interface KeyboardState {
@@ -82,6 +83,7 @@ export function useKeyboardNavigation(
     if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
     if (e.key === 'd' || e.key === 'D') { e.preventDefault(); if (!state.hasSelection) actions.startDueDate(); return; }
+    if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.shiftKey && state.hasSelectedTask) { e.preventDefault(); actions.startNotes(); return; }
     if ((e.key === 'r' || e.key === 'R') && state.isTrashView && state.focusedPane === 'tasks') { e.preventDefault(); actions.restoreTask(); return; }
   }, [actions, state]);
 

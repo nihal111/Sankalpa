@@ -64,6 +64,10 @@ export default function App(): ReactNode {
         onEditDueDate={state.handleDetailEditDueDate}
         dueDateEditing={state.dueDateIndex === state.selectedTaskIndex && state.selectedTask !== null}
         onDueDateCommit={state.commitDueDate}
+        notesEditing={state.notesEditing}
+        onStartNotesEdit={state.handleStartNotesEdit}
+        onNotesCommit={state.handleNotesCommit}
+        onNotesCancelEdit={state.handleNotesCancelEdit}
       />
       {state.moveMode && (
         <div className="move-overlay">

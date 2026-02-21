@@ -26,7 +26,7 @@ export function useAppState() {
   const { flashIds, flash } = useFlash();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
-
+  const [notesEditing, setNotesEditing] = useState(false);
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
@@ -105,11 +105,8 @@ export function useAppState() {
   const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
 
   const switchPane = useCallback(() => {
-    setFocusedPane((p) => {
-      if (selectedTask) { if (p === 'lists') return 'tasks'; if (p === 'tasks') return 'detail'; return 'lists'; }
-      return p === 'lists' ? 'tasks' : 'lists';
-    });
-  }, [selectedTask]);
+    setFocusedPane((p) => p === 'lists' ? 'tasks' : 'lists');
+  }, []);
 
   const openSearch = useCallback(() => {
     setIsSearchOpen(true);
@@ -141,6 +138,18 @@ export function useAppState() {
     flash(taskId);
   }, [sidebarItems, setTasks, flash]);
 
+  const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
+  const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
+  const handleStartNotesEdit = useCallback(() => { if (selectedTask) setNotesEditing(true); }, [selectedTask]);
+  const handleNotesCommit = useCallback(async (value: string) => {
+    if (!selectedTask) return;
+    const notes = value.trim() || null;
+    await window.api.tasksUpdateNotes(selectedTask.id, notes);
+    await reloadTasks();
+    setNotesEditing(false);
+  }, [selectedTask, reloadTasks]);
+  const handleNotesCancelEdit = useCallback(() => { setNotesEditing(false); }, []);
+
   const keyboardActions: KeyboardActions = useMemo(() => ({
     openSettings: settingsActions.open, handleSettingsKeyDown: settingsActions.handleKeyDown, handleMoveKeyDown: moveActions.handleKeyDown,
     handleShiftDown: () => multiSelectActions.handleShiftDown(selectedTaskIndex), handleShiftUp: multiSelectActions.handleShiftUp,
@@ -149,13 +158,13 @@ export function useAppState() {
     clearSelection: multiSelectActions.clear, toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
     toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
     startEdit: editActions.start, startMove, startDueDate: dueDateActions.start, commitDueDate: dueDateActions.blur, undo, redo, restoreTask: handleRestoreTask,
-    openSearch,
-  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, dueDateActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo, handleRestoreTask, openSearch]);
+    openSearch, startNotes: handleStartNotesEdit,
+  }), [settingsActions, moveActions, multiSelectActions, selectedTaskIndex, editActions, dueDateActions, toggleTaskCompleted, createList, createTask, deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow, startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit]);
 
   const keyboardState: KeyboardState = useMemo(() => ({
-    editMode: editMode || dueDateIndex !== null, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
+    editMode: editMode || dueDateIndex !== null || notesEditing, dueDateMode: dueDateIndex !== null, moveMode, focusedPane, shiftHeld, cmdHeld,
     hasSelection: selectedTaskIndices.size > 0, canEdit: selectedSidebarItem?.type !== 'smart', isTrashView, hasSelectedTask: selectedTask !== null, isSearchOpen,
-  }), [editMode, dueDateIndex, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen]);
+  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndices.size, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen]);
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
@@ -163,8 +172,6 @@ export function useAppState() {
   const handleTaskClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedTaskIndex(index); setFocusedPane('tasks'); multiSelectActions.clear(); }, [hardcoreMode, multiSelectActions]);
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
   const handleFolderToggle = useCallback(async (folderId: string) => { if (hardcoreMode) return; await window.api.foldersToggleExpanded(folderId); await reloadData(); }, [hardcoreMode, reloadData]);
-  const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
-  const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
 
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
@@ -184,5 +191,6 @@ export function useAppState() {
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
+    notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
   };
 }

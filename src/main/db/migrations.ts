@@ -21,4 +21,7 @@ export function migrateTasksTable(db: Database): void {
   if (!columnNames.includes('deleted_at')) {
     db.run('ALTER TABLE tasks ADD COLUMN deleted_at INTEGER DEFAULT NULL');
   }
+  if (!columnNames.includes('notes')) {
+    db.run("ALTER TABLE tasks ADD COLUMN notes TEXT DEFAULT NULL");
+  }
 }

@@ -7,7 +7,7 @@ import {
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   restoreList, setTaskDueDate, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
-  restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks,
+  restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks, updateTaskNotes,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -373,5 +373,13 @@ describe('settings', () => {
     restoreFromTrash(db, 'sd1');
     expect(getInboxTasks(db).find((t) => t.id === 'sd1')).toBeDefined();
     expect(getTrashedTasks(db).find((t) => t.id === 'sd1')).toBeUndefined();
+  });
+
+  it('updateTaskNotes sets and clears notes', () => {
+    createTask(db, 'n1', null, 'Notes task');
+    updateTaskNotes(db, 'n1', '**bold**');
+    expect(getInboxTasks(db).find((t) => t.id === 'n1')!.notes).toBe('**bold**');
+    updateTaskNotes(db, 'n1', null);
+    expect(getInboxTasks(db).find((t) => t.id === 'n1')!.notes).toBeNull();
   });
 });

@@ -130,6 +130,7 @@ export function createTask(db: Database, id: string, listId: string | null, titl
     created_timestamp: now,
     completed_timestamp: null,
     due_date: null,
+    notes: null,
     sort_key: sortKey,
     created_at: now,
     updated_at: now,
@@ -193,6 +194,10 @@ export function setTaskListId(db: Database, id: string, listId: string | null): 
 
 export function setTaskDueDate(db: Database, id: string, dueDate: number | null): void {
   db.run('UPDATE tasks SET due_date = ?, updated_at = ? WHERE id = ?', [dueDate, Date.now(), id]);
+}
+
+export function updateTaskNotes(db: Database, id: string, notes: string | null): void {
+  db.run('UPDATE tasks SET notes = ?, updated_at = ? WHERE id = ?', [notes, Date.now(), id]);
 }
 
 export function getTasksDueBetween(db: Database, start: number, end: number): Task[] {

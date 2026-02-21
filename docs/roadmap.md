@@ -17,14 +17,15 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Completed filtering | Filter Completed list by source project and by date range | Task Lifecycle | Medium | |
 | Task detail panel | Third pane on the right showing selected task details | Navigation | High | |
 | Search | Cmd+F to search across all tasks | Navigation | Medium | |
-| Command palette | Cmd+K dropdown with all actions and their hotkeys | Navigation | Medium | |
+| Notes | Add notes/description to tasks with markdown rendering | Task Properties | Medium | |
+| Search on notes | Extend search to apply on task notes | Navigation | Medium | |
 | Subtasks / nesting | Tab to indent a task as a subtask; full nesting support | Task Organization | High | |
 | Priorities | Assign priority levels to tasks; exact scheme TBD | Task Properties | Medium | |
 | Drag-to-reorder | Drag tasks to reorder within a list | Task Organization | Medium | |
 | Drag-to-move | Drag tasks onto a sidebar list to move them | Task Organization | Medium | |
-| Notes | Add notes/description to tasks with markdown rendering | Task Properties | Medium | |
 | Natural language dates | Type "tomorrow", "next friday" etc. to set due dates | Task Properties | High | |
 | Web app + mobile | Web version for phone access; includes mobile quick capture | Platform | Very High | |
+| Command palette | Cmd+K dropdown with all actions and their hotkeys | Navigation | Medium | |
 
 ## Medium
 
