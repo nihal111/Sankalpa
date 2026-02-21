@@ -149,7 +149,8 @@ export function useAppState() {
   }, [focusedPane, tasks, selectedTaskIndex]);
 
   const commitDueDate = useCallback(async (value: string) => {
-    const task = tasks[dueDateIndex!];
+    if (dueDateIndex === null) return;
+    const task = tasks[dueDateIndex];
     const dueDate = value ? new Date(value).getTime() : null;
     await window.api.tasksSetDueDate(task.id, dueDate);
     setDueDateIndex(null);
@@ -262,6 +263,5 @@ export function useAppState() {
     isCompletedView,
     dueDateIndex,
     commitDueDate,
-    cancelDueDate,
   };
 }

@@ -35,7 +35,6 @@ interface TasksPaneProps {
   listNames?: Record<string, string>;
   dueDateIndex: number | null;
   onDueDateCommit: (value: string) => void;
-  onDueDateCancel: () => void;
 }
 
 export function TasksPane({
@@ -59,7 +58,6 @@ export function TasksPane({
   listNames,
   dueDateIndex,
   onDueDateCommit,
-  onDueDateCancel,
 }: TasksPaneProps): ReactNode {
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
@@ -97,8 +95,7 @@ export function TasksPane({
                 className="due-date-input"
                 defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
                 autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onDueDateCommit(e.currentTarget.value); } }}
-                onBlur={() => onDueDateCancel()}
+                onBlur={(e) => onDueDateCommit(e.currentTarget.value)}
               />
             ) : task.due_date ? (
               <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>

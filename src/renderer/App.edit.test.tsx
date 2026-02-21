@@ -186,14 +186,14 @@ describe('App edit mode', () => {
     expect(window.api.tasksDelete).not.toHaveBeenCalled();
   });
 
-  it('D key opens due date input and Enter commits it', async () => {
+  it('D key opens due date input and blur commits it', async () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'd' });
     await waitFor(() => expect(document.querySelector('.due-date-input')).not.toBeNull());
     const input = document.querySelector('.due-date-input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '2026-03-01T14:30' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
     await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', new Date('2026-03-01T14:30').getTime()));
   });
 
@@ -238,7 +238,7 @@ describe('App edit mode', () => {
     await waitFor(() => expect(document.querySelector('.due-date-input')).not.toBeNull());
     const input = document.querySelector('.due-date-input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
     await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', null));
   });
 
