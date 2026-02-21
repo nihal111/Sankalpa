@@ -7,7 +7,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
 | Completed list source tracking | Track which list each completed task came from | Task Lifecycle | Medium | ✅ |
-| Due dates | Assign due dates to tasks; powers Today/Upcoming/Overdue smart lists | Task Properties | Medium | |
+| Due dates | Assign due dates to tasks; powers Today/Upcoming/Overdue smart lists | Task Properties | Medium | ✅ |
 
 ## High
 
