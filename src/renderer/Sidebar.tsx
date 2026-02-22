@@ -121,12 +121,12 @@ export function Sidebar({
           const isSelected = i === selectedSidebarIndex;
           const count = taskCounts[smartItem.smartList.id] ?? 0;
           const hasItems = count > 0;
-          const showInboxBadge = smartItem.smartList.id === 'inbox' && count > 0;
+          const showBadge = count > 0;
           return (
             <li key={smartItem.smartList.id} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
-              {showInboxBadge && <span className="item-badge">{count}</span>}
+              {showBadge && <span className="item-badge">{count}</span>}
             </li>
           );
         })}
