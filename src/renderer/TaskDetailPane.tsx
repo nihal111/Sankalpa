@@ -5,7 +5,7 @@ import type { Pane } from './types';
 import { marked } from 'marked';
 
 function formatDueDate(ms: number | null): string {
-  if (!ms) return 'None';
+  if (!ms) return 'Set due date';
   const d = new Date(ms);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
     d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
