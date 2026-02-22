@@ -704,6 +704,11 @@ h2 {
   white-space: nowrap;
 }
 
+.detail-section.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .detail-separator {
   height: 1px;
   background: var(--border-pane);
