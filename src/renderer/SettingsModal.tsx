@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ThemePreview, SystemThemePreview } from './ThemePreview';
+import type { SettingsCategory } from './hooks/useSettingsState';
 
 interface RetentionOption {
   readonly label: string;
@@ -8,7 +9,7 @@ interface RetentionOption {
 
 interface SettingsModalProps {
   settingsThemeIndex: number;
-  settingsCategory: 'Theme' | 'Hardcore' | 'Trash';
+  settingsCategory: SettingsCategory;
   hardcoreMode: boolean;
   trashRetentionIndex: number;
   retentionOptions: readonly RetentionOption[];

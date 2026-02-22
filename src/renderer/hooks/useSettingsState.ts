@@ -4,7 +4,7 @@ import { parseRetentionDays } from '../../shared/trashRetention';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
 const CATEGORIES = ['Theme', 'Hardcore', 'Trash'] as const;
-type SettingsCategory = typeof CATEGORIES[number];
+export type SettingsCategory = typeof CATEGORIES[number];
 
 const RETENTION_OPTIONS = [
   { label: '7 days', value: 7 },
