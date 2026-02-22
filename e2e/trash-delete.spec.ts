@@ -27,14 +27,7 @@ test('delete button in trash confirmation dialog works with mouse click', async 
   // Navigate to trash
   const trashItem = page.locator('.lists-pane .item:has-text("Trash")');
   await expect(trashItem).toBeVisible();
-  // Use keyboard to navigate to trash
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
+  await trashItem.click();
   await page.waitForTimeout(100);
 
   // Switch to tasks pane
@@ -69,14 +62,10 @@ test('delete button in trash confirmation dialog works with Enter key', async ()
   await press(page, 'Delete');
   await page.waitForTimeout(100);
 
-  // Navigate to trash using keyboard
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
+  // Navigate to trash
+  const trashItem = page.locator('.lists-pane .item:has-text("Trash")');
+  await expect(trashItem).toBeVisible();
+  await trashItem.click();
   await page.waitForTimeout(100);
 
   // Switch to tasks pane
