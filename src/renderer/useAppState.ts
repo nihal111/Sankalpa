@@ -147,8 +147,8 @@ export function useAppState() {
   }, [sidebarItems.length]);
 
   // Move list to folder
-  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown } = useMoveListState({
-    folders, selectedSidebarItem, reloadData, undoPush,
+  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList } = useMoveListState({
+    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, reloadData, undoPush,
   });
 
   const keyboardActions = useKeyboardActions({
@@ -159,6 +159,7 @@ export function useAppState() {
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
+    indentList, outdentList,
   });
 
   const keyboardState = useKeyboardState({

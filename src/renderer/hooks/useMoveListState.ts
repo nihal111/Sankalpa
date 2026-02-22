@@ -10,6 +10,8 @@ interface MoveListTarget {
 interface UseMoveListStateParams {
   folders: Folder[];
   selectedSidebarItem: SidebarItem | undefined;
+  sidebarItems: SidebarItem[];
+  selectedSidebarIndex: number;
   reloadData: () => Promise<void>;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
 }
@@ -19,9 +21,11 @@ interface MoveListState {
   getMoveListTargetName: () => string;
   startMoveList: () => void;
   handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
+  indentList: () => Promise<void>;
+  outdentList: () => Promise<void>;
 }
 
-export function useMoveListState({ folders, selectedSidebarItem, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
+export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
   const [moveListMode, setMoveListMode] = useState(false);
   const [targetIdx, setTargetIdx] = useState(0);
 
@@ -69,5 +73,32 @@ export function useMoveListState({ folders, selectedSidebarItem, reloadData, und
 
   const getMoveListTargetName = useCallback((): string => moveListMode ? targets[targetIdx]?.label ?? '' : '', [moveListMode, targets, targetIdx]);
 
-  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown };
+  const indentList = useCallback(async () => {
+    if (selectedSidebarItem?.type !== 'list') return;
+    const list = selectedSidebarItem.list;
+    const prevItems = sidebarItems.slice(0, selectedSidebarIndex);
+    const folderAbove = [...prevItems].reverse().find(i => i.type === 'folder');
+    if (!folderAbove || folderAbove.type !== 'folder') return;
+    const oldFolderId = list.folder_id;
+    await window.api.listsMove(list.id, folderAbove.folder.id);
+    await reloadData();
+    undoPush({
+      undo: async () => { await window.api.listsMove(list.id, oldFolderId); },
+      redo: async () => { await window.api.listsMove(list.id, folderAbove.folder.id); },
+    });
+  }, [selectedSidebarItem, sidebarItems, selectedSidebarIndex, reloadData, undoPush]);
+
+  const outdentList = useCallback(async () => {
+    if (selectedSidebarItem?.type !== 'list' || !selectedSidebarItem.list.folder_id) return;
+    const list = selectedSidebarItem.list;
+    const oldFolderId = list.folder_id;
+    await window.api.listsMove(list.id, null);
+    await reloadData();
+    undoPush({
+      undo: async () => { await window.api.listsMove(list.id, oldFolderId); },
+      redo: async () => { await window.api.listsMove(list.id, null); },
+    });
+  }, [selectedSidebarItem, reloadData, undoPush]);
+
+  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList };
 }

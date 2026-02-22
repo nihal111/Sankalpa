@@ -40,6 +40,8 @@ export interface KeyboardActions {
   cycleSidebarPrev: Command;
   startMoveList: Command;
   handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
+  indentList: Command;
+  outdentList: Command;
 }
 
 export interface KeyboardState {
@@ -137,6 +139,8 @@ export function useKeyboardNavigation(
       if (e.ctrlKey) { if (e.shiftKey) actions.cycleSidebarPrev(); else actions.cycleSidebarNext(); }
       else if (state.focusedPane === 'tasks') {
         if (e.shiftKey) { actions.outdentTask(); } else { actions.indentTask(); }
+      } else if (state.focusedPane === 'lists') {
+        if (e.shiftKey) { actions.outdentList(); } else { actions.indentList(); }
       }
       return;
     }
