@@ -10,7 +10,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Task completion animation | Highlight flicker or left-to-right fill animation when a task is marked complete | UI Polish | Medium | ✅ |
 | Task move animation | Subtle flicker animation when a task is moved to a different list | UI Polish | Low | ✅ |
 | Delete lists | Add ability to delete lists from the sidebar | Task Lifecycle | Low | ✅ |
-| Ban empty tasks | Creating a new task opens title editor; leaving it blank discards with an evaporation animation | Task Lifecycle | Medium | |
+| Ban empty tasks | Creating a new task opens title editor; leaving it blank discards with an evaporation animation | Task Lifecycle | Medium | ✅ |
 | Right-click context menu | Mouse right-click options on tasks and lists | Navigation | Medium | |
 | Detail panel full title | Right panel should show full task title instead of truncating with ellipsis | UI Polish | Low | ✅ |
 | Subtasks UX overhaul | Chevron in existing left padding (no extra indent on parent); tree lines fully connected to checkbox and continuous | UI Polish | High | |

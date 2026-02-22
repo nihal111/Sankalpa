@@ -565,6 +565,31 @@ h2 {
   border-color: var(--accent-cursor);
 }
 
+/* Completed filter bar */
+.completed-filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-pane);
+}
+
+.completed-filter-bar select,
+.completed-filter-bar input[type="date"] {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-pane);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.completed-filter-bar select:focus,
+.completed-filter-bar input[type="date"]:focus {
+  outline: 2px solid var(--accent-cursor);
+  outline-offset: -1px;
+}
+
 /* Task Detail Pane */
 .detail-pane {
   width: 280px;

@@ -57,6 +57,12 @@ export function useKeyboardNavigation(
     if (e.metaKey && e.key === ',') { e.preventDefault(); actions.openSettings(); return; }
     if (e.metaKey && e.shiftKey && e.key === 'f') { e.preventDefault(); actions.openSearch(); return; }
     if (state.isSearchOpen) return;
+    const active = document.activeElement;
+    const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
+    if (isFilterControl) {
+      if (e.key === 'Escape') { (active as HTMLElement).blur(); e.preventDefault(); }
+      return;
+    }
     if (actions.handleSettingsKeyDown(e)) return;
     if (e.key === 'Shift' && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode) {
       if (!state.shiftHeld) actions.handleShiftDown();
