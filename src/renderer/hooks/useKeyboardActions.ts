@@ -35,6 +35,8 @@ interface UseKeyboardActionsParams {
   deleteList: () => void;
   togglePalette: () => void;
   duplicateTask: () => void;
+  cycleSidebarNext: () => void;
+  cycleSidebarPrev: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -44,6 +46,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette, duplicateTask,
+    cycleSidebarNext, cycleSidebarPrev,
   } = params;
 
   const startMove = useCallback(() => {
@@ -81,12 +84,15 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     toggleCollapse,
     togglePalette,
     duplicateTask,
+    cycleSidebarNext,
+    cycleSidebarPrev,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette, duplicateTask,
+    cycleSidebarNext, cycleSidebarPrev,
   ]);
 }
 

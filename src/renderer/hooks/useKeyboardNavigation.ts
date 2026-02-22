@@ -36,6 +36,8 @@ export interface KeyboardActions {
   toggleCollapse: Command;
   togglePalette: Command;
   duplicateTask: Command;
+  cycleSidebarNext: Command;
+  cycleSidebarPrev: Command;
 }
 
 export interface KeyboardState {
@@ -128,7 +130,8 @@ export function useKeyboardNavigation(
     if ((e.key === 'Delete' || e.key === 'Backspace') && !state.confirmationDialogOpen) { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {
       e.preventDefault();
-      if (state.focusedPane === 'tasks') {
+      if (e.ctrlKey) { if (e.shiftKey) actions.cycleSidebarPrev(); else actions.cycleSidebarNext(); }
+      else if (state.focusedPane === 'tasks') {
         if (e.shiftKey) { actions.outdentTask(); } else { actions.indentTask(); }
       }
       return;

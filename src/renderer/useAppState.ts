@@ -138,13 +138,20 @@ export function useAppState() {
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
+  const cycleSidebarNext = useCallback(() => {
+    setSelectedSidebarIndex((i: number) => (i + 1) % sidebarItems.length);
+  }, [sidebarItems.length]);
+  const cycleSidebarPrev = useCallback(() => {
+    setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItems.length) % sidebarItems.length);
+  }, [sidebarItems.length]);
+
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
-    duplicateTask,
+    duplicateTask, cycleSidebarNext, cycleSidebarPrev,
   });
 
   const keyboardState = useKeyboardState({
