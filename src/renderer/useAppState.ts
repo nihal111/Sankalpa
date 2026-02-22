@@ -16,6 +16,9 @@ import { useFlash } from './hooks/useFlash';
 import { useUndoStack } from './hooks/useUndoStack';
 import { useDueDateState } from './hooks/useDueDateState';
 import { useListActions, useMoveCommit } from './hooks/useListActions';
+import { usePaletteState } from './hooks/usePaletteState';
+import { useSearchState } from './hooks/useSearchState';
+import { useContextMenu } from './hooks/useContextMenu';
 import { flattenWithDepth } from './utils/taskTree';
 import { useDragDrop } from './hooks/useDragDrop';
 
@@ -32,10 +35,7 @@ export function useAppState() {
   const { flashIds: completeIds, flash: completeFlash } = useFlash();
   const { flashIds: moveIds, flash: moveFlash } = useFlash();
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; items: { label: string; action: () => void }[] } | null>(null);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
@@ -71,6 +71,9 @@ export function useAppState() {
   const { createList, deleteList } = useListActions({
     selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
   });
+
+  const searchState = useSearchState({ sidebarItems, setTasks, setSelectedSidebarIndex, setSelectedTaskIndex, setFocusedPane, flash });
+  const { isSearchOpen, lastSearchQuery, setLastSearchQuery, openSearch, closeSearch, handleSearchSelect } = searchState;
 
   useEffect(() => {
     return window.api.onQuickAdd(async () => {
@@ -110,57 +113,41 @@ export function useAppState() {
   });
 
   const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
-
-  const switchPane = useCallback(() => {
-    setFocusedPane((p) => p === 'lists' ? 'tasks' : 'lists');
-  }, []);
-
-  const openSearch = useCallback(() => { setIsSearchOpen(true); }, []);
-  const closeSearch = useCallback(() => { setIsSearchOpen(false); }, []);
-
-  const handleSearchSelect = useCallback(async (taskId: string, listId: string | null) => {
-    setIsSearchOpen(false);
-    let targetIndex: number;
-    if (listId === null) {
-      targetIndex = 0;
-    } else {
-      targetIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === listId);
-      if (targetIndex < 0) targetIndex = 0;
-    }
-    setSelectedSidebarIndex(targetIndex);
-    const newTasks = listId === null
-      ? await window.api.tasksGetInbox()
-      : await window.api.tasksGetByList(listId);
-    setTasks(newTasks);
-    const taskIndex = newTasks.findIndex((t) => t.id === taskId);
-    setSelectedTaskIndex(taskIndex >= 0 ? taskIndex : 0);
-    setFocusedPane('tasks');
-    flash(taskId);
-  }, [sidebarItems, setTasks, flash]);
+  const switchPane = useCallback(() => { setFocusedPane((p) => p === 'lists' ? 'tasks' : 'lists'); }, []);
 
   const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
   const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
   const handleStartNotesEdit = useCallback(() => { if (selectedTask) setNotesEditing(true); }, [selectedTask]);
   const handleNotesCommit = useCallback(async (value: string) => {
     if (!selectedTask) return;
-    const notes = value.trim() || null;
-    await window.api.tasksUpdateNotes(selectedTask.id, notes);
+    await window.api.tasksUpdateNotes(selectedTask.id, value.trim() || null);
     await reloadTasks();
     setNotesEditing(false);
   }, [selectedTask, reloadTasks]);
   const handleNotesCancelEdit = useCallback(() => { setNotesEditing(false); }, []);
+
+  const paletteState = usePaletteState({
+    focusedPane, editMode: !!editMode, moveMode, settingsOpen, isSearchOpen, isTrashView,
+    selectedTask, selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem,
+  }, {
+    settingsOpen: settingsActions.open, openSearch, undo, redo, createTask, createList, switchPane,
+    deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
+    startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
+    handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,
+  });
+  const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, deleteList,
+    indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
   });
 
   const keyboardState = useKeyboardState({
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
-    selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen,
+    selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -177,46 +164,12 @@ export function useAppState() {
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
   const handleFolderToggle = useCallback(async (folderId: string) => { if (hardcoreMode) return; await window.api.foldersToggleExpanded(folderId); await reloadData(); }, [hardcoreMode, reloadData]);
 
-  const handleTaskContextMenu = useCallback((index: number, x: number, y: number) => {
-    if (hardcoreMode) return;
-    setSelectedTaskIndex(index);
-    setFocusedPane('tasks');
-    const task = tasks[index];
-    if (!task) return;
-    setContextMenu({
-      x, y,
-      items: [
-        { label: 'Edit', action: editActions.start },
-        { label: task.status === 'COMPLETED' ? 'Mark Incomplete' : 'Mark Complete', action: toggleTaskCompleted },
-        { label: 'Move to...', action: moveActions.start },
-        { label: 'Set Due Date', action: dueDateActions.start },
-        { label: 'Delete', action: deleteTask },
-      ],
-    });
-  }, [hardcoreMode, tasks, editActions, toggleTaskCompleted, moveActions, dueDateActions, deleteTask]);
+  const ctxMenu = useContextMenu({
+    hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
+    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList,
+  });
 
-  const handleSidebarContextMenu = useCallback((index: number, x: number, y: number) => {
-    if (hardcoreMode) return;
-    setSelectedSidebarIndex(index);
-    setFocusedPane('lists');
-    const item = sidebarItems[index];
-    if (!item || item.type !== 'list') return;
-    setContextMenu({
-      x, y,
-      items: [
-        { label: 'Edit', action: editActions.start },
-        { label: 'Delete', action: deleteList },
-      ],
-    });
-  }, [hardcoreMode, sidebarItems, editActions, deleteList]);
-
-  const closeContextMenu = useCallback(() => setContextMenu(null), []);
-
-  const getSelectedListName = (): string => {
-    if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
-    if (selectedSidebarItem?.type === 'smart') return selectedSidebarItem.smartList.name;
-    return 'Tasks';
-  };
+  const getSelectedListName = (): string => selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.name : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.name : 'Tasks';
   const getMoveTargetName = (): string => { const item = sidebarItems[moveTargetIndex]; return item?.type === 'list' ? item.list.name : ''; };
 
   return {
@@ -225,7 +178,8 @@ export function useAppState() {
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
     settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
-    handleTaskContextMenu, handleSidebarContextMenu, contextMenu, closeContextMenu,
+    handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
+    contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu,
     flashIds, throbIds, completeIds, moveIds, evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
@@ -233,5 +187,6 @@ export function useAppState() {
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
     notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
+    isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
   };
 }

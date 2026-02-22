@@ -849,6 +849,77 @@ h2 {
   background: var(--bg-selected);
 }
 
+/* Command palette */
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+.command-palette {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-pane);
+  border-radius: 8px;
+  width: 400px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.palette-input {
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border-pane);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.palette-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.palette-no-results {
+  padding: 12px 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.palette-item {
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.palette-item:hover {
+  background: var(--bg-hover);
+}
+
+.palette-item.selected {
+  background: var(--bg-selected);
+}
+
+.palette-item-name {
+  flex: 1;
+}
+
+.palette-item-hotkey {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: system-ui;
+}
+
 /* Tree connectors for subtask nesting */
 .tree-connector {
   font-family: monospace;

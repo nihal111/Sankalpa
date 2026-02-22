@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { actions as registeredActions, matchesHotkey, ActionContext } from '../actionRegistry';
 
 type Command = () => void;
 
@@ -32,6 +33,7 @@ export interface KeyboardActions {
   indentTask: Command;
   outdentTask: Command;
   toggleCollapse: Command;
+  togglePalette: Command;
 }
 
 export interface KeyboardState {
@@ -46,6 +48,16 @@ export interface KeyboardState {
   isTrashView: boolean;
   hasSelectedTask: boolean;
   isSearchOpen: boolean;
+  isPaletteOpen: boolean;
+  settingsOpen: boolean;
+}
+
+function getAction(id: string) {
+  return registeredActions.find(a => a.id === id)!;
+}
+
+function matches(e: KeyboardEvent, id: string): boolean {
+  return matchesHotkey(e, getAction(id));
 }
 
 export function useKeyboardNavigation(
@@ -54,9 +66,23 @@ export function useKeyboardNavigation(
   setSelectedTaskIndex: (idx: number) => void,
 ): void {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.metaKey && e.key === ',') { e.preventDefault(); actions.openSettings(); return; }
-    if (e.metaKey && e.shiftKey && e.key === 'f') { e.preventDefault(); actions.openSearch(); return; }
-    if (state.isSearchOpen) return;
+    const ctx: ActionContext = {
+      focusedPane: state.focusedPane,
+      editMode: !!state.editMode,
+      moveMode: state.moveMode,
+      settingsOpen: state.settingsOpen,
+      isSearchOpen: state.isSearchOpen,
+      isPaletteOpen: state.isPaletteOpen,
+      isTrashView: state.isTrashView,
+      hasSelectedTask: state.hasSelectedTask,
+      hasSelection: state.hasSelection,
+      canEdit: state.canEdit,
+    };
+
+    if (matches(e, 'openSettings')) { e.preventDefault(); actions.openSettings(); return; }
+    if (matches(e, 'openSearch')) { e.preventDefault(); actions.openSearch(); return; }
+    if (e.metaKey && e.key === 'k') { e.preventDefault(); actions.togglePalette(); return; }
+    if (state.isSearchOpen || state.isPaletteOpen) return;
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
     if (isFilterControl) {
@@ -77,14 +103,15 @@ export function useKeyboardNavigation(
       if (e.key === 'Escape') { e.preventDefault(); actions.cancelEdit(); }
       return;
     }
-    if (e.metaKey && e.shiftKey && e.key === 'z') { e.preventDefault(); actions.redo(); return; }
-    if (e.metaKey && e.key === 'z') { e.preventDefault(); actions.undo(); return; }
+    if (matches(e, 'redo')) { e.preventDefault(); actions.redo(); return; }
+    if (matches(e, 'undo')) { e.preventDefault(); actions.undo(); return; }
     if (actions.handleMoveKeyDown(e)) return;
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
-    if (e.metaKey && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleTaskCompleted(); return; }
+    if (matches(e, 'toggleCompleted') && getAction('toggleCompleted').isAvailable(ctx)) { e.preventDefault(); actions.toggleTaskCompleted(); return; }
     if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
-    if (e.key === ' ' && !state.cmdHeld && state.focusedPane === 'tasks') { e.preventDefault(); actions.clearSelection(); return; }
-    if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) actions.createList(); else actions.createTask(); return; }
+    if (matches(e, 'clearSelection') && !state.cmdHeld && getAction('clearSelection').isAvailable(ctx)) { e.preventDefault(); actions.clearSelection(); return; }
+    if (matches(e, 'newList')) { e.preventDefault(); actions.createList(); return; }
+    if (matches(e, 'newTask')) { e.preventDefault(); actions.createTask(); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -96,14 +123,14 @@ export function useKeyboardNavigation(
       actions.switchPane();
       return;
     }
-    if ((e.key === 'c' || e.key === 'C') && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleCollapse(); return; }
+    if (matches(e, 'toggleCollapse') && getAction('toggleCollapse').isAvailable(ctx)) { e.preventDefault(); actions.toggleCollapse(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
-    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (state.hasSelection || (state.focusedPane === 'lists' && !state.canEdit)) return; actions.startEdit(); return; }
-    if (e.key === 'm' || e.key === 'M') { e.preventDefault(); actions.startMove(); return; }
-    if (e.key === 'd' || e.key === 'D') { e.preventDefault(); if (!state.hasSelection) actions.startDueDate(); return; }
-    if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.shiftKey && state.hasSelectedTask) { e.preventDefault(); actions.startNotes(); return; }
-    if ((e.key === 'r' || e.key === 'R') && state.isTrashView && state.focusedPane === 'tasks') { e.preventDefault(); actions.restoreTask(); return; }
+    if (matches(e, 'edit') && getAction('edit').isAvailable(ctx)) { e.preventDefault(); actions.startEdit(); return; }
+    if (matches(e, 'moveToList') && getAction('moveToList').isAvailable(ctx)) { e.preventDefault(); actions.startMove(); return; }
+    if (matches(e, 'setDueDate') && getAction('setDueDate').isAvailable(ctx)) { e.preventDefault(); actions.startDueDate(); return; }
+    if (matches(e, 'editNotes') && !e.metaKey && !e.shiftKey && getAction('editNotes').isAvailable(ctx)) { e.preventDefault(); actions.startNotes(); return; }
+    if (matches(e, 'restoreFromTrash') && getAction('restoreFromTrash').isAvailable(ctx)) { e.preventDefault(); actions.restoreTask(); return; }
   }, [actions, state]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {

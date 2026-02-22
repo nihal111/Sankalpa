@@ -34,6 +34,7 @@ interface UseKeyboardActionsParams {
   outdentTask: () => void;
   toggleCollapse: () => void;
   deleteList: () => void;
+  togglePalette: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -42,8 +43,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse,
-    deleteList,
+    indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
   } = params;
 
   const startMove = useCallback(() => {
@@ -80,12 +80,13 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     indentTask,
     outdentTask,
     toggleCollapse,
+    togglePalette,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, toggleTaskCompleted, createList, createTask,
     deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, deleteList,
+    indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
   ]);
 }
 
@@ -102,12 +103,14 @@ interface UseKeyboardStateParams {
   isTrashView: boolean;
   selectedTask: Task | null;
   isSearchOpen: boolean;
+  isPaletteOpen: boolean;
+  settingsOpen: boolean;
 }
 
 export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState {
   const {
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
-    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen,
+    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen,
   } = params;
 
   return useMemo(() => ({
@@ -122,5 +125,7 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     isTrashView,
     hasSelectedTask: selectedTask !== null,
     isSearchOpen,
-  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen]);
+    isPaletteOpen,
+    settingsOpen,
+  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen]);
 }

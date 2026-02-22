@@ -41,8 +41,8 @@ interface DragHandlers {
 
 export function useDragDrop(params: UseDragDropParams): DragHandlers {
   const {
-    hardcoreMode, tasks, flatTasksLength, selectedTaskIndex, selectedTaskIndices,
-    reloadTasks, reloadData, setSelectedTaskIndex, flash, undoPush, multiSelectClear,
+    hardcoreMode, tasks, selectedTaskIndices,
+    reloadTasks, reloadData, flash, undoPush, multiSelectClear,
   } = params;
 
   const [dragState, setDragState] = useState<DragState>({ dragOverIndex: null, dropPosition: null, sidebarDropTarget: null });
@@ -122,7 +122,7 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
       reset();
     },
     onDragEnd: reset,
-  }), [hardcoreMode, tasks, flatTasksLength, getDraggedIndices, dragState.dropPosition, reloadTasks, flash, undoPush, multiSelectClear, reset]);
+  }), [hardcoreMode, tasks, getDraggedIndices, dragState.dropPosition, reloadTasks, flash, undoPush, multiSelectClear, reset]);
 
   const sidebarDropProps = useCallback((listId: string) => ({
     onDragOver: (e: React.DragEvent) => {

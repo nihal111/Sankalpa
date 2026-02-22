@@ -8,6 +8,7 @@ import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
 import { DueDateModal } from './DueDateModal';
+import { CommandPalette } from './CommandPalette';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -121,6 +122,12 @@ export default function App(): ReactNode {
           onClose={state.closeContextMenu}
         />
       )}
+      <CommandPalette
+        isOpen={state.isPaletteOpen}
+        context={state.paletteContext}
+        onClose={state.closePalette}
+        onExecute={state.executePaletteAction}
+      />
     </div>
   );
 }
