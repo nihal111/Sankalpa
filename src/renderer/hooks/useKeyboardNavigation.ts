@@ -23,7 +23,6 @@ export interface KeyboardActions {
   startEdit: Command;
   startMove: Command;
   startDueDate: Command;
-  commitDueDate: Command;
   undo: Command;
   redo: Command;
   restoreTask: Command;
@@ -67,8 +66,8 @@ export function useKeyboardNavigation(
       return;
     }
     if (state.editMode) {
+      if (state.dueDateMode) return; // modal handles its own keys
       if (e.key === 'Escape') { e.preventDefault(); actions.cancelEdit(); }
-      if (state.dueDateMode && e.key === 'Enter') { e.preventDefault(); actions.commitDueDate(); }
       return;
     }
     if (e.metaKey && e.shiftKey && e.key === 'z') { e.preventDefault(); actions.redo(); return; }

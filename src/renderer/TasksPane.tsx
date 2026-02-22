@@ -3,7 +3,6 @@ import type { Task, List } from '../shared/types';
 import type { EditMode, Pane, CompletedFilter } from './types';
 import type { TaskWithDepth } from './utils/taskTree';
 import { CompletedFilterBar } from './CompletedFilterBar';
-import { toDatetimeLocal } from './utils/toDatetimeLocal';
 import { hasChildren } from './utils/taskTree';
 
 function formatDueDate(ms: number): string {
@@ -33,8 +32,6 @@ interface TasksPaneProps {
   flashIds: Set<string>;
   throbIds: Set<string>;
   listNames?: Record<string, string>;
-  dueDateIndex: number | null;
-  onDueDateCommit: (value: string) => void;
   showSourceList?: boolean;
   lists?: List[];
   completedFilter?: CompletedFilter;
@@ -63,8 +60,6 @@ export function TasksPane({
   flashIds,
   throbIds,
   listNames,
-  dueDateIndex,
-  onDueDateCommit,
   showSourceList,
   lists,
   completedFilter,
@@ -160,15 +155,7 @@ export function TasksPane({
                 )}
                 {sourceListName && <span className="task-source-list">{sourceListName}</span>}
               </span>
-              {dueDateIndex === i ? (
-                <input
-                  type="datetime-local"
-                  className="due-date-input"
-                  defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
-                  autoFocus
-                  onBlur={(e) => onDueDateCommit(e.currentTarget.value)}
-                />
-              ) : task.due_date ? (
+              {task.due_date ? (
                 <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
               ) : null}
               {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}

@@ -6,6 +6,7 @@ import { TaskDetailPane } from './TaskDetailPane';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
+import { DueDateModal } from './DueDateModal';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -51,8 +52,6 @@ export default function App(): ReactNode {
         flashIds={state.flashIds}
         throbIds={state.throbIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
-        dueDateIndex={state.focusedPane === 'lists' || !state.selectedTask ? state.dueDateIndex : null}
-        onDueDateCommit={state.commitDueDate}
         showSourceList={state.isTrashView}
         lists={state.lists}
         completedFilter={state.completedFilter}
@@ -64,8 +63,6 @@ export default function App(): ReactNode {
         focusedPane={state.focusedPane}
         onEditTitle={state.handleDetailEditTitle}
         onEditDueDate={state.handleDetailEditDueDate}
-        dueDateEditing={state.dueDateIndex === state.selectedTaskIndex && state.selectedTask !== null}
-        onDueDateCommit={state.commitDueDate}
         notesEditing={state.notesEditing}
         onStartNotesEdit={state.handleStartNotesEdit}
         onNotesCommit={state.handleNotesCommit}
@@ -97,6 +94,12 @@ export default function App(): ReactNode {
         onClose={state.closeSearch}
         onSelectTask={state.handleSearchSelect}
         onQueryChange={state.setLastSearchQuery}
+      />
+      <DueDateModal
+        isOpen={state.dueDateIndex !== null}
+        currentDueDate={state.selectedTask?.due_date ?? null}
+        onCommit={state.commitDueDate}
+        onClose={state.cancelDueDate}
       />
     </div>
   );

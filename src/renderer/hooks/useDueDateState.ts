@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { Task } from '../../shared/types';
 import type { Pane } from '../types';
 
@@ -11,10 +11,9 @@ interface UseDueDateStateParams {
 
 export function useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadTasks }: UseDueDateStateParams): [
   number | null,
-  { start: () => void; commit: (value: string) => Promise<void>; cancel: () => void; blur: () => void }
+  { start: () => void; commit: (timestamp: number | null) => Promise<void>; cancel: () => void }
 ] {
   const [dueDateIndex, setDueDateIndex] = useState<number | null>(null);
-  const cancelRef = useRef(false);
 
   const start = useCallback(() => {
     if ((focusedPane === 'tasks' || focusedPane === 'detail') && tasks[selectedTaskIndex]) {
@@ -22,18 +21,14 @@ export function useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadT
     }
   }, [focusedPane, tasks, selectedTaskIndex]);
 
-  const commit = useCallback(async (value: string) => {
-    if (cancelRef.current) { cancelRef.current = false; return; }
+  const commit = useCallback(async (timestamp: number | null) => {
     const task = tasks[dueDateIndex!];
-    const dueDate = value ? new Date(value).getTime() : null;
-    await window.api.tasksSetDueDate(task.id, dueDate);
+    await window.api.tasksSetDueDate(task.id, timestamp);
     setDueDateIndex(null);
     await reloadTasks();
   }, [dueDateIndex, tasks, reloadTasks]);
 
-  const cancel = useCallback(() => { cancelRef.current = true; setDueDateIndex(null); }, []);
+  const cancel = useCallback(() => { setDueDateIndex(null); }, []);
 
-  const blur = useCallback(() => { (document.activeElement as HTMLElement)?.blur(); }, []);
-
-  return [dueDateIndex, { start, commit, cancel, blur }];
+  return [dueDateIndex, { start, commit, cancel }];
 }

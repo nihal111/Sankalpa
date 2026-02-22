@@ -15,7 +15,7 @@ interface UseKeyboardActionsParams {
     toggleAtCursor: (index: number) => void;
   };
   editActions: { start: () => void; cancel: () => void };
-  dueDateActions: { start: () => void; cancel: () => void; blur: () => void };
+  dueDateActions: { start: () => void; cancel: () => void };
   selectedTaskIndex: number;
   toggleTaskCompleted: () => void;
   createList: () => Promise<void>;
@@ -69,7 +69,6 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     startEdit: editActions.start,
     startMove,
     startDueDate: dueDateActions.start,
-    commitDueDate: dueDateActions.blur,
     undo,
     redo,
     restoreTask: handleRestoreTask,

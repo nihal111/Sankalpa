@@ -79,7 +79,7 @@ describe('App search', () => {
     await waitFor(() => expect(screen.queryByPlaceholderText('Search tasks...')).toBeNull());
   });
 
-  it('clicking detail pane due date input does not bubble', async () => {
+  it('clicking due date modal does not close it', async () => {
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(mockTasks),
       tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
@@ -90,12 +90,12 @@ describe('App search', () => {
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
     fireEvent.keyDown(window, { key: 'Tab' });
-    // Press D to open due date editor
+    // Press D to open due date modal
     fireEvent.keyDown(window, { key: 'd' });
-    await waitFor(() => expect(document.querySelector('.detail-pane .due-date-input')).toBeDefined());
-    // Click the due date input itself (covers stopPropagation onClick)
-    fireEvent.click(document.querySelector('.detail-pane .due-date-input')!);
-    expect(document.querySelector('.detail-pane .due-date-input')).toBeDefined();
+    await waitFor(() => expect(document.querySelector('.due-date-modal')).not.toBeNull());
+    // Click inside the modal should not close it
+    fireEvent.click(document.querySelector('.due-date-modal')!);
+    expect(document.querySelector('.due-date-modal')).not.toBeNull();
   });
 
   it('shows notes snippet with bold match when search matches notes', async () => {

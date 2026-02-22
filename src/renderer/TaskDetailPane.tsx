@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Task } from '../shared/types';
 import type { Pane } from './types';
-import { toDatetimeLocal } from './utils/toDatetimeLocal';
 import { marked } from 'marked';
 
 function formatDueDate(ms: number | null): string {
@@ -24,8 +23,6 @@ interface TaskDetailPaneProps {
   focusedPane: Pane;
   onEditTitle: () => void;
   onEditDueDate: () => void;
-  dueDateEditing: boolean;
-  onDueDateCommit: (value: string) => void;
   notesEditing: boolean;
   onStartNotesEdit: () => void;
   onNotesCommit: (value: string) => void;
@@ -37,8 +34,6 @@ export function TaskDetailPane({
   focusedPane,
   onEditTitle,
   onEditDueDate,
-  dueDateEditing,
-  onDueDateCommit,
   notesEditing,
   onStartNotesEdit,
   onNotesCommit,
@@ -79,18 +74,7 @@ export function TaskDetailPane({
       <div className="detail-section" onClick={onEditDueDate}>
         <span className="detail-icon">🔔</span>
         <span className="detail-label">
-          {dueDateEditing ? (
-            <input
-              type="datetime-local"
-              className="due-date-input"
-              defaultValue={task.due_date ? toDatetimeLocal(task.due_date) : ''}
-              autoFocus
-              onBlur={(e) => onDueDateCommit(e.currentTarget.value)}
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            formatDueDate(task.due_date)
-          )}
+          {formatDueDate(task.due_date)}
         </span>
         <span className="hotkey-badge">D</span>
       </div>
