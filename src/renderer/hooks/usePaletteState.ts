@@ -34,6 +34,7 @@ interface PaletteActions {
   toggleCollapse: () => void;
   handleRestoreTask: () => void;
   clearSelection: () => void;
+  duplicateTask: () => void;
 }
 
 interface UsePaletteStateResult {
@@ -86,6 +87,7 @@ export function usePaletteState(
       toggleCollapse: actions.toggleCollapse,
       restoreFromTrash: actions.handleRestoreTask,
       clearSelection: actions.clearSelection,
+      duplicateTask: actions.duplicateTask,
     };
     handlers[actionId]?.();
   }, [actions]);

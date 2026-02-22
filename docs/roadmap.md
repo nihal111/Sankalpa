@@ -8,6 +8,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 |---------|-------------|-------|------------|--------|
 | Delete lists | Deleting non-empty lists should ask for confirmation (reuse modal) | Task Lifecycle | Low | |
 | Subtasks UX overhaul | Chevron in existing left padding (no extra indent on parent); tree lines fully connected to checkbox and continuous | UI Polish | High | |
+| Labels | Tag tasks with labels (hotkey Cmd+L) | Task Properties | High | |
 | Priorities | Assign priority levels to tasks; exact scheme TBD | Task Properties | Medium | |
 | Web app + mobile | Web version for phone access; includes mobile quick capture | Platform | Very High | |
 | Always-visible detail panel | Third pane always shown; empty states: "No task selected" (list with no cursor), "No tasks in section" (empty virtual list), "N tasks selected" (multi-select) | UI Polish | Medium | |
@@ -27,8 +28,6 @@ Feature tracker for Sankalpa — what's next after the POC.
 | App logo | Design and add an app logo | UI Polish | Low | |
 | Headings / sections | Lightweight grouping of tasks within a list | Task Organization | Medium | |
 | Contextual hotkey bar | Show available keybindings in bottom bar on all main screens | UI Polish | Medium | |
-| Productivity stats | Track tasks completed per day, sum of durations, trends over time | Platform | High | |
-| Larger default window | Investigate whether monitor-size detection is needed; increase default window to ~2x width, ~1.5x height (or scale proportionally keeping current aspect ratio); clamp to screen bounds | UI Polish | Low | ✅ Done |
 | Sticky cursor per list | Remember cursor position per list; restoring it when navigating back opens that task in the detail panel | Task Organization | Medium | |
 | Indent/outdent lists | Tab/Shift+Tab to nest a list under a folder or remove it; outdenting moves the list below the folder's last child | Task Organization | Medium | |
 | Delete list confirmation | Modal: heading "Confirm list deletion", body "This will also delete the N tasks in this list", Cancel (`Esc` keycap), Delete List (`⌘↵` keycap) | UI Polish | Low | |
@@ -38,18 +37,15 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Duplicate task | `⌘D` creates a copy of the task in the same list with all properties preserved | Task Lifecycle | Low | |
 | Cycle lists with Ctrl+Tab | `Ctrl+Tab` / `Ctrl+Shift+Tab` moves down/up through lists in the sidebar while keeping cursor focus in the tasks pane | UI Polish | Medium | |
 | Quick-switch lists by number | Holding `⌘` shows numeric keycap badges (1, 2, 3…) on each visible list in the sidebar (skipping collapsed folder children); pressing the number switches to that list | UI Polish | High | |
-| Task count badges on virtual lists | Show numeric count badges on Today and Upcoming sidebar items indicating number of tasks in each | UI Polish | Low | ✅ Done |
-| Virtual list label refresh | Fix bug: Today/Upcoming sidebar labels stay grayed out after a task qualifies for them; should update reactively when tasks change | UI Polish | Low | ✅ Done |
-| New folder via command palette | Add "New Folder" action to `⌘K` palette | Task Organization | Low | ✅ Done |
 
 ## Stretch
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
+| Productivity stats | Track tasks completed per day, sum of durations, trends over time | Platform | High | |
 | Snooze | Snooze a task to reappear later (hotkey S) | Task Properties | High | |
 | Recurring tasks | Set tasks to repeat on a schedule (hotkey R) | Task Properties | High | |
 | Task duration | Set estimated duration on tasks (hotkey Opt+D) | Task Properties | High | |
-| Labels | Tag tasks with labels (hotkey Cmd+L) | Task Properties | High | |
 | Attachments | Attach files to tasks (hotkey A) | Task Properties | High | |
 | Cloud sync | Cloud-based persistence for cross-device data sync | Platform | Very High | |
 

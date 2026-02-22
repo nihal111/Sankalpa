@@ -91,7 +91,7 @@ export function useAppState() {
     });
   }, [setEditMode, setEditValue, setTasks]);
 
-  const { createTask, toggleTaskCompleted, deleteTask } = useTaskActions({
+  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
@@ -134,6 +134,7 @@ export function useAppState() {
     deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
     startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
     handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,
+    duplicateTask,
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
@@ -143,6 +144,7 @@ export function useAppState() {
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
+    duplicateTask,
   });
 
   const keyboardState = useKeyboardState({

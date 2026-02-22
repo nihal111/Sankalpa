@@ -38,6 +38,7 @@ export const actions: Action[] = [
   { id: 'toggleCollapse', name: 'Collapse/Expand', hotkey: 'c', hotkeyDisplay: 'C', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'restoreFromTrash', name: 'Restore from Trash', hotkey: 'r', hotkeyDisplay: 'R', isAvailable: (ctx) => ctx.isTrashView && ctx.focusedPane === 'tasks' },
   { id: 'clearSelection', name: 'Clear Selection', hotkey: ' ', hotkeyDisplay: 'Space', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelection },
+  { id: 'duplicateTask', name: 'Duplicate Task', hotkey: 'meta+d', hotkeyDisplay: '⌘ D', isAvailable: (ctx) => ctx.hasSelectedTask && !ctx.isTrashView },
 ];
 
 export function matchesHotkey(e: KeyboardEvent, action: Action): boolean {

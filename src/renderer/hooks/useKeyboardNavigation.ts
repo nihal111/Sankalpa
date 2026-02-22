@@ -35,6 +35,7 @@ export interface KeyboardActions {
   outdentTask: Command;
   toggleCollapse: Command;
   togglePalette: Command;
+  duplicateTask: Command;
 }
 
 export interface KeyboardState {
@@ -92,6 +93,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'openSettings')) { e.preventDefault(); actions.openSettings(); return; }
     if (matches(e, 'openSearch')) { e.preventDefault(); actions.openSearch(); return; }
     if (e.metaKey && e.key === 'k') { e.preventDefault(); actions.togglePalette(); return; }
+    if (e.metaKey && e.key === 'd') { e.preventDefault(); actions.duplicateTask(); return; }
     if (state.isSearchOpen || state.isPaletteOpen) return;
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');

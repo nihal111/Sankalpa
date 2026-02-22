@@ -30,6 +30,7 @@ interface TaskActions {
   createTask: () => Promise<void>;
   toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
+  duplicateTask: () => Promise<void>;
 }
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
@@ -110,5 +111,27 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     await doDelete();
   }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
 
-  return { createTask, toggleTaskCompleted, deleteTask };
+  const duplicateTask = useCallback(async () => {
+    if (focusedPane !== 'tasks' || tasks.length === 0 || isTrashView) return;
+    const task = tasks[selectedTaskIndex];
+    if (!task) return;
+    const id = crypto.randomUUID();
+    await window.api.tasksCreate(id, task.list_id, task.title);
+    await window.api.tasksSetDueDate(id, task.due_date);
+    await window.api.tasksUpdateNotes(id, task.notes);
+    if (task.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+    await reloadTasks();
+    onFlash?.(id);
+    undoPush({
+      undo: async () => { await window.api.tasksDelete(id); },
+      redo: async () => {
+        await window.api.tasksCreate(id, task.list_id, task.title);
+        await window.api.tasksSetDueDate(id, task.due_date);
+        await window.api.tasksUpdateNotes(id, task.notes);
+        if (task.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+      },
+    });
+  }, [focusedPane, tasks, selectedTaskIndex, isTrashView, reloadTasks, onFlash, undoPush]);
+
+  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask };
 }
