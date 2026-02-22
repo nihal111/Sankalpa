@@ -29,6 +29,7 @@ interface TasksPaneProps {
   cmdHeld: boolean;
   boundaryCursor: number | null;
   onTaskClick: (index: number) => void;
+  onTaskContextMenu: (index: number, x: number, y: number) => void;
   onTaskToggle: (taskId: string) => void;
   flashIds: Set<string>;
   throbIds: Set<string>;
@@ -71,6 +72,7 @@ export function TasksPane({
   cmdHeld,
   boundaryCursor,
   onTaskClick,
+  onTaskContextMenu,
   onTaskToggle,
   flashIds,
   throbIds,
@@ -148,6 +150,7 @@ export function TasksPane({
               key={task.id}
               className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
               onClick={() => onTaskClick(i)}
+              onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(i, e.clientX, e.clientY); }}
               {...drag}
             >
               {connector && <span className="tree-connector">{connector}</span>}

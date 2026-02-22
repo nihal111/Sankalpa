@@ -273,4 +273,30 @@ describe('App edit mode', () => {
     fireEvent.keyDown(window, { key: 'd' });
     expect(document.querySelector('.due-date-modal')).toBeNull();
   });
+
+  it('right-click on task shows context menu', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+    render(<App />);
+    await navigateToTasksPane();
+    const task = document.querySelector('.tasks-pane .task-item') as HTMLElement;
+    fireEvent.contextMenu(task, { clientX: 100, clientY: 200 });
+    await waitFor(() => expect(document.querySelector('.context-menu')).not.toBeNull());
+    const items = document.querySelectorAll('.context-menu-item');
+    expect(items.length).toBeGreaterThan(0);
+    // Click a menu item to close
+    fireEvent.click(items[0]);
+    await waitFor(() => expect(document.querySelector('.context-menu')).toBeNull());
+  });
+
+  it('right-click on list shows context menu', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+    render(<App />);
+    await navigateToUserList();
+    const list = document.querySelector('.lists-pane .item.list') as HTMLElement;
+    fireEvent.contextMenu(list, { clientX: 50, clientY: 100 });
+    await waitFor(() => expect(document.querySelector('.context-menu')).not.toBeNull());
+    // Escape closes context menu
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(document.querySelector('.context-menu')).toBeNull());
+  });
 });

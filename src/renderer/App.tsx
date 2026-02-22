@@ -3,6 +3,7 @@ import { useAppState } from './useAppState';
 import { Sidebar } from './Sidebar';
 import { TasksPane } from './TasksPane';
 import { TaskDetailPane } from './TaskDetailPane';
+import { ContextMenu } from './ContextMenu';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
@@ -27,6 +28,7 @@ export default function App(): ReactNode {
         inputRef={state.inputRef}
         taskCounts={state.taskCounts}
         onItemClick={state.handleSidebarClick}
+        onItemContextMenu={state.handleSidebarContextMenu}
         onFolderToggle={state.handleFolderToggle}
         flashIds={state.flashIds}
         trashIndex={state.trashIndex}
@@ -51,6 +53,7 @@ export default function App(): ReactNode {
         cmdHeld={state.cmdHeld}
         boundaryCursor={state.boundaryCursor}
         onTaskClick={state.handleTaskClick}
+        onTaskContextMenu={state.handleTaskContextMenu}
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
         throbIds={state.throbIds}
@@ -110,6 +113,14 @@ export default function App(): ReactNode {
         onCommit={state.commitDueDate}
         onClose={state.cancelDueDate}
       />
+      {state.contextMenu && (
+        <ContextMenu
+          x={state.contextMenu.x}
+          y={state.contextMenu.y}
+          items={state.contextMenu.items}
+          onClose={state.closeContextMenu}
+        />
+      )}
     </div>
   );
 }

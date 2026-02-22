@@ -60,6 +60,7 @@ interface SidebarProps {
   inputRef: RefObject<HTMLInputElement | null>;
   taskCounts: Record<string, number>;
   onItemClick: (index: number) => void;
+  onItemContextMenu: (index: number, x: number, y: number) => void;
   onFolderToggle: (folderId: string) => void;
   flashIds: Set<string>;
   trashIndex: number;
@@ -85,6 +86,7 @@ export function Sidebar({
   inputRef,
   taskCounts,
   onItemClick,
+  onItemContextMenu,
   onFolderToggle,
   flashIds,
   trashIndex,
@@ -162,7 +164,7 @@ export function Sidebar({
           const drop = sidebarDropProps?.(listItem.list.id);
           const isDragTarget = sidebarDropTarget === listItem.list.id;
           return (
-            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} {...drop}>
+            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} onContextMenu={(e) => { e.preventDefault(); onItemContextMenu(i, e.clientX, e.clientY); }} {...drop}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
               <EditableItemName
                 isEditing={isEditing}

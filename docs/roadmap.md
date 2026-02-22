@@ -6,7 +6,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
-| Completed keyboard-first filters | Completed section filters need full keyboard navigation and interaction | UI Polish | Medium | |
+| Completed keyboard-first filters | Completed section filters need full keyboard navigation and interaction | UI Polish | Medium | ✅ |
 | Task completion animation | Highlight flicker or left-to-right fill animation when a task is marked complete | UI Polish | Medium | ✅ |
 | Task move animation | Subtle flicker animation when a task is moved to a different list | UI Polish | Low | ✅ |
 | Delete lists | Add ability to delete lists from the sidebar | Task Lifecycle | Low | ✅ |

@@ -35,6 +35,7 @@ export function useAppState() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; items: { label: string; action: () => void }[] } | null>(null);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
@@ -176,6 +177,41 @@ export function useAppState() {
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
   const handleFolderToggle = useCallback(async (folderId: string) => { if (hardcoreMode) return; await window.api.foldersToggleExpanded(folderId); await reloadData(); }, [hardcoreMode, reloadData]);
 
+  const handleTaskContextMenu = useCallback((index: number, x: number, y: number) => {
+    if (hardcoreMode) return;
+    setSelectedTaskIndex(index);
+    setFocusedPane('tasks');
+    const task = tasks[index];
+    if (!task) return;
+    setContextMenu({
+      x, y,
+      items: [
+        { label: 'Edit', action: editActions.start },
+        { label: task.status === 'COMPLETED' ? 'Mark Incomplete' : 'Mark Complete', action: toggleTaskCompleted },
+        { label: 'Move to...', action: moveActions.start },
+        { label: 'Set Due Date', action: dueDateActions.start },
+        { label: 'Delete', action: deleteTask },
+      ],
+    });
+  }, [hardcoreMode, tasks, editActions, toggleTaskCompleted, moveActions, dueDateActions, deleteTask]);
+
+  const handleSidebarContextMenu = useCallback((index: number, x: number, y: number) => {
+    if (hardcoreMode) return;
+    setSelectedSidebarIndex(index);
+    setFocusedPane('lists');
+    const item = sidebarItems[index];
+    if (!item || item.type !== 'list') return;
+    setContextMenu({
+      x, y,
+      items: [
+        { label: 'Edit', action: editActions.start },
+        { label: 'Delete', action: deleteList },
+      ],
+    });
+  }, [hardcoreMode, sidebarItems, editActions, deleteList]);
+
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
   const getSelectedListName = (): string => {
     if (selectedSidebarItem?.type === 'list') return selectedSidebarItem.list.name;
     if (selectedSidebarItem?.type === 'smart') return selectedSidebarItem.smartList.name;
@@ -189,6 +225,7 @@ export function useAppState() {
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
     settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
+    handleTaskContextMenu, handleSidebarContextMenu, contextMenu, closeContextMenu,
     flashIds, throbIds, completeIds, moveIds, evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
