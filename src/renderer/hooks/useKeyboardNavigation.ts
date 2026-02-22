@@ -1,7 +1,9 @@
 import { useEffect, useCallback } from 'react';
-import { actions as registeredActions, matchesHotkey, ActionContext } from '../actionRegistry';
+import { actions as registeredActions, matchesHotkey, ActionContext, Action } from '../actionRegistry';
 
 type Command = () => void;
+
+const actionMap = new Map<string, Action>(registeredActions.map(a => [a.id, a]));
 
 export interface KeyboardActions {
   openSettings: Command;
@@ -52,8 +54,8 @@ export interface KeyboardState {
   settingsOpen: boolean;
 }
 
-function getAction(id: string) {
-  return registeredActions.find(a => a.id === id)!;
+function getAction(id: string): Action {
+  return actionMap.get(id)!;
 }
 
 function matches(e: KeyboardEvent, id: string): boolean {
