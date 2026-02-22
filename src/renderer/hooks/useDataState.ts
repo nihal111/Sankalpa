@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { Folder, List, Task } from '../../shared/types';
+import { parseRetentionDays } from '../../shared/trashRetention';
 import { buildSidebarItems, SidebarItem } from '../utils/buildSidebarItems';
 import { todayBounds } from '../utils/dateBounds';
 import type { CompletedFilter } from '../types';
@@ -77,7 +78,7 @@ export function useDataState(
       case 'trash': {
         const settings = await window.api.settingsGetAll();
         const retentionSetting = settings['trash_retention_days'];
-        const retentionDays = retentionSetting === 'never' ? null : parseInt(retentionSetting ?? '7', 10);
+        const retentionDays = parseRetentionDays(retentionSetting);
         await window.api.trashPurge(retentionDays);
         return window.api.tasksGetTrashed();
       }

@@ -11,6 +11,7 @@ import {
   getTrashedTasks, softDeleteTask, restoreFromTrash, getAllTasks,
   setTaskParentId, toggleTaskExpanded, getTaskDescendants, purgeExpiredTrash,
 } from './db';
+import { parseRetentionDays } from '../shared/trashRetention';
 
 let mainWindow: BrowserWindow | null = null;
 const isTestHeadless = process.argv.includes('--test-headless');
@@ -62,7 +63,7 @@ app.whenReady().then(async () => {
 
   // Purge expired trash on startup
   const retentionSetting = getSetting(db, 'trash_retention_days');
-  const retentionDays = retentionSetting === 'never' ? null : parseInt(retentionSetting ?? '7', 10);
+  const retentionDays = parseRetentionDays(retentionSetting);
   purgeExpiredTrash(db, retentionDays);
   saveDb();
 

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { Theme } from '../types';
+import { parseRetentionDays } from '../../shared/trashRetention';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
 const CATEGORIES = ['Theme', 'Hardcore', 'Trash'] as const;
@@ -39,9 +40,8 @@ export function useSettingsState(): [
         setHardcoreMode(settings.hardcore_mode === '1');
       }
       if (settings.trash_retention_days !== undefined) {
-        const idx = RETENTION_OPTIONS.findIndex((o) =>
-          settings.trash_retention_days === 'never' ? o.value === null : o.value === parseInt(settings.trash_retention_days, 10)
-        );
+        const parsed = parseRetentionDays(settings.trash_retention_days);
+        const idx = RETENTION_OPTIONS.findIndex((o) => o.value === parsed);
         if (idx >= 0) setTrashRetentionIndex(idx);
       }
     });
