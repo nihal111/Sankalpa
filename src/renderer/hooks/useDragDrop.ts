@@ -14,10 +14,14 @@ interface UseDragDropParams {
   flatTasksLength: number;
   selectedTaskIndex: number;
   selectedTaskIndices: Set<number>;
+  sidebarItems: { type: string; list?: { id: string } }[];
   reloadTasks: () => Promise<void>;
   reloadData: () => Promise<void>;
   setSelectedTaskIndex: (i: number | ((prev: number) => number)) => void;
+  setSelectedSidebarIndex: (i: number) => void;
+  setFocusedPane: (pane: 'lists' | 'tasks') => void;
   flash: (id: string) => void;
+  moveFlash: (id: string) => void;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
   multiSelectClear: () => void;
 }
@@ -41,8 +45,9 @@ interface DragHandlers {
 
 export function useDragDrop(params: UseDragDropParams): DragHandlers {
   const {
-    hardcoreMode, tasks, selectedTaskIndices,
-    reloadTasks, reloadData, flash, undoPush, multiSelectClear,
+    hardcoreMode, tasks, selectedTaskIndices, sidebarItems,
+    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane,
+    flash, moveFlash, undoPush, multiSelectClear,
   } = params;
 
   const [dragState, setDragState] = useState<DragState>({ dragOverIndex: null, dropPosition: null, sidebarDropTarget: null });
@@ -160,12 +165,15 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
         redo: async () => { for (const dt of draggedTasks) await window.api.tasksMove(dt.id, listId); },
       });
 
-      draggedTasks.forEach((dt) => flash(dt.id));
       multiSelectClear();
+      const newIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list?.id === listId);
+      if (newIndex >= 0) setSelectedSidebarIndex(newIndex);
+      setFocusedPane('tasks');
       await reloadData();
+      requestAnimationFrame(() => draggedTasks.forEach((dt) => moveFlash(dt.id)));
       reset();
     },
-  }), [tasks, getDraggedIndices, reloadData, flash, undoPush, multiSelectClear, reset]);
+  }), [tasks, getDraggedIndices, sidebarItems, reloadData, setSelectedSidebarIndex, setFocusedPane, flash, moveFlash, undoPush, multiSelectClear, reset]);
 
   return { state: dragState, taskDragProps, sidebarDropProps };
 }

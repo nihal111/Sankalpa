@@ -34,7 +34,7 @@ export function useAppState() {
   const { flashIds: throbIds, flash: throb } = useFlash();
   const { flashIds: completeIds, flash: completeFlash } = useFlash(500);
   const { flashIds: uncompleteIds, flash: uncompleteFlash } = useFlash(500);
-  const { flashIds: moveIds, flash: moveFlash } = useFlash();
+  const { flashIds: moveIds, flash: moveFlash } = useFlash(500);
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
   const [notesEditing, setNotesEditing] = useState(false);
 
@@ -155,8 +155,9 @@ export function useAppState() {
 
   const dragDrop = useDragDrop({
     hardcoreMode, tasks, flatTasksLength: flatTasks.length,
-    selectedTaskIndex, selectedTaskIndices,
-    reloadTasks, reloadData, setSelectedTaskIndex, flash, undoPush,
+    selectedTaskIndex, selectedTaskIndices, sidebarItems,
+    reloadTasks, reloadData, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
+    flash, moveFlash, undoPush,
     multiSelectClear: multiSelectActions.clear,
   });
 

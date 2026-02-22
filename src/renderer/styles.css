@@ -11,6 +11,7 @@
   --text-secondary: #8a8880;
   --accent-cursor: #d8b131;
   --accent-move: #d8b131;
+  --bg-flash: #4a4530;
   --accent-complete: #e8922a;
   --accent-complete-light: #f0b060;
 }
@@ -27,6 +28,7 @@
   --text-secondary: #555555;
   --accent-cursor: #ce983b;
   --accent-move: #ce983b;
+  --bg-flash: #f0e6b0;
   --accent-complete: #d4762a;
   --accent-complete-light: #e8a855;
 }
@@ -44,6 +46,7 @@
     --text-secondary: #555555;
     --accent-cursor: #ce983b;
     --accent-move: #ce983b;
+    --bg-flash: #f0e6b0;
     --accent-complete: #d4762a;
     --accent-complete-light: #e8a855;
   }
@@ -496,15 +499,18 @@ h2 {
   animation: uncompleting 500ms ease-out forwards;
 }
 
-/* Move animation — subtle flicker */
+/* Move animation — background flicker */
 @keyframes moved {
-  0% { opacity: 0.4; }
-  50% { opacity: 1; }
-  100% { opacity: 0.4; }
+  0% { background-size: 100% 100%; opacity: 1; }
+  50% { background-size: 100% 100%; opacity: 0.4; }
+  100% { background-size: 100% 100%; opacity: 1; }
 }
 
-.item.moved {
-  animation: moved 200ms ease-in-out;
+.pane.focused .item.moved {
+  background: transparent;
+  background-image: linear-gradient(var(--accent-complete), var(--accent-complete));
+  background-repeat: no-repeat;
+  animation: moved 500ms ease-in-out forwards;
 }
 
 /* Evaporation animation for discarded empty tasks */
