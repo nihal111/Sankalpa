@@ -54,7 +54,7 @@ describe('App trash', () => {
   it('shows source list name in trash view', async () => {
     render(<App />);
     await navigateToTrash();
-    await waitFor(() => expect(document.querySelector('.task-source-list')).not.toBeNull());
+    await waitFor(() => expect(document.querySelector('.task-origin')).not.toBeNull());
   });
 
   it('shows Inbox as source for tasks with null list_id', async () => {
@@ -64,7 +64,7 @@ describe('App trash', () => {
     render(<App />);
     await navigateToTrash();
     await waitFor(() => expect(screen.getByText('Inbox Trashed', { selector: '.task-content' })).toBeDefined());
-    await waitFor(() => expect(document.querySelector('.task-source-list')?.textContent).toBe('Inbox'));
+    await waitFor(() => expect(document.querySelector('.task-origin')?.textContent).toBe('Inbox'));
   });
 
   it('Delete in trash view shows permanent delete confirmation', async () => {

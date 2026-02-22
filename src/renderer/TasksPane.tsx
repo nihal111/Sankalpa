@@ -180,8 +180,8 @@ export function TasksPane({
                     {childCount > 0 && <span className="child-count">({childCount})</span>}
                   </>
                 )}
-                {sourceListName && <span className="task-source-list">{sourceListName}</span>}
               </span>
+              {sourceListName && <span className="task-origin">{sourceListName}</span>}
               {task.due_date ? (
                 <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
               ) : null}
