@@ -241,12 +241,10 @@ export function toggleTaskExpanded(db: Database, id: string): void {
   db.run('UPDATE tasks SET is_expanded = NOT is_expanded, updated_at = ? WHERE id = ?', [Date.now(), id]);
 }
 
-export function purgeExpiredTrash(db: Database, retentionDays: number | null): number {
-  if (retentionDays === null) return 0;
+export function purgeExpiredTrash(db: Database, retentionDays: number | null): void {
+  if (retentionDays === null) return;
   const cutoff = Date.now() - retentionDays * 86400000;
-  const before = queryOne<{ count: number }>(db, 'SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at < ?', [cutoff]);
   db.run('DELETE FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at < ?', [cutoff]);
-  return before?.count ?? 0;
 }
 
 export function getTaskDescendants(db: Database, id: string): Task[] {

@@ -121,7 +121,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('settings:set', (_, key: string, value: string) => { setSetting(db, key, value); saveDb(); });
 
   // Trash purge
-  ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { const count = purgeExpiredTrash(db, retentionDays); saveDb(); return count; });
+  ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { purgeExpiredTrash(db, retentionDays); saveDb(); });
 
   // Global hotkeys
   globalShortcut.register('CommandOrControl+Option+Control+Space', toggleWindow);

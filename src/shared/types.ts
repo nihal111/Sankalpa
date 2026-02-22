@@ -82,7 +82,7 @@ export interface Api {
   settingsGetAll: () => Promise<Record<string, string>>;
   settingsSet: (key: string, value: string) => Promise<void>;
 
-  trashPurge: (retentionDays: number | null) => Promise<number>;
+  trashPurge: (retentionDays: number | null) => Promise<void>;
 }
 
 declare global {
