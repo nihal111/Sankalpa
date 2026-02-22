@@ -69,7 +69,7 @@ export function useAppState() {
   });
   const { moveMode, moveTargetIndex } = move;
 
-  const { createList, deleteList } = useListActions({
+  const { createList, createFolder, deleteList } = useListActions({
     selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
   });
 
@@ -130,7 +130,7 @@ export function useAppState() {
     focusedPane, editMode: !!editMode, moveMode, settingsOpen, isSearchOpen, isTrashView,
     selectedTask, selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem,
   }, {
-    settingsOpen: settingsActions.open, openSearch, undo, redo, createTask, createList,
+    settingsOpen: settingsActions.open, openSearch, undo, redo, createTask, createList, createFolder,
     deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
     startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
     handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,

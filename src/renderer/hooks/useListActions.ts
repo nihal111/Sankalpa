@@ -19,7 +19,26 @@ interface UseListActionsParams {
 export function useListActions({
   selectedSidebarItem, selectedSidebarIndex,
   setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
-}: UseListActionsParams): { createList: () => Promise<void>; deleteList: () => Promise<void> } {
+}: UseListActionsParams): { createList: () => Promise<void>; createFolder: () => Promise<void>; deleteList: () => Promise<void> } {
+  const createFolder = useCallback(async () => {
+    const id = crypto.randomUUID();
+    const newFolder = await window.api.foldersCreate(id, '');
+    const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
+    setFolders(f);
+    setLists(l);
+    const rebuilt = buildSidebarItems(f, l);
+    const newIndex = rebuilt.findIndex((item) => item.type === 'folder' && item.folder.id === newFolder.id);
+    setSelectedSidebarIndex(newIndex >= 0 ? newIndex : selectedSidebarIndex);
+    setFocusedPane('lists');
+    setEditMode({ type: 'folder', id: newFolder.id });
+    setEditValue('');
+    flash(newFolder.id);
+    undoPush({
+      undo: async () => { await window.api.foldersDelete(newFolder.id); },
+      redo: async () => { await window.api.foldersCreate(newFolder.id, ''); },
+    });
+  }, [selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush]);
+
   const createList = useCallback(async () => {
     const id = crypto.randomUUID();
     const folderId = selectedSidebarItem?.type === 'folder' ? selectedSidebarItem.folder.id : undefined;
@@ -62,7 +81,7 @@ export function useListActions({
     });
   }, [selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFolders, setLists, undoPush]);
 
-  return { createList, deleteList };
+  return { createList, createFolder, deleteList };
 }
 
 interface UseMoveCommitParams {

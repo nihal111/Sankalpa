@@ -22,6 +22,7 @@ interface PaletteActions {
   redo: () => void;
   createTask: () => void;
   createList: () => void;
+  createFolder: () => void;
   deleteTask: () => void;
   toggleTaskCompleted: () => void;
   startEdit: () => void;
@@ -73,6 +74,7 @@ export function usePaletteState(
       redo: actions.redo,
       newTask: actions.createTask,
       newList: actions.createList,
+      newFolder: actions.createFolder,
       delete: actions.deleteTask,
       toggleCompleted: actions.toggleTaskCompleted,
       edit: actions.startEdit,

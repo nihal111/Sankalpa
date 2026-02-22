@@ -26,6 +26,7 @@ export const actions: Action[] = [
   { id: 'redo', name: 'Redo', hotkey: 'meta+shift+z', hotkeyDisplay: '⌘⇧Z', isAvailable: () => true },
   { id: 'newTask', name: 'New Task', hotkey: 'meta+n', hotkeyDisplay: '⌘N', isAvailable: () => true },
   { id: 'newList', name: 'New List', hotkey: 'meta+shift+n', hotkeyDisplay: '⌘⇧N', isAvailable: () => true },
+  { id: 'newFolder', name: 'New Folder', hotkey: '', hotkeyDisplay: '', isAvailable: () => true },
   { id: 'delete', name: 'Delete', hotkey: 'Backspace', hotkeyDisplay: '⌫', isAvailable: (ctx) => !ctx.editMode },
   { id: 'toggleCompleted', name: 'Toggle Completed', hotkey: 'meta+Enter', hotkeyDisplay: '⌘↵', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'edit', name: 'Edit', hotkey: 'e', hotkeyDisplay: 'E', isAvailable: (ctx) => (ctx.focusedPane === 'tasks' && !ctx.hasSelection) || (ctx.focusedPane === 'lists' && ctx.canEdit) },
