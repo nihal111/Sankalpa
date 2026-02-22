@@ -1,7 +1,14 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Task, List, Folder } from '../../shared/types';
 import type { SidebarItem, Pane } from '../types';
 import { buildSidebarItems } from '../utils/buildSidebarItems';
+import type { ConfirmationOption } from '../ConfirmationDialog';
+
+interface ConfirmationDialogState {
+  title: string;
+  message: string;
+  options: ConfirmationOption[];
+}
 
 interface UseListActionsParams {
   selectedSidebarItem: SidebarItem | undefined;
@@ -14,12 +21,15 @@ interface UseListActionsParams {
   setLists: (lists: List[]) => void;
   flash: (id: string) => void;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
+  taskCounts: Record<string, number>;
 }
 
 export function useListActions({
   selectedSidebarItem, selectedSidebarIndex,
-  setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
-}: UseListActionsParams): { createList: () => Promise<void>; createFolder: () => Promise<void>; deleteList: () => Promise<void> } {
+  setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush, taskCounts,
+}: UseListActionsParams): { createList: () => Promise<void>; createFolder: () => Promise<void>; deleteList: () => void; listConfirmationDialog: ConfirmationDialogState | null; closeListConfirmation: () => void } {
+  const [listConfirmationDialog, setListConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
+  const closeListConfirmation = useCallback(() => setListConfirmationDialog(null), []);
   const createFolder = useCallback(async () => {
     const id = crypto.randomUUID();
     const newFolder = await window.api.foldersCreate(id, '');
@@ -59,17 +69,15 @@ export function useListActions({
     });
   }, [selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush]);
 
-  const deleteList = useCallback(async () => {
-    if (selectedSidebarItem?.type !== 'list') return;
-    const list = selectedSidebarItem.list;
+  const doDeleteList = useCallback(async (list: List) => {
     await window.api.listsDelete(list.id);
-    // After delete, tasks are now in trash - fetch them to get deleted_at
     const trashedTasks = await window.api.tasksGetTrashed();
     const deletedTasks = trashedTasks.filter((t) => t.list_id === list.id);
     const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
     setFolders(f);
     setLists(l);
     setSelectedSidebarIndex(Math.max(0, selectedSidebarIndex - 1));
+    setListConfirmationDialog(null);
     undoPush({
       undo: async () => {
         await window.api.listsRestore(list.id, list.folder_id, list.name, list.sort_key, list.created_at, list.updated_at);
@@ -79,9 +87,20 @@ export function useListActions({
       },
       redo: async () => { await window.api.listsDelete(list.id); },
     });
-  }, [selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFolders, setLists, undoPush]);
+  }, [selectedSidebarIndex, setSelectedSidebarIndex, setFolders, setLists, undoPush]);
 
-  return { createList, createFolder, deleteList };
+  const deleteList = useCallback(() => {
+    if (selectedSidebarItem?.type !== 'list') return;
+    const list = selectedSidebarItem.list;
+    const count = taskCounts[list.id] ?? 0;
+    setListConfirmationDialog({
+      title: 'Confirm list deletion',
+      message: `This will also delete the ${count} tasks in this list.`,
+      options: [{ label: 'Delete List', action: () => doDeleteList(list), hotkeyDisplay: '⌘ ↵' }],
+    });
+  }, [selectedSidebarItem, taskCounts, doDeleteList]);
+
+  return { createList, createFolder, deleteList, listConfirmationDialog, closeListConfirmation };
 }
 
 interface UseMoveCommitParams {

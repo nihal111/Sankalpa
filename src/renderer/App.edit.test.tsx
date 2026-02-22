@@ -183,6 +183,9 @@ describe('App edit mode', () => {
     render(<App />);
     await navigateToUserList();
     fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(document.querySelector('.confirmation-dialog')).not.toBeNull());
+    const deleteBtn = Array.from(document.querySelectorAll('.confirmation-buttons button')).find(b => b.textContent?.includes('Delete List'));
+    fireEvent.click(deleteBtn!);
     await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalled());
   });
 

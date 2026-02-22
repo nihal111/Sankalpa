@@ -69,8 +69,8 @@ export function useAppState() {
   });
   const { moveMode, moveTargetIndex } = move;
 
-  const { createList, createFolder, deleteList } = useListActions({
-    selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
+  const { createList, createFolder, deleteList, listConfirmationDialog, closeListConfirmation } = useListActions({
+    selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush, taskCounts,
   });
 
   const searchState = useSearchState({ sidebarItems, setTasks, setSelectedSidebarIndex, setSelectedTaskIndex, setFocusedPane, flash });
@@ -150,7 +150,7 @@ export function useAppState() {
   const keyboardState = useKeyboardState({
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
-    confirmationDialogOpen: trashActions.confirmationDialog !== null,
+    confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -185,7 +185,7 @@ export function useAppState() {
     handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu,
     flashIds, throbIds, completeIds, uncompleteIds, moveIds, evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
-    trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
+    trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog || listConfirmationDialog, closeConfirmationDialog: trashActions.confirmationDialog ? trashActions.closeConfirmationDialog : closeListConfirmation,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
