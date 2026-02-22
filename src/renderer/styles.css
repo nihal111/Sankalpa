@@ -440,6 +440,32 @@ h2 {
   animation: flash 200ms ease-out;
 }
 
+/* Completion animation — left-to-right fill with flicker */
+@keyframes completing {
+  0% { background-size: 0% 100%; }
+  60% { background-size: 100% 100%; }
+  70% { opacity: 0.5; }
+  85% { opacity: 1; }
+  100% { background-size: 100% 100%; opacity: 1; }
+}
+
+.item.completing {
+  background-image: linear-gradient(to right, var(--accent-cursor), var(--accent-cursor));
+  background-repeat: no-repeat;
+  animation: completing 200ms ease-out forwards;
+}
+
+/* Move animation — subtle flicker */
+@keyframes moved {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+.item.moved {
+  animation: moved 200ms ease-in-out;
+}
+
 
 /* Sidebar spacer to push trash to bottom */
 .sidebar-spacer {

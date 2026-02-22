@@ -29,6 +29,8 @@ export function useAppState() {
   const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
   const { flashIds, flash } = useFlash();
   const { flashIds: throbIds, flash: throb } = useFlash();
+  const { flashIds: completeIds, flash: completeFlash } = useFlash();
+  const { flashIds: moveIds, flash: moveFlash } = useFlash();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
@@ -56,7 +58,7 @@ export function useAppState() {
   const { setEditMode, setEditValue } = editSetters;
 
   const handleMoveCommit = useMoveCommit({
-    sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash, undoPush,
+    sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash: moveFlash, undoPush,
   });
 
   const [move, moveActions] = useMoveState({
@@ -85,7 +87,7 @@ export function useAppState() {
 
   const { createTask, toggleTaskCompleted, deleteTask } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, undoPush,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: completeFlash, undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
     onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete,
   });
@@ -186,7 +188,7 @@ export function useAppState() {
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
     settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
-    flashIds, throbIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
+    flashIds, throbIds, completeIds, moveIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,

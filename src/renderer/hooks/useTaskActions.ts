@@ -18,6 +18,7 @@ interface UseTaskActionsParams {
   setEditValue: (value: string) => void;
   reloadTasks: () => Promise<void>;
   onFlash?: (id: string) => void;
+  onCompleteFlash?: (id: string) => void;
   undoPush: (entry: UndoEntry) => void;
   isTrashView: boolean;
   onPermanentDeleteRequest?: (task: Task) => void;
@@ -34,7 +35,7 @@ interface TaskActions {
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
-    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, undoPush,
+    setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, onCompleteFlash, undoPush,
     isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete,
   } = params;
 
@@ -75,8 +76,9 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
 
     await window.api.tasksToggleCompleted(task.id);
+    onCompleteFlash?.(task.id);
     await reloadTasks();
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, onCascadeComplete]);
+  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, onCascadeComplete, onCompleteFlash]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || tasks.length === 0) return;

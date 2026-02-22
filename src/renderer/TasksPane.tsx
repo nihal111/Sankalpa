@@ -31,6 +31,8 @@ interface TasksPaneProps {
   onTaskToggle: (taskId: string) => void;
   flashIds: Set<string>;
   throbIds: Set<string>;
+  completeIds: Set<string>;
+  moveIds: Set<string>;
   listNames?: Record<string, string>;
   showSourceList?: boolean;
   lists?: List[];
@@ -69,6 +71,8 @@ export function TasksPane({
   onTaskToggle,
   flashIds,
   throbIds,
+  completeIds,
+  moveIds,
   listNames,
   showSourceList,
   lists,
@@ -138,7 +142,7 @@ export function TasksPane({
           return (
             <li
               key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
               onClick={() => onTaskClick(i)}
               {...drag}
             >

@@ -53,6 +53,8 @@ export default function App(): ReactNode {
         onTaskToggle={state.handleTaskToggle}
         flashIds={state.flashIds}
         throbIds={state.throbIds}
+        completeIds={state.completeIds}
+        moveIds={state.moveIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
         showSourceList={state.isTrashView}
         lists={state.lists}
