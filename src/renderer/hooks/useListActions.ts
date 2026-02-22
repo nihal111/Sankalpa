@@ -102,11 +102,11 @@ export function useMoveCommit({
         }
       },
     });
-    taskIds.forEach(flash);
     multiSelectActions.clear();
     const newIndex = sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === targetListId);
     if (newIndex >= 0) setSelectedSidebarIndex(newIndex);
-    setFocusedPane('lists');
+    setFocusedPane('tasks');
     await reloadData();
+    requestAnimationFrame(() => taskIds.forEach(flash));
   }, [sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash, undoPush]);
 }

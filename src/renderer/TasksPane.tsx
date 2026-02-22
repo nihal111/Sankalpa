@@ -34,6 +34,7 @@ interface TasksPaneProps {
   flashIds: Set<string>;
   throbIds: Set<string>;
   completeIds: Set<string>;
+  uncompleteIds: Set<string>;
   moveIds: Set<string>;
   evaporateIds: Set<string>;
   listNames?: Record<string, string>;
@@ -77,6 +78,7 @@ export function TasksPane({
   flashIds,
   throbIds,
   completeIds,
+  uncompleteIds,
   moveIds,
   evaporateIds,
   listNames,
@@ -148,7 +150,7 @@ export function TasksPane({
           return (
             <li
               key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${uncompleteIds.has(task.id) ? 'uncompleting' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
               onClick={() => onTaskClick(i)}
               onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(i, e.clientX, e.clientY); }}
               {...drag}

@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-const FLASH_DURATION_MS = 200;
+const DEFAULT_FLASH_DURATION_MS = 200;
 
 interface FlashState {
   flashIds: Set<string>;
   flash: (id: string) => void;
 }
 
-export function useFlash(): FlashState {
+export function useFlash(durationMs: number = DEFAULT_FLASH_DURATION_MS): FlashState {
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -27,7 +27,7 @@ export function useFlash(): FlashState {
         next.delete(id);
         return next;
       });
-    }, FLASH_DURATION_MS);
+    }, durationMs);
     timersRef.current.set(id, timer);
   }, []);
 

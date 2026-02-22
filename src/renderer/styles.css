@@ -11,6 +11,8 @@
   --text-secondary: #8a8880;
   --accent-cursor: #d8b131;
   --accent-move: #d8b131;
+  --accent-complete: #e8922a;
+  --accent-complete-light: #f0b060;
 }
 
 /* Light theme */
@@ -25,6 +27,8 @@
   --text-secondary: #555555;
   --accent-cursor: #ce983b;
   --accent-move: #ce983b;
+  --accent-complete: #d4762a;
+  --accent-complete-light: #e8a855;
 }
 
 /* System theme - follows OS preference */
@@ -40,6 +44,8 @@
     --text-secondary: #555555;
     --accent-cursor: #ce983b;
     --accent-move: #ce983b;
+    --accent-complete: #d4762a;
+    --accent-complete-light: #e8a855;
   }
 }
 
@@ -440,19 +446,36 @@ h2 {
   animation: flash 200ms ease-out;
 }
 
-/* Completion animation — left-to-right fill with flicker */
+/* Completion animation — left-to-right fill */
 @keyframes completing {
   0% { background-size: 0% 100%; }
-  60% { background-size: 100% 100%; }
-  70% { opacity: 0.5; }
-  85% { opacity: 1; }
+  70% { background-size: 100% 100%; }
+  80% { opacity: 0.6; }
+  90% { opacity: 1; }
   100% { background-size: 100% 100%; opacity: 1; }
 }
 
-.item.completing {
-  background-image: linear-gradient(to right, var(--accent-cursor), var(--accent-cursor));
+.pane.focused .item.completing {
+  background: transparent;
+  background-image: linear-gradient(to right, var(--accent-complete-light), var(--accent-complete));
   background-repeat: no-repeat;
-  animation: completing 200ms ease-out forwards;
+  animation: completing 500ms ease-out forwards;
+}
+
+/* Uncomplete animation — right-to-left fill */
+@keyframes uncompleting {
+  0% { background-size: 0% 100%; background-position: right; }
+  70% { background-size: 100% 100%; background-position: right; }
+  80% { opacity: 0.6; }
+  90% { opacity: 1; }
+  100% { background-size: 100% 100%; background-position: right; opacity: 1; }
+}
+
+.pane.focused .item.uncompleting {
+  background: transparent;
+  background-image: linear-gradient(to left, var(--accent-complete-light), var(--accent-complete));
+  background-repeat: no-repeat;
+  animation: uncompleting 500ms ease-out forwards;
 }
 
 /* Move animation — subtle flicker */

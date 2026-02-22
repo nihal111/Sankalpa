@@ -18,7 +18,7 @@ interface UseTaskActionsParams {
   setEditValue: (value: string) => void;
   reloadTasks: () => Promise<void>;
   onFlash?: (id: string) => void;
-  onCompleteFlash?: (id: string) => void;
+  onCompleteFlash?: (id: string, wasCompleted: boolean) => void;
   undoPush: (entry: UndoEntry) => void;
   isTrashView: boolean;
   onPermanentDeleteRequest?: (task: Task) => void;
@@ -76,7 +76,7 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
 
     await window.api.tasksToggleCompleted(task.id);
-    onCompleteFlash?.(task.id);
+    onCompleteFlash?.(task.id, task.status === 'COMPLETED');
     await reloadTasks();
   }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, onCascadeComplete, onCompleteFlash]);
 

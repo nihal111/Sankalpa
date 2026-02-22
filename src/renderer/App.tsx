@@ -59,6 +59,7 @@ export default function App(): ReactNode {
         flashIds={state.flashIds}
         throbIds={state.throbIds}
         completeIds={state.completeIds}
+        uncompleteIds={state.uncompleteIds}
         moveIds={state.moveIds}
         evaporateIds={state.evaporateIds}
         listNames={state.isCompletedView ? state.listNames : undefined}

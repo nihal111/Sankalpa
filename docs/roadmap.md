@@ -6,7 +6,6 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
-| Completed keyboard-first filters | Completed section filters need full keyboard navigation and interaction | UI Polish | Medium | ✅ |
 | Task completion animation | Change animation to be left to right fill of the task div (like a progress bar) | UI Polish | Medium | ✅ |
 | Task move animation | Show/focus the list that the task was moved to | UI Polish | Low | ✅ |
 | Delete lists | Deleting non-empty lists should ask for confirmation (reuse modal) | Task Lifecycle | Low | ✅ |
