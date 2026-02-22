@@ -37,6 +37,16 @@ interface TasksPaneProps {
   completedFilter?: CompletedFilter;
   onFilterChange?: (filter: CompletedFilter) => void;
   listsWithCompletedTasks?: List[];
+  dragOverIndex?: number | null;
+  dropPosition?: 'before' | 'after' | null;
+  taskDragProps?: (index: number) => {
+    draggable: boolean;
+    onDragStart: (e: React.DragEvent) => void;
+    onDragOver: (e: React.DragEvent) => void;
+    onDragLeave: () => void;
+    onDrop: (e: React.DragEvent) => void;
+    onDragEnd: () => void;
+  };
 }
 
 export function TasksPane({
@@ -65,6 +75,9 @@ export function TasksPane({
   completedFilter,
   onFilterChange,
   listsWithCompletedTasks,
+  dragOverIndex,
+  dropPosition,
+  taskDragProps,
 }: TasksPaneProps): ReactNode {
   const getSourceListName = (task: Task): string | null => {
     if (!showSourceList || !lists) return null;
@@ -121,11 +134,13 @@ export function TasksPane({
           const connector = getTreeConnector(flatTask);
           const collapseIndicator = getCollapseIndicator(task);
           const childCount = getChildCount(task);
+          const drag = taskDragProps?.(i);
           return (
             <li
               key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''}`}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
               onClick={() => onTaskClick(i)}
+              {...drag}
             >
               {connector && <span className="tree-connector">{connector}</span>}
               {collapseIndicator && <span className="collapse-indicator">{collapseIndicator}</span>}

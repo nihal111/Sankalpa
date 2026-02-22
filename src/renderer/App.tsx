@@ -30,6 +30,8 @@ export default function App(): ReactNode {
         onFolderToggle={state.handleFolderToggle}
         flashIds={state.flashIds}
         trashIndex={state.trashIndex}
+        sidebarDropTarget={state.dragState.sidebarDropTarget}
+        sidebarDropProps={state.sidebarDropProps}
       />
       <TasksPane
         tasks={state.tasks}
@@ -57,6 +59,9 @@ export default function App(): ReactNode {
         completedFilter={state.completedFilter}
         onFilterChange={state.onFilterChange}
         listsWithCompletedTasks={state.listsWithCompletedTasks}
+        dragOverIndex={state.dragState.dragOverIndex}
+        dropPosition={state.dragState.dropPosition}
+        taskDragProps={state.taskDragProps}
       />
       <TaskDetailPane
         task={state.focusedPane !== 'lists' ? state.selectedTask : null}

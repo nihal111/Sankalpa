@@ -190,6 +190,19 @@ h2 {
   outline-offset: -2px;
 }
 
+.item.drag-over-before {
+  box-shadow: 0 -2px 0 0 var(--accent-move);
+}
+
+.item.drag-over-after {
+  box-shadow: 0 2px 0 0 var(--accent-move);
+}
+
+.item.drag-drop-target {
+  outline: 2px solid var(--accent-move);
+  outline-offset: -2px;
+}
+
 
 .task-item.completed {
   color: var(--text-secondary);

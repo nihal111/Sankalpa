@@ -63,6 +63,12 @@ interface SidebarProps {
   onFolderToggle: (folderId: string) => void;
   flashIds: Set<string>;
   trashIndex: number;
+  sidebarDropTarget?: string | null;
+  sidebarDropProps?: (listId: string) => {
+    onDragOver: (e: React.DragEvent) => void;
+    onDragLeave: () => void;
+    onDrop: (e: React.DragEvent) => void;
+  };
 }
 
 export function Sidebar({
@@ -82,6 +88,8 @@ export function Sidebar({
   onFolderToggle,
   flashIds,
   trashIndex,
+  sidebarDropTarget,
+  sidebarDropProps,
 }: SidebarProps): ReactNode {
   const paneRef = useRef<HTMLDivElement>(null);
 
@@ -151,8 +159,10 @@ export function Sidebar({
           const isEditing = editMode?.type === 'list' && editMode.id === listItem.list.id;
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
+          const drop = sidebarDropProps?.(listItem.list.id);
+          const isDragTarget = sidebarDropTarget === listItem.list.id;
           return (
-            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''}`} onClick={() => onItemClick(i)}>
+            <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} {...drop}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
               <EditableItemName
                 isEditing={isEditing}

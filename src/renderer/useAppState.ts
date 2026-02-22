@@ -17,6 +17,7 @@ import { useUndoStack } from './hooks/useUndoStack';
 import { useDueDateState } from './hooks/useDueDateState';
 import { useListActions, useMoveCommit } from './hooks/useListActions';
 import { flattenWithDepth } from './utils/taskTree';
+import { useDragDrop } from './hooks/useDragDrop';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -160,6 +161,13 @@ export function useAppState() {
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
+  const dragDrop = useDragDrop({
+    hardcoreMode, tasks, flatTasksLength: flatTasks.length,
+    selectedTaskIndex, selectedTaskIndices,
+    reloadTasks, reloadData, setSelectedTaskIndex, flash, undoPush,
+    multiSelectClear: multiSelectActions.clear,
+  });
+
   const handleSidebarClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedSidebarIndex(index); setFocusedPane('lists'); }, [hardcoreMode]);
   const handleTaskClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedTaskIndex(index); setFocusedPane('tasks'); multiSelectActions.clear(); }, [hardcoreMode, multiSelectActions]);
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
@@ -184,5 +192,6 @@ export function useAppState() {
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
     notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
+    dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
   };
 }
