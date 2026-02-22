@@ -88,7 +88,7 @@ export function CommandPalette({ isOpen, context, onClose, onExecute }: CommandP
               onClick={() => { onExecute(action.id); onClose(); }}
             >
               <span className="palette-item-name">{action.name}</span>
-              <span className="palette-item-hotkey">{action.hotkeyDisplay}</span>
+              <span className="palette-item-hotkey hotkey-badge">{action.hotkeyDisplay}</span>
             </div>
           ))}
         </div>
