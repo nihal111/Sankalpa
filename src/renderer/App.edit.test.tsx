@@ -179,11 +179,18 @@ describe('App edit mode', () => {
     expect(window.api.tasksGetInbox).toHaveBeenCalled();
   });
 
-  it('Delete does nothing in lists pane', async () => {
+  it('Delete on user list calls listsDelete', async () => {
     render(<App />);
     await navigateToUserList();
     fireEvent.keyDown(window, { key: 'Delete' });
-    expect(window.api.tasksDelete).not.toHaveBeenCalled();
+    await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalled());
+  });
+
+  it('Delete on smart list does nothing', async () => {
+    render(<App />);
+    await waitFor(() => expect(document.querySelectorAll('.lists-pane .item').length).toBeGreaterThan(0));
+    fireEvent.keyDown(window, { key: 'Delete' });
+    expect(window.api.listsDelete).not.toHaveBeenCalled();
   });
 
   it('D key opens due date modal and Enter commits it', async () => {

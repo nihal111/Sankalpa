@@ -49,6 +49,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     tasksToggleExpanded: vi.fn().mockResolvedValue(undefined),
     tasksGetDescendants: vi.fn().mockResolvedValue([]),
     listsRestore: vi.fn().mockResolvedValue(undefined),
+    listsDelete: vi.fn().mockResolvedValue(undefined),
     calcSortKey: vi.fn().mockResolvedValue(1.5),
     settingsGetAll: vi.fn().mockResolvedValue({}),
     settingsSet: vi.fn().mockResolvedValue(undefined),

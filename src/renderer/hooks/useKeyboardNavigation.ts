@@ -17,6 +17,7 @@ export interface KeyboardActions {
   createList: Command;
   createTask: Command;
   deleteTask: Command;
+  deleteList: Command;
   switchPane: Command;
   handleArrowNavigation: (e: KeyboardEvent) => void;
   handleHorizontalArrow: (dir: 'left' | 'right') => void;
@@ -78,7 +79,7 @@ export function useKeyboardNavigation(
     if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
     if (e.key === ' ' && !state.cmdHeld && state.focusedPane === 'tasks') { e.preventDefault(); actions.clearSelection(); return; }
     if (e.metaKey && e.key === 'n') { e.preventDefault(); if (e.shiftKey) actions.createList(); else actions.createTask(); return; }
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); actions.deleteTask(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {
       e.preventDefault();
       if (state.hasSelection) { actions.clearSelection(); actions.switchPane(); return; }

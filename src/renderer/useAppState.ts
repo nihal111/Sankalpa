@@ -64,7 +64,7 @@ export function useAppState() {
   });
   const { moveMode, moveTargetIndex } = move;
 
-  const { createList } = useListActions({
+  const { createList, deleteList } = useListActions({
     selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush,
   });
 
@@ -151,7 +151,7 @@ export function useAppState() {
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse,
+    indentTask, outdentTask, toggleCollapse, deleteList,
   });
 
   const keyboardState = useKeyboardState({

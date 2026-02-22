@@ -33,6 +33,7 @@ interface UseKeyboardActionsParams {
   indentTask: () => void;
   outdentTask: () => void;
   toggleCollapse: () => void;
+  deleteList: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -42,6 +43,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     switchPane, handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse,
+    deleteList,
   } = params;
 
   const startMove = useCallback(() => {
@@ -63,6 +65,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     createList,
     createTask,
     deleteTask,
+    deleteList,
     switchPane,
     handleArrowNavigation,
     handleHorizontalArrow,
@@ -82,7 +85,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     editActions, dueDateActions, toggleTaskCompleted, createList, createTask,
     deleteTask, switchPane, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse,
+    indentTask, outdentTask, toggleCollapse, deleteList,
   ]);
 }
 

@@ -393,4 +393,25 @@ describe('App undo/redo', () => {
     redo();
     await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalledWith('new-list', null, '', 3, 100, 100));
   });
+
+  it('undo list deletion restores list and tasks, redo re-deletes', async () => {
+    setupMockApi({
+      tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
+    });
+    render(<App />);
+    await navigateToUserList();
+
+    // Delete the list
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalled());
+
+    // Undo → restore list and tasks
+    undo();
+    await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalled());
+    await waitFor(() => expect(window.api.tasksRestore).toHaveBeenCalledTimes(mockTasks.length));
+
+    // Redo → re-delete
+    redo();
+    await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalledTimes(2));
+  });
 });
