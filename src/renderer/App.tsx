@@ -43,6 +43,7 @@ export default function App(): ReactNode {
         setEditValue={state.setEditValue}
         setEditMode={state.setEditMode}
         handleInputKeyDown={state.handleInputKeyDown}
+        handleEditBlur={state.handleEditBlur}
         inputRef={state.inputRef}
         headerName={state.getSelectedListName()}
         selectedTaskIndices={state.selectedTaskIndices}
@@ -55,6 +56,7 @@ export default function App(): ReactNode {
         throbIds={state.throbIds}
         completeIds={state.completeIds}
         moveIds={state.moveIds}
+        evaporateIds={state.evaporateIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
         showSourceList={state.isTrashView}
         lists={state.lists}

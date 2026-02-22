@@ -21,6 +21,7 @@ interface TasksPaneProps {
   setEditValue: (v: string) => void;
   setEditMode: (m: EditMode) => void;
   handleInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleEditBlur: () => void;
   inputRef: RefObject<HTMLInputElement | null>;
   headerName: string;
   selectedTaskIndices: Set<number>;
@@ -33,6 +34,7 @@ interface TasksPaneProps {
   throbIds: Set<string>;
   completeIds: Set<string>;
   moveIds: Set<string>;
+  evaporateIds: Set<string>;
   listNames?: Record<string, string>;
   showSourceList?: boolean;
   lists?: List[];
@@ -61,6 +63,7 @@ export function TasksPane({
   setEditValue,
   setEditMode,
   handleInputKeyDown,
+  handleEditBlur,
   inputRef,
   headerName,
   selectedTaskIndices,
@@ -73,6 +76,7 @@ export function TasksPane({
   throbIds,
   completeIds,
   moveIds,
+  evaporateIds,
   listNames,
   showSourceList,
   lists,
@@ -142,7 +146,7 @@ export function TasksPane({
           return (
             <li
               key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
               onClick={() => onTaskClick(i)}
               {...drag}
             >
@@ -163,7 +167,7 @@ export function TasksPane({
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     onKeyDown={handleInputKeyDown}
-                    onBlur={() => setEditMode(null)}
+                    onBlur={handleEditBlur}
                     className="edit-input"
                   />
                 ) : (

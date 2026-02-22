@@ -17,6 +17,7 @@ interface UseEditStateParams {
   reloadData: () => Promise<void>;
   reloadTasks: () => Promise<void>;
   undoPush: (entry: UndoEntry) => void;
+  onEvaporate?: (id: string) => void;
 }
 
 interface EditActions {
@@ -31,7 +32,7 @@ export function useEditState(params: UseEditStateParams): [
   EditActions,
   { setEditMode: (mode: EditMode) => void; setEditValue: (value: string) => void }
 ] {
-  const { focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush } = params;
+  const { focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush, onEvaporate } = params;
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,12 +80,22 @@ export function useEditState(params: UseEditStateParams): [
   }, [focusedPane, selectedSidebarItem, selectedTaskIndex, tasks]);
 
   const commit = useCallback(async () => {
-    if (!editMode || !editValue.trim()) {
+    if (!editMode) { setEditMode(null); return; }
+    const oldValue = prevValueRef.current;
+    const newValue = editValue.trim();
+    if (!newValue) {
+      // Empty title: if this was a new task (previously empty), delete it
+      if (editMode.type === 'task' && oldValue === '' && tasks[editMode.index]) {
+        const taskId = tasks[editMode.index].id;
+        onEvaporate?.(taskId);
+        setTimeout(async () => {
+          await window.api.tasksDelete(taskId);
+          await reloadTasks();
+        }, 200);
+      }
       setEditMode(null);
       return;
     }
-    const oldValue = prevValueRef.current;
-    const newValue = editValue.trim();
     if (editMode.type === 'list') {
       const id = editMode.id;
       await window.api.listsUpdate(id, newValue);
@@ -108,7 +119,7 @@ export function useEditState(params: UseEditStateParams): [
       await reloadTasks();
     }
     setEditMode(null);
-  }, [editMode, editValue, tasks, reloadData, reloadTasks, undoPush]);
+  }, [editMode, editValue, tasks, reloadData, reloadTasks, undoPush, onEvaporate]);
 
   const cancel = useCallback(() => setEditMode(null), []);
 

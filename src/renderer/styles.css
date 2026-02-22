@@ -466,6 +466,17 @@ h2 {
   animation: moved 200ms ease-in-out;
 }
 
+/* Evaporation animation for discarded empty tasks */
+@keyframes evaporate {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+
+.item.evaporating {
+  animation: evaporate 200ms ease-out forwards;
+  pointer-events: none;
+}
+
 
 /* Sidebar spacer to push trash to bottom */
 .sidebar-spacer {

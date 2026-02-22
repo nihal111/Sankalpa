@@ -100,7 +100,7 @@ describe('App edit mode', () => {
     await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
     const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
     fireEvent.blur(input);
-    expect(document.querySelector('.tasks-pane .edit-input')).toBeNull();
+    await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeNull());
   });
 
   it('does not enter edit mode on smart list', async () => {

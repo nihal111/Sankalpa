@@ -31,6 +31,7 @@ export function useAppState() {
   const { flashIds: throbIds, flash: throb } = useFlash();
   const { flashIds: completeIds, flash: completeFlash } = useFlash();
   const { flashIds: moveIds, flash: moveFlash } = useFlash();
+  const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
@@ -53,7 +54,7 @@ export function useAppState() {
 
   const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
 
-  const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush });
+  const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush, onEvaporate: evaporateFlash });
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
 
@@ -184,11 +185,11 @@ export function useAppState() {
 
   return {
     sidebarItems, selectedSidebarIndex, focusedPane, moveMode, moveTargetIndex,
-    editMode, editValue, setEditValue, setEditMode, handleInputKeyDown: editActions.handleInputKeyDown, inputRef,
+    editMode, editValue, setEditValue, setEditMode, handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef,
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
     settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
-    flashIds, throbIds, completeIds, moveIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
+    flashIds, throbIds, completeIds, moveIds, evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog, closeConfirmationDialog: trashActions.closeConfirmationDialog,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
