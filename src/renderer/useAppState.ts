@@ -20,6 +20,7 @@ import { usePaletteState } from './hooks/usePaletteState';
 import { useSearchState } from './hooks/useSearchState';
 import { useContextMenu } from './hooks/useContextMenu';
 import { flattenWithDepth } from './utils/taskTree';
+import { useMoveListState } from './hooks/useMoveListState';
 import { useDragDrop } from './hooks/useDragDrop';
 
 export function useAppState() {
@@ -39,7 +40,7 @@ export function useAppState() {
   const [notesEditing, setNotesEditing] = useState(false);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
-  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks } = data;
+  const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
 
   const listNames = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists]);
@@ -145,6 +146,11 @@ export function useAppState() {
     setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItems.length) % sidebarItems.length);
   }, [sidebarItems.length]);
 
+  // Move list to folder
+  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown } = useMoveListState({
+    folders, selectedSidebarItem, reloadData, undoPush,
+  });
+
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
@@ -152,12 +158,14 @@ export function useAppState() {
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
+    startMoveList, handleMoveListKeyDown,
   });
 
   const keyboardState = useKeyboardState({
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
     confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
+    moveListMode,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -199,5 +207,6 @@ export function useAppState() {
     notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
+    moveListMode, getMoveListTargetName,
   };
 }

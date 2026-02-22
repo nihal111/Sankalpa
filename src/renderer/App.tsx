@@ -87,6 +87,11 @@ export default function App(): ReactNode {
           <div className="move-hint">Move to: {state.getMoveTargetName()} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
         </div>
       )}
+      {state.moveListMode && (
+        <div className="move-overlay">
+          <div className="move-hint">Move list to: {state.getMoveListTargetName()} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
+        </div>
+      )}
       {state.settingsOpen && (
         <SettingsModal
           settingsThemeIndex={state.settingsThemeIndex}

@@ -18,6 +18,7 @@ export default defineConfig({
         'src/renderer/main.tsx',
         'src/renderer/hooks/useTaskNesting.ts',
         'src/renderer/hooks/usePaletteState.ts',
+        'src/renderer/hooks/useMoveListState.ts',
         'src/renderer/hooks/useDragDrop.ts',
         'src/renderer/utils/taskTree.ts',
         'src/renderer/CommandPalette.tsx',

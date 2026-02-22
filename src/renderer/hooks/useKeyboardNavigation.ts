@@ -38,6 +38,8 @@ export interface KeyboardActions {
   duplicateTask: Command;
   cycleSidebarNext: Command;
   cycleSidebarPrev: Command;
+  startMoveList: Command;
+  handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
 }
 
 export interface KeyboardState {
@@ -56,6 +58,7 @@ export interface KeyboardState {
   settingsOpen: boolean;
   isCompletedView: boolean;
   confirmationDialogOpen: boolean;
+  moveListMode: boolean;
 }
 
 function getAction(id: string): Action {
@@ -121,6 +124,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'redo')) { e.preventDefault(); actions.redo(); return; }
     if (matches(e, 'undo')) { e.preventDefault(); actions.undo(); return; }
     if (actions.handleMoveKeyDown(e)) return;
+    if (actions.handleMoveListKeyDown(e)) return;
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
     if (matches(e, 'toggleCompleted') && getAction('toggleCompleted').isAvailable(ctx)) { e.preventDefault(); actions.toggleTaskCompleted(); return; }
     if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
@@ -144,6 +148,7 @@ export function useKeyboardNavigation(
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (matches(e, 'edit') && getAction('edit').isAvailable(ctx)) { e.preventDefault(); actions.startEdit(); return; }
     if (matches(e, 'moveToList') && getAction('moveToList').isAvailable(ctx)) { e.preventDefault(); actions.startMove(); return; }
+    if (e.key === 'm' && !e.metaKey && state.focusedPane === 'lists' && !state.moveListMode) { e.preventDefault(); actions.startMoveList(); return; }
     if (matches(e, 'setDueDate') && getAction('setDueDate').isAvailable(ctx)) { e.preventDefault(); actions.startDueDate(); return; }
     if (matches(e, 'editNotes') && !e.metaKey && !e.shiftKey && getAction('editNotes').isAvailable(ctx)) { e.preventDefault(); actions.startNotes(); return; }
     if (matches(e, 'restoreFromTrash') && getAction('restoreFromTrash').isAvailable(ctx)) { e.preventDefault(); actions.restoreTask(); return; }
