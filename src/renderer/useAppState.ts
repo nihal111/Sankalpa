@@ -38,6 +38,7 @@ export function useAppState() {
   const { flashIds: moveIds, flash: moveFlash } = useFlash(500);
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
   const [notesEditing, setNotesEditing] = useState(false);
+  const [listInfoOpen, setListInfoOpen] = useState(false);
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
@@ -139,17 +140,13 @@ export function useAppState() {
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
-  const cycleSidebarNext = useCallback(() => {
-    setSelectedSidebarIndex((i: number) => (i + 1) % sidebarItems.length);
-  }, [sidebarItems.length]);
-  const cycleSidebarPrev = useCallback(() => {
-    setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItems.length) % sidebarItems.length);
-  }, [sidebarItems.length]);
-
   // Move list to folder
-  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList } = useMoveListState({
-    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, reloadData, undoPush,
+  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev } = useMoveListState({
+    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, setSelectedSidebarIndex, reloadData, undoPush,
   });
+
+  const showListInfo = useCallback(() => setListInfoOpen(true), []);
+  const closeListInfo = useCallback(() => setListInfoOpen(false), []);
 
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
@@ -160,6 +157,7 @@ export function useAppState() {
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
+    showListInfo,
   });
 
   const keyboardState = useKeyboardState({
@@ -209,5 +207,6 @@ export function useAppState() {
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
     moveListMode, getMoveListTargetName,
+    closeListInfo, listInfoOpen, selectedSidebarItem,
   };
 }

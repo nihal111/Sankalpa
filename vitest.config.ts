@@ -22,6 +22,7 @@ export default defineConfig({
         'src/renderer/hooks/useDragDrop.ts',
         'src/renderer/utils/taskTree.ts',
         'src/renderer/CommandPalette.tsx',
+        'src/renderer/ListInfoModal.tsx',
         'src/shared/types.ts',
         '**/*.test.{ts,tsx}',
         '**/test-utils.ts',

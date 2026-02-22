@@ -12,6 +12,8 @@ interface UseMoveListStateParams {
   selectedSidebarItem: SidebarItem | undefined;
   sidebarItems: SidebarItem[];
   selectedSidebarIndex: number;
+  sidebarItemsLength: number;
+  setSelectedSidebarIndex: (fn: (i: number) => number) => void;
   reloadData: () => Promise<void>;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
 }
@@ -23,9 +25,11 @@ interface MoveListState {
   handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
   indentList: () => Promise<void>;
   outdentList: () => Promise<void>;
+  cycleSidebarNext: () => void;
+  cycleSidebarPrev: () => void;
 }
 
-export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
+export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength, setSelectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
   const [moveListMode, setMoveListMode] = useState(false);
   const [targetIdx, setTargetIdx] = useState(0);
 
@@ -100,5 +104,18 @@ export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, s
     });
   }, [selectedSidebarItem, reloadData, undoPush]);
 
-  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList };
+  const cycleSidebarNext = useCallback(() => {
+    setSelectedSidebarIndex((i: number) => (i + 1) % sidebarItemsLength);
+  }, [sidebarItemsLength, setSelectedSidebarIndex]);
+  const cycleSidebarPrev = useCallback(() => {
+    setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItemsLength) % sidebarItemsLength);
+  }, [sidebarItemsLength, setSelectedSidebarIndex]);
+
+  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev };
+}
+
+function useCycleSidebar(length: number, setter: (fn: (i: number) => number) => void): { next: () => void; prev: () => void } {
+  const next = useCallback(() => setter((i: number) => (i + 1) % length), [length, setter]);
+  const prev = useCallback(() => setter((i: number) => (i - 1 + length) % length), [length, setter]);
+  return { next, prev };
 }

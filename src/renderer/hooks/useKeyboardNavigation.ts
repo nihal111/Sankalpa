@@ -42,6 +42,7 @@ export interface KeyboardActions {
   handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
   indentList: Command;
   outdentList: Command;
+  showListInfo: Command;
 }
 
 export interface KeyboardState {
@@ -100,7 +101,8 @@ export function useKeyboardNavigation(
     if (matches(e, 'openSettings')) { e.preventDefault(); actions.openSettings(); return; }
     if (matches(e, 'openSearch')) { e.preventDefault(); actions.openSearch(); return; }
     if (e.metaKey && e.key === 'k') { e.preventDefault(); actions.togglePalette(); return; }
-    if (e.metaKey && e.key === 'd') { e.preventDefault(); actions.duplicateTask(); return; }
+    const metaActions: Record<string, Command> = { d: actions.duplicateTask, i: actions.showListInfo };
+    if (e.metaKey && metaActions[e.key]) { e.preventDefault(); metaActions[e.key](); return; }
     if (state.isSearchOpen || state.isPaletteOpen) return;
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');

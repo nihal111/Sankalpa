@@ -565,7 +565,8 @@ h2 {
   justify-content: center;
 }
 
-.modal.confirmation-dialog {
+.modal.confirmation-dialog,
+.modal.list-info-modal {
   background: var(--bg-primary);
   border: 1px solid var(--border-pane);
   border-radius: 8px;
@@ -573,7 +574,8 @@ h2 {
   max-width: 400px;
 }
 
-.confirmation-dialog h2 {
+.confirmation-dialog h2,
+.list-info-modal h2 {
   margin-bottom: 12px;
   text-transform: none;
   letter-spacing: normal;
@@ -597,6 +599,21 @@ h2 {
   padding: 8px 16px;
   border: 1px solid var(--border-pane);
   border-radius: 4px;
+
+}
+
+.list-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.list-info-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
   background: var(--bg-secondary);
   color: var(--text-primary);
   cursor: pointer;

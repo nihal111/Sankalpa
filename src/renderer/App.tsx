@@ -9,6 +9,7 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
 import { DueDateModal } from './DueDateModal';
 import { CommandPalette } from './CommandPalette';
+import { ListInfoModal } from './ListInfoModal';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -136,6 +137,7 @@ export default function App(): ReactNode {
         onClose={state.closePalette}
         onExecute={state.executePaletteAction}
       />
+      <ListInfoModal isOpen={state.listInfoOpen} selectedSidebarItem={state.selectedSidebarItem} onClose={state.closeListInfo} />
     </div>
   );
 }
