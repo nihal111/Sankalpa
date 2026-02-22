@@ -127,7 +127,7 @@ export function useDataState(
     };
     const timer = setTimeout(loadCounts, 300);
     return () => clearTimeout(timer);
-  }, [lists, tasks.length]);
+  }, [lists, tasks]);
 
   useEffect(() => {
     let stale = false;
