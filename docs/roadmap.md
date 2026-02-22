@@ -53,19 +53,6 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Attachments | Attach files to tasks (hotkey A) | Task Properties | High | |
 | Cloud sync | Cloud-based persistence for cross-device data sync | Platform | Very High | |
 
-## Low
-
-| Feature | Description | Theme | Complexity | Status |
-|---------|-------------|-------|------------|--------|
-| Empty list placeholder | New/empty lists show a hint using existing keycap badge component (e.g. `⌘` + `N`) prompting user to create a task | UI Polish | Low | ✅ Done |
-| Due date empty state | Detail panel shows "Set due date" instead of "None" when no due date is set | UI Polish | Low | ✅ Done |
-| Snooze in detail panel | Add snooze field to detail panel (🕐 icon, hotkey `S`); display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
-| Repeat in detail panel | Add repeat/recurring field to detail panel (🔁 icon, hotkey `R`); display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
-| Labels in detail panel | Add labels field to detail panel (hotkey `⌘L`); below separator after duration; display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
-| Keycap badges in command palette | Replace plain-text hotkeys in `⌘K` results with keycap badge styling | UI Polish | Low | ✅ Done |
-| Trash list origin alignment | Show source list name on the right side of trash items (matching completed list style) instead of as a byline under the task name | UI Polish | Low | ✅ Done |
-| List created timestamp | Store and expose creation timestamp for user lists (if not already tracked in schema) | Task Properties | Low | ✅ Done (schema already has `created_at`) |
-
 ## Discussion Items
 
 - **Areas vs Folders** — Rethink whether folders should become "areas" (ongoing responsibilities) vs projects (finite, completable). Needs design discussion before becoming a feature.
