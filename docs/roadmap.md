@@ -28,7 +28,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Headings / sections | Lightweight grouping of tasks within a list | Task Organization | Medium | |
 | Contextual hotkey bar | Show available keybindings in bottom bar on all main screens | UI Polish | Medium | |
 | Productivity stats | Track tasks completed per day, sum of durations, trends over time | Platform | High | |
-| Larger default window | Investigate whether monitor-size detection is needed; increase default window to ~2x width, ~1.5x height (or scale proportionally keeping current aspect ratio); clamp to screen bounds | UI Polish | Low | |
+| Larger default window | Investigate whether monitor-size detection is needed; increase default window to ~2x width, ~1.5x height (or scale proportionally keeping current aspect ratio); clamp to screen bounds | UI Polish | Low | ✅ Done |
 | Sticky cursor per list | Remember cursor position per list; restoring it when navigating back opens that task in the detail panel | Task Organization | Medium | |
 | Indent/outdent lists | Tab/Shift+Tab to nest a list under a folder or remove it; outdenting moves the list below the folder's last child | Task Organization | Medium | |
 | Delete list confirmation | Modal: heading "Confirm list deletion", body "This will also delete the N tasks in this list", Cancel (`Esc` keycap), Delete List (`⌘↵` keycap) | UI Polish | Low | |
@@ -38,9 +38,9 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Duplicate task | `⌘D` creates a copy of the task in the same list with all properties preserved | Task Lifecycle | Low | |
 | Cycle lists with Ctrl+Tab | `Ctrl+Tab` / `Ctrl+Shift+Tab` moves down/up through lists in the sidebar while keeping cursor focus in the tasks pane | UI Polish | Medium | |
 | Quick-switch lists by number | Holding `⌘` shows numeric keycap badges (1, 2, 3…) on each visible list in the sidebar (skipping collapsed folder children); pressing the number switches to that list | UI Polish | High | |
-| Task count badges on virtual lists | Show numeric count badges on Today and Upcoming sidebar items indicating number of tasks in each | UI Polish | Low | |
-| Virtual list label refresh | Fix bug: Today/Upcoming sidebar labels stay grayed out after a task qualifies for them; should update reactively when tasks change | UI Polish | Low | |
-| New folder via command palette | Add "New Folder" action to `⌘K` palette | Task Organization | Low | |
+| Task count badges on virtual lists | Show numeric count badges on Today and Upcoming sidebar items indicating number of tasks in each | UI Polish | Low | ✅ Done |
+| Virtual list label refresh | Fix bug: Today/Upcoming sidebar labels stay grayed out after a task qualifies for them; should update reactively when tasks change | UI Polish | Low | ✅ Done |
+| New folder via command palette | Add "New Folder" action to `⌘K` palette | Task Organization | Low | ✅ Done |
 
 ## Stretch
 
@@ -57,14 +57,14 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
-| Empty list placeholder | New/empty lists show a hint using existing keycap badge component (e.g. `⌘` + `N`) prompting user to create a task | UI Polish | Low | |
-| Due date empty state | Detail panel shows "Set due date" instead of "None" when no due date is set | UI Polish | Low | |
-| Snooze in detail panel | Add snooze field to detail panel (🕐 icon, hotkey `S`); display only, grayed out, not wired up | UI Polish | Low | |
-| Repeat in detail panel | Add repeat/recurring field to detail panel (🔁 icon, hotkey `R`); display only, grayed out, not wired up | UI Polish | Low | |
-| Labels in detail panel | Add labels field to detail panel (hotkey `⌘L`); below separator after duration; display only, grayed out, not wired up | UI Polish | Low | |
-| Keycap badges in command palette | Replace plain-text hotkeys in `⌘K` results with keycap badge styling | UI Polish | Low | |
-| Trash list origin alignment | Show source list name on the right side of trash items (matching completed list style) instead of as a byline under the task name | UI Polish | Low | |
-| List created timestamp | Store and expose creation timestamp for user lists (if not already tracked in schema) | Task Properties | Low | |
+| Empty list placeholder | New/empty lists show a hint using existing keycap badge component (e.g. `⌘` + `N`) prompting user to create a task | UI Polish | Low | ✅ Done |
+| Due date empty state | Detail panel shows "Set due date" instead of "None" when no due date is set | UI Polish | Low | ✅ Done |
+| Snooze in detail panel | Add snooze field to detail panel (🕐 icon, hotkey `S`); display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
+| Repeat in detail panel | Add repeat/recurring field to detail panel (🔁 icon, hotkey `R`); display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
+| Labels in detail panel | Add labels field to detail panel (hotkey `⌘L`); below separator after duration; display only, grayed out, not wired up | UI Polish | Low | ✅ Done |
+| Keycap badges in command palette | Replace plain-text hotkeys in `⌘K` results with keycap badge styling | UI Polish | Low | ✅ Done |
+| Trash list origin alignment | Show source list name on the right side of trash items (matching completed list style) instead of as a byline under the task name | UI Polish | Low | ✅ Done |
+| List created timestamp | Store and expose creation timestamp for user lists (if not already tracked in schema) | Task Properties | Low | ✅ Done (schema already has `created_at`) |
 
 ## Discussion Items
 
