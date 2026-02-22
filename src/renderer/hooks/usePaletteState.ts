@@ -35,6 +35,7 @@ interface PaletteActions {
   handleRestoreTask: () => void;
   clearSelection: () => void;
   duplicateTask: () => void;
+  duplicateList: () => void;
 }
 
 interface UsePaletteStateResult {
@@ -88,6 +89,7 @@ export function usePaletteState(
       restoreFromTrash: actions.handleRestoreTask,
       clearSelection: actions.clearSelection,
       duplicateTask: actions.duplicateTask,
+      duplicateList: actions.duplicateList,
     };
     handlers[actionId]?.();
   }, [actions]);

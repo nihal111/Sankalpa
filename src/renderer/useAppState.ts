@@ -69,7 +69,7 @@ export function useAppState() {
   });
   const { moveMode, moveTargetIndex } = move;
 
-  const { createList, createFolder, deleteList, listConfirmationDialog, closeListConfirmation } = useListActions({
+  const { createList, createFolder, deleteList, duplicateList, listConfirmationDialog, closeListConfirmation } = useListActions({
     selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush, taskCounts,
   });
 
@@ -134,7 +134,7 @@ export function useAppState() {
     deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
     startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
     handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,
-    duplicateTask,
+    duplicateTask, duplicateList,
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 

@@ -27,7 +27,7 @@ interface UseListActionsParams {
 export function useListActions({
   selectedSidebarItem, selectedSidebarIndex,
   setSelectedSidebarIndex, setFocusedPane, setEditMode, setEditValue, setFolders, setLists, flash, undoPush, taskCounts,
-}: UseListActionsParams): { createList: () => Promise<void>; createFolder: () => Promise<void>; deleteList: () => void; listConfirmationDialog: ConfirmationDialogState | null; closeListConfirmation: () => void } {
+}: UseListActionsParams): { createList: () => Promise<void>; createFolder: () => Promise<void>; deleteList: () => void; duplicateList: () => Promise<void>; listConfirmationDialog: ConfirmationDialogState | null; closeListConfirmation: () => void } {
   const [listConfirmationDialog, setListConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
   const closeListConfirmation = useCallback(() => setListConfirmationDialog(null), []);
   const createFolder = useCallback(async () => {
@@ -100,7 +100,47 @@ export function useListActions({
     });
   }, [selectedSidebarItem, taskCounts, doDeleteList]);
 
-  return { createList, createFolder, deleteList, listConfirmationDialog, closeListConfirmation };
+  const duplicateList = useCallback(async () => {
+    if (selectedSidebarItem?.type !== 'list') return;
+    const src = selectedSidebarItem.list;
+    const newId = crypto.randomUUID();
+    const newList = await window.api.listsCreate(newId, `${src.name} (copy)`, src.folder_id ?? undefined);
+    const srcTasks = await window.api.tasksGetByList(src.id);
+    const newTaskIds: string[] = [];
+    for (const t of srcTasks) {
+      const tid = crypto.randomUUID();
+      newTaskIds.push(tid);
+      await window.api.tasksCreate(tid, newId, t.title);
+      await window.api.tasksSetDueDate(tid, t.due_date);
+      await window.api.tasksUpdateNotes(tid, t.notes);
+      if (t.status === 'COMPLETED') await window.api.tasksToggleCompleted(tid);
+    }
+    const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
+    setFolders(f);
+    setLists(l);
+    const rebuilt = buildSidebarItems(f, l);
+    const newIndex = rebuilt.findIndex((item) => item.type === 'list' && item.list.id === newId);
+    setSelectedSidebarIndex(newIndex >= 0 ? newIndex : selectedSidebarIndex);
+    flash(newId);
+    undoPush({
+      undo: async () => {
+        for (const tid of newTaskIds) await window.api.tasksDelete(tid);
+        await window.api.listsDelete(newId);
+      },
+      redo: async () => {
+        await window.api.listsCreate(newId, `${src.name} (copy)`, src.folder_id ?? undefined);
+        for (let i = 0; i < srcTasks.length; i++) {
+          const t = srcTasks[i];
+          await window.api.tasksCreate(newTaskIds[i], newId, t.title);
+          await window.api.tasksSetDueDate(newTaskIds[i], t.due_date);
+          await window.api.tasksUpdateNotes(newTaskIds[i], t.notes);
+          if (t.status === 'COMPLETED') await window.api.tasksToggleCompleted(newTaskIds[i]);
+        }
+      },
+    });
+  }, [selectedSidebarItem, selectedSidebarIndex, setSelectedSidebarIndex, setFolders, setLists, flash, undoPush]);
+
+  return { createList, createFolder, deleteList, duplicateList, listConfirmationDialog, closeListConfirmation };
 }
 
 interface UseMoveCommitParams {
