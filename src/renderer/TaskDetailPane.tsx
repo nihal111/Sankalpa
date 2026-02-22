@@ -92,7 +92,7 @@ export function TaskDetailPane({
       <div className="detail-section disabled" aria-disabled="true">
         <span className="detail-icon">🏷️</span>
         <span className="detail-label">Labels</span>
-        <span className="hotkey-badge">⌘L</span>
+        <span className="hotkey-badge">⌘</span><span className="hotkey-badge">L</span>
       </div>
       <div className="detail-separator" />
       <div className="detail-section detail-notes-section" onClick={!notesEditing ? onStartNotesEdit : undefined}>

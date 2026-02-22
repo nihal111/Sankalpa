@@ -89,8 +89,8 @@ export function CommandPalette({ isOpen, context, onClose, onExecute }: CommandP
             >
               <span className="palette-item-name">{action.name}</span>
               <span className="palette-item-hotkey">
-                {action.hotkeyDisplay && [...action.hotkeyDisplay].map((ch, j) => (
-                  <span key={j} className="hotkey-badge">{ch}</span>
+                {action.hotkeyDisplay && action.hotkeyDisplay.split(' ').map((key, j) => (
+                  <span key={j} className="hotkey-badge">{key}</span>
                 ))}
               </span>
             </div>
