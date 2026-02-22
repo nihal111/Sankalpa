@@ -192,3 +192,47 @@ describe('Checkbox interactions', () => {
     await waitFor(() => expect(folderItem?.classList.contains('selected')).toBe(true));
   });
 });
+
+describe('Context menu', () => {
+  beforeEach(() => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }) });
+  });
+
+  it('right-clicking a task shows context menu', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const workItem = screen.getByText('Work').closest('li');
+    fireEvent.click(workItem!);
+    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    const task1 = screen.getByText('Task 1').closest('li');
+    fireEvent.contextMenu(task1!, { clientX: 100, clientY: 100 });
+    await waitFor(() => expect(document.querySelector('.context-menu')).toBeDefined());
+    expect(screen.getByText('Edit')).toBeDefined();
+    expect(screen.getByText('Mark Complete')).toBeDefined();
+    expect(screen.getByText('Move to...')).toBeDefined();
+    expect(screen.getByText('Delete')).toBeDefined();
+  });
+
+  it('right-clicking a list shows context menu', async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    const workItem = screen.getByText('Work').closest('li');
+    fireEvent.contextMenu(workItem!, { clientX: 100, clientY: 100 });
+    await waitFor(() => expect(document.querySelector('.context-menu')).toBeDefined());
+    expect(screen.getByText('Edit')).toBeDefined();
+    expect(screen.getByText('Delete')).toBeDefined();
+  });
+
+  it('context menu does not appear in hardcore mode', async () => {
+    setupMockApi({ settingsGetAll: () => Promise.resolve({ hardcore_mode: '1' }) });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    // Navigate to tasks via keyboard
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li');
+    fireEvent.contextMenu(task1!, { clientX: 100, clientY: 100 });
+    expect(document.querySelector('.context-menu')).toBeNull();
+  });
+});

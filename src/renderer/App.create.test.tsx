@@ -132,4 +132,22 @@ describe('App create and reorder', () => {
       expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), null, '');
     });
   });
+
+  it('committing empty new task evaporates it', async () => {
+    const newTask = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({
+      tasksCreate: vi.fn().mockResolvedValue(newTask),
+      tasksGetByList: vi.fn().mockResolvedValue([...mockTasks, newTask]),
+    });
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.task-content input')).not.toBeNull());
+    const input = document.querySelector('.task-content input') as HTMLInputElement;
+    // Leave empty and commit
+    fireEvent.keyDown(input, { key: 'Enter' });
+    // The evaporate uses setTimeout(200ms), wait for it
+    await new Promise((r) => setTimeout(r, 300));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('new'));
+  });
 });

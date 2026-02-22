@@ -8,6 +8,7 @@ import {
   restoreList, setTaskDueDate, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
   restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks, updateTaskNotes,
+  setTaskParentId, toggleTaskExpanded, getTaskDescendants,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -381,5 +382,35 @@ describe('settings', () => {
     expect(getInboxTasks(db).find((t) => t.id === 'n1')!.notes).toBe('**bold**');
     updateTaskNotes(db, 'n1', null);
     expect(getInboxTasks(db).find((t) => t.id === 'n1')!.notes).toBeNull();
+  });
+
+  it('setTaskParentId assigns parent', () => {
+    createTask(db, 'parent1', null, 'Parent');
+    createTask(db, 'child1', null, 'Child');
+    setTaskParentId(db, 'child1', 'parent1');
+    const child = getInboxTasks(db).find((t) => t.id === 'child1')!;
+    expect(child.parent_id).toBe('parent1');
+    setTaskParentId(db, 'child1', null);
+    expect(getInboxTasks(db).find((t) => t.id === 'child1')!.parent_id).toBeNull();
+  });
+
+  it('toggleTaskExpanded flips expanded state', () => {
+    createTask(db, 'exp1', null, 'Expandable');
+    const before = getInboxTasks(db).find((t) => t.id === 'exp1')!;
+    const initialExpanded = before.is_expanded;
+    toggleTaskExpanded(db, 'exp1');
+    const after = getInboxTasks(db).find((t) => t.id === 'exp1')!;
+    expect(after.is_expanded).toBe(initialExpanded ? 0 : 1);
+  });
+
+  it('getTaskDescendants returns nested children', () => {
+    createTask(db, 'anc1', null, 'Ancestor');
+    createTask(db, 'desc1', null, 'Child');
+    createTask(db, 'desc2', null, 'Grandchild');
+    setTaskParentId(db, 'desc1', 'anc1');
+    setTaskParentId(db, 'desc2', 'desc1');
+    const descendants = getTaskDescendants(db, 'anc1');
+    const ids = descendants.map((t) => t.id).sort();
+    expect(ids).toEqual(['desc1', 'desc2']);
   });
 });

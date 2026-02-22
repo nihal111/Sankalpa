@@ -217,6 +217,41 @@ describe('App navigation', () => {
     await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
   });
 
+  it('Cmd+Enter on parent task shows cascade confirmation', async () => {
+    const parentChild = [
+      { id: 'p1', list_id: '1', title: 'Parent', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 'c1', list_id: '1', title: 'Child', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, parent_id: 'p1', is_expanded: 1 },
+    ];
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(parentChild) });
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Parent', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(screen.getByText('Complete All')).toBeDefined());
+    // Confirm cascade
+    fireEvent.click(screen.getByText('Complete All'));
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('p1'));
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('c1'));
+  });
+
+  it('Delete on parent task shows cascade delete confirmation', async () => {
+    const parentChild = [
+      { id: 'p1', list_id: '1', title: 'Parent', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 'c1', list_id: '1', title: 'Child', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, parent_id: 'p1', is_expanded: 1 },
+    ];
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(parentChild) });
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Parent', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Backspace' });
+    await waitFor(() => expect(screen.getByText('Delete All')).toBeDefined());
+    fireEvent.click(screen.getByText('Delete All'));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('p1'));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('c1'));
+  });
+
   it('right arrow on list in sidebar focuses tasks pane', async () => {
     render(<App />);
     await navigateToUserList();
@@ -300,6 +335,41 @@ describe('App navigation', () => {
     await waitFor(() => expect(getCompletedMock).toHaveBeenCalled());
   });
 
+  it('completed filter bar filters by inbox (null list)', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: null, title: 'Inbox Done', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: Date.now(), due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+      { id: 'ct2', list_id: '1', title: 'List Done', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: Date.now(), due_date: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+    ];
+    setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
+    // Both tasks visible initially
+    await waitFor(() => expect(screen.getByText('Inbox Done')).toBeDefined());
+    expect(screen.getByText('List Done')).toBeDefined();
+    // Filter to inbox
+    const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'null' } });
+    await waitFor(() => expect(screen.getByText('Inbox Done')).toBeDefined());
+    expect(screen.queryByText('List Done')).toBeNull();
+  });
+
+  it('completed filter bar resets to all projects', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: Date.now(), due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+    ];
+    setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
+    const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
+    // Filter to specific list, then back to all
+    fireEvent.change(select, { target: { value: 'null' } });
+    await waitFor(() => expect(screen.queryByText('Done Task')).toBeNull());
+    fireEvent.change(select, { target: { value: 'all' } });
+    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+  });
+
   it('completed filter bar changes date range filter', async () => {
     const completedTasks = [
       { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
@@ -332,6 +402,11 @@ describe('App navigation', () => {
     fireEvent.change(endInput, { target: { value: '2026-01-31' } });
     expect(startInput.value).toBe('2026-01-01');
     expect(endInput.value).toBe('2026-01-31');
+    // Clear dates
+    fireEvent.change(startInput, { target: { value: '' } });
+    fireEvent.change(endInput, { target: { value: '' } });
+    expect(startInput.value).toBe('');
+    expect(endInput.value).toBe('');
   });
 
   it('F key cycles through filter controls on Completed view', async () => {

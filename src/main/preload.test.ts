@@ -157,6 +157,21 @@ describe('preload', () => {
 
     api.tasksGetUpcoming(400);
     expect(mockInvoke).toHaveBeenCalledWith('tasks:getUpcoming', 400);
+
+    api.tasksGetAll();
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getAll');
+
+    api.tasksUpdateNotes('t1', 'some notes');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:updateNotes', 't1', 'some notes');
+
+    api.tasksSetParentId('t1', 'p1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:setParentId', 't1', 'p1');
+
+    api.tasksToggleExpanded('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:toggleExpanded', 't1');
+
+    api.tasksGetDescendants('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:getDescendants', 't1');
   });
 
   it('settings methods invoke correct IPC channels', async () => {

@@ -66,6 +66,44 @@ describe('App search', () => {
     await waitFor(() => expect(screen.queryByPlaceholderText('Search tasks...')).toBeNull());
   });
 
+  it('selecting a search result with null list_id navigates to inbox', async () => {
+    const inboxTask: Task[] = [
+      { id: 'inbox1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+    ];
+    setupMockApi({
+      tasksGetAll: vi.fn().mockResolvedValue(inboxTask),
+      tasksGetInbox: vi.fn().mockResolvedValue(inboxTask),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
+    openSearch();
+    const input = await screen.findByPlaceholderText('Search tasks...');
+    fireEvent.change(input, { target: { value: 'Inbox Task' } });
+    await waitFor(() => expect(document.querySelector('.search-result-item')).not.toBeNull());
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(screen.queryByPlaceholderText('Search tasks...')).toBeNull());
+    await waitFor(() => expect(window.api.tasksGetInbox).toHaveBeenCalled());
+  });
+
+  it('selecting a search result with unknown list_id falls back to index 0', async () => {
+    const orphanTask: Task[] = [
+      { id: 'orph1', list_id: 'nonexistent', title: 'Orphan Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+    ];
+    setupMockApi({
+      tasksGetAll: vi.fn().mockResolvedValue(orphanTask),
+      tasksGetByList: vi.fn().mockResolvedValue([]),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
+    openSearch();
+    const input = await screen.findByPlaceholderText('Search tasks...');
+    fireEvent.change(input, { target: { value: 'Orphan' } });
+    await waitFor(() => expect(document.querySelector('.search-result-item')).not.toBeNull());
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(screen.queryByPlaceholderText('Search tasks...')).toBeNull());
+    await waitFor(() => expect(window.api.tasksGetByList).toHaveBeenCalledWith('nonexistent'));
+  });
+
   it('closes search when clicking overlay but not modal content', async () => {
     render(<App />);
     await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));

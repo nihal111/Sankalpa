@@ -247,6 +247,18 @@ describe('App edit mode', () => {
     await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', null));
   });
 
+  it('Backspace in empty due date input clears due date', async () => {
+    const taskWithDue = { id: 't1', list_id: '1', title: 'Task 1', status: 'PENDING' as const, created_timestamp: 0, completed_timestamp: null, due_date: 1000, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({ tasksGetByList: () => Promise.resolve([taskWithDue]) });
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'd' });
+    await waitFor(() => expect(document.querySelector('.due-date-modal-input')).not.toBeNull());
+    const input = document.querySelector('.due-date-modal-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Backspace' });
+    await waitFor(() => expect(window.api.tasksSetDueDate).toHaveBeenCalledWith('t1', null));
+  });
+
   it('completed task with due date does not show overdue class', async () => {
     const pastDate = Date.now() - 86400000;
     const completedTask = { id: 't1', list_id: '1', title: 'Task 1', status: 'COMPLETED' as const, created_timestamp: 0, completed_timestamp: 1, due_date: pastDate, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
