@@ -210,7 +210,7 @@ describe('App multi-select', () => {
     }
   });
 
-  it('Tab clears selection when switching panes', async () => {
+  it('ArrowLeft clears selection when switching panes', async () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Shift' });
@@ -218,7 +218,7 @@ describe('App multi-select', () => {
     fireEvent.keyUp(window, { key: 'Shift' });
     let taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
     taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);
   });

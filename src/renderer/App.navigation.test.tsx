@@ -33,17 +33,15 @@ describe('App navigation', () => {
     });
   });
 
-  it('switches pane focus with Tab and ArrowLeft', async () => {
+  it('switches pane focus with ArrowRight and ArrowLeft', async () => {
     render(<App />);
-    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    await navigateToUserList();
     const listsPane = document.querySelector('.lists-pane');
     const tasksPane = document.querySelector('.tasks-pane');
     expect(listsPane?.classList.contains('focused')).toBe(true);
-    expect(tasksPane?.classList.contains('focused')).toBe(false);
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(listsPane?.classList.contains('focused')).toBe(false);
     expect(tasksPane?.classList.contains('focused')).toBe(true);
-    // Tab now indents in tasks pane, use ArrowLeft to switch back
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(listsPane?.classList.contains('focused')).toBe(true);
   });
@@ -61,7 +59,7 @@ describe('App navigation', () => {
   it('navigates tasks with arrow keys when tasks pane focused', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => {
       const tasksPane = document.querySelector('.tasks-pane');
       expect(tasksPane?.classList.contains('focused')).toBe(true);
@@ -76,7 +74,7 @@ describe('App navigation', () => {
   it('clamps selection at boundaries', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     for (let i = 0; i < 10; i++) {
       fireEvent.keyDown(window, { key: 'ArrowUp' });
     }
@@ -121,7 +119,7 @@ describe('App navigation', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     const taskItems = document.querySelectorAll('.tasks-pane .item');
@@ -139,7 +137,7 @@ describe('App navigation', () => {
   it('left arrow on tasks pane goes to lists pane', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     const listsPane = document.querySelector('.lists-pane');
     expect(listsPane?.classList.contains('focused')).toBe(true);
@@ -205,7 +203,7 @@ describe('App navigation', () => {
     for (let i = 0; i < 4; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     expect(window.api.tasksGetCompleted).toHaveBeenCalled();
   });
@@ -213,7 +211,7 @@ describe('App navigation', () => {
   it('Cmd+Enter toggles task completion from tasks pane', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
@@ -252,7 +250,7 @@ describe('App navigation', () => {
   it('left arrow in tasks pane switches to lists pane', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(document.querySelector('.lists-pane')?.classList.contains('focused')).toBe(true);
@@ -261,7 +259,7 @@ describe('App navigation', () => {
   it('right arrow in tasks pane does not switch pane', async () => {
     render(<App />);
     await navigateToUserList();
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
@@ -279,7 +277,7 @@ describe('App navigation', () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
     for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     const callsBefore = getCompletedMock.mock.calls.length;
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
@@ -334,5 +332,25 @@ describe('App navigation', () => {
     fireEvent.change(endInput, { target: { value: '2026-01-31' } });
     expect(startInput.value).toBe('2026-01-01');
     expect(endInput.value).toBe('2026-01-31');
+  });
+
+  it('F key cycles through filter controls on Completed view', async () => {
+    const completedTasks = [
+      { id: 'ct1', list_id: '1', title: 'Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null },
+    ];
+    setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
+    render(<App />);
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
+    // F focuses first filter
+    fireEvent.keyDown(window, { key: 'f' });
+    expect(document.activeElement).toBe(screen.getByLabelText('Filter by project'));
+    // F again cycles to next filter
+    fireEvent.keyDown(window, { key: 'f' });
+    expect(document.activeElement).toBe(screen.getByLabelText('Filter by date range'));
+    // Escape blurs back
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(document.activeElement).not.toBe(screen.getByLabelText('Filter by date range'));
   });
 });

@@ -76,5 +76,5 @@ export async function navigateToUserList(): Promise<void> {
 
 export async function navigateToTasksPane(): Promise<void> {
   await navigateToUserList();
-  fireEvent.keyDown(window, { key: 'Tab' });
+  fireEvent.keyDown(window, { key: 'ArrowRight' });
 }

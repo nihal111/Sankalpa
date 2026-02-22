@@ -26,9 +26,10 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 
 | Key | Action |
 |-----|--------|
-| `Tab` | Switch pane focus |
+| `Tab` | Indent task |
+| `Shift+Tab` | Outdent task |
 | `↑/↓` | Move selection |
-| `←/→` | Expand/collapse folder |
+| `←/→` | Navigate panes / expand/collapse folder |
 | `E` | Edit selected item |
 | `Esc` | Cancel / close / hide |
 | `Delete/Backspace` | Delete selected task |
@@ -37,6 +38,7 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Cmd+Shift+↑/↓` | Reorder item |
 | `M` | Move task to another list |
 | `D` | Set due date on task |
+| `F` | Cycle through filters (Completed view) |
 | `Cmd+Enter` | Mark selected task complete |
 | `Cmd+Z` | Undo |
 | `Cmd+Shift+Z` | Redo |

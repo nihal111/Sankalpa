@@ -10,6 +10,7 @@ interface UseSidebarNavigationParams {
   setSelectedSidebarIndex: (fn: (i: number) => number) => void;
   setFocusedPane: (pane: Pane) => void;
   reloadData: () => Promise<void>;
+  clearSelection: () => void;
 }
 
 interface SidebarNavigationActions {
@@ -17,11 +18,11 @@ interface SidebarNavigationActions {
 }
 
 export function useSidebarNavigation(params: UseSidebarNavigationParams): SidebarNavigationActions {
-  const { focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData } = params;
+  const { focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection } = params;
 
   const handleHorizontalArrow = useCallback(async (direction: 'left' | 'right') => {
     if (focusedPane === 'tasks') {
-      if (direction === 'left') setFocusedPane('lists');
+      if (direction === 'left') { clearSelection(); setFocusedPane('lists'); }
       return;
     }
     const item = selectedSidebarItem;
@@ -50,7 +51,7 @@ export function useSidebarNavigation(params: UseSidebarNavigationParams): Sideba
         if (parentIndex >= 0) setSelectedSidebarIndex(() => parentIndex);
       }
     }
-  }, [focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData]);
+  }, [focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection]);
 
   return { handleHorizontalArrow };
 }

@@ -35,7 +35,7 @@ async function navigateToTrash(): Promise<void> {
 
 async function navigateToTrashTasks(): Promise<void> {
   await navigateToTrash();
-  fireEvent.keyDown(window, { key: 'Tab' });
+  fireEvent.keyDown(window, { key: 'ArrowRight' });
 }
 
 describe('App trash', () => {
@@ -167,7 +167,7 @@ describe('App trash', () => {
   it('R key does nothing when not in trash view', async () => {
     render(<App />);
     await waitFor(() => expect(document.querySelector('.trash-list .item')).not.toBeNull());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'r' });
     expect(window.api.tasksRestoreFromTrash).not.toHaveBeenCalled();
   });

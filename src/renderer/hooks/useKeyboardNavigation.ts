@@ -21,7 +21,6 @@ export interface KeyboardActions {
   createTask: Command;
   deleteTask: Command;
   deleteList: Command;
-  switchPane: Command;
   handleArrowNavigation: (e: KeyboardEvent) => void;
   handleHorizontalArrow: (dir: 'left' | 'right') => void;
   startEdit: Command;
@@ -52,6 +51,7 @@ export interface KeyboardState {
   isSearchOpen: boolean;
   isPaletteOpen: boolean;
   settingsOpen: boolean;
+  isCompletedView: boolean;
 }
 
 function getAction(id: string): Action {
@@ -67,6 +67,13 @@ export function useKeyboardNavigation(
   state: KeyboardState,
   setSelectedTaskIndex: (idx: number) => void,
 ): void {
+  const focusNextFilter = useCallback(() => {
+    const controls = Array.from(document.querySelectorAll<HTMLElement>('.completed-filter-bar select, .completed-filter-bar input[type="date"]'));
+    if (controls.length === 0) return;
+    const idx = controls.indexOf(document.activeElement as HTMLElement);
+    controls[(idx + 1) % controls.length].focus();
+  }, []);
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const ctx: ActionContext = {
       focusedPane: state.focusedPane,
@@ -89,6 +96,7 @@ export function useKeyboardNavigation(
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
     if (isFilterControl) {
       if (e.key === 'Escape') { (active as HTMLElement).blur(); e.preventDefault(); }
+      if (e.key === 'f') { e.preventDefault(); focusNextFilter(); }
       return;
     }
     if (actions.handleSettingsKeyDown(e)) return;
@@ -117,13 +125,13 @@ export function useKeyboardNavigation(
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {
       e.preventDefault();
-      if (state.hasSelection) { actions.clearSelection(); actions.switchPane(); return; }
       if (state.focusedPane === 'tasks') {
         if (e.shiftKey) { actions.outdentTask(); } else { actions.indentTask(); }
-        return;
       }
-      actions.switchPane();
       return;
+    }
+    if (e.key === 'f' && !e.metaKey && !e.ctrlKey && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode && state.isCompletedView) {
+      e.preventDefault(); focusNextFilter(); return;
     }
     if (matches(e, 'toggleCollapse') && getAction('toggleCollapse').isAvailable(ctx)) { e.preventDefault(); actions.toggleCollapse(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
@@ -133,7 +141,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'setDueDate') && getAction('setDueDate').isAvailable(ctx)) { e.preventDefault(); actions.startDueDate(); return; }
     if (matches(e, 'editNotes') && !e.metaKey && !e.shiftKey && getAction('editNotes').isAvailable(ctx)) { e.preventDefault(); actions.startNotes(); return; }
     if (matches(e, 'restoreFromTrash') && getAction('restoreFromTrash').isAvailable(ctx)) { e.preventDefault(); actions.restoreTask(); return; }
-  }, [actions, state]);
+  }, [actions, state, focusNextFilter]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Shift') { actions.handleShiftUp(); return; }

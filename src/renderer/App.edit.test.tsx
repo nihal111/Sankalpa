@@ -88,7 +88,7 @@ describe('App edit mode', () => {
     });
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'e' });
     expect(document.querySelector('input')).toBeNull();
   });
@@ -144,7 +144,7 @@ describe('App edit mode', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'Delete' });
     expect(window.api.tasksDelete).not.toHaveBeenCalled();
   });
@@ -157,7 +157,7 @@ describe('App edit mode', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
     expect(window.api.tasksToggleCompleted).not.toHaveBeenCalled();
   });
@@ -173,7 +173,7 @@ describe('App edit mode', () => {
     render(<App />);
     // Smart Inbox is selected by default
     await waitFor(() => expect(screen.getByText('Inbox Task')).toBeDefined());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('inbox-t1'));
     expect(window.api.tasksGetInbox).toHaveBeenCalled();

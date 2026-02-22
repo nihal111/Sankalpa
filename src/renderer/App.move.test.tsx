@@ -95,7 +95,7 @@ describe('App move mode', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     await waitFor(() => expect(window.api.tasksGetByList).toHaveBeenCalled());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     expect(screen.queryByText(/Move to:/)).toBeNull();
   });
@@ -127,7 +127,7 @@ describe('App move mode', () => {
     });
     render(<App />);
     await waitFor(() => expect(window.api.foldersGetAll).toHaveBeenCalled());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     expect(screen.queryByText(/Move to:/)).toBeNull();
   });
@@ -162,7 +162,7 @@ describe('App move mode', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     await waitFor(() => expect(screen.getByText(/Move to:/)).toBeDefined());
     expect(screen.getByText(/Move to:/).textContent).toContain('Inbox');
@@ -194,7 +194,7 @@ describe('App move mode', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     await waitFor(() => expect(screen.getByText(/Move to:/)).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowUp' });

@@ -7,15 +7,11 @@ Feature tracker for Sankalpa — what's next after the POC.
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
 | Completed keyboard-first filters | Completed section filters need full keyboard navigation and interaction | UI Polish | Medium | ✅ |
-| Task completion animation | Highlight flicker or left-to-right fill animation when a task is marked complete | UI Polish | Medium | ✅ |
-| Task move animation | Subtle flicker animation when a task is moved to a different list | UI Polish | Low | ✅ |
-| Delete lists | Add ability to delete lists from the sidebar | Task Lifecycle | Low | ✅ |
-| Ban empty tasks | Creating a new task opens title editor; leaving it blank discards with an evaporation animation | Task Lifecycle | Medium | ✅ |
-| Right-click context menu | Mouse right-click options on tasks and lists | Navigation | Medium | ✅ |
-| Detail panel full title | Right panel should show full task title instead of truncating with ellipsis | UI Polish | Low | ✅ |
+| Task completion animation | Change animation to be left to right fill of the task div (like a progress bar) | UI Polish | Medium | ✅ |
+| Task move animation | Show/focus the list that the task was moved to | UI Polish | Low | ✅ |
+| Delete lists | Deleting non-empty lists should ask for confirmation (reuse modal) | Task Lifecycle | Low | ✅ |
 | Subtasks UX overhaul | Chevron in existing left padding (no extra indent on parent); tree lines fully connected to checkbox and continuous | UI Polish | High | |
 | Priorities | Assign priority levels to tasks; exact scheme TBD | Task Properties | Medium | |
-| Command palette | Cmd+K dropdown with all actions and their hotkeys | Navigation | Medium | |
 | Web app + mobile | Web version for phone access; includes mobile quick capture | Platform | Very High | |
 
 ## Medium

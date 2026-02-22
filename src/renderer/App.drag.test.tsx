@@ -46,7 +46,7 @@ describe('Drag-to-reorder tasks', () => {
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
     // Navigate via keyboard since clicks are disabled
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     const item = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
     expect(item.getAttribute('draggable')).toBe('false');

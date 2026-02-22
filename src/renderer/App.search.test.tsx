@@ -89,7 +89,7 @@ describe('App search', () => {
     // Navigate to a user list with tasks and focus tasks pane
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
-    fireEvent.keyDown(window, { key: 'Tab' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
     // Press D to open due date modal
     fireEvent.keyDown(window, { key: 'd' });
     await waitFor(() => expect(document.querySelector('.due-date-modal')).not.toBeNull());
