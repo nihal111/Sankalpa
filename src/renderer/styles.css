@@ -972,6 +972,17 @@ h2 {
   font-family: system-ui;
 }
 
+.empty-list-hint {
+  padding: 24px 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.empty-list-hint .hotkey-badge {
+  vertical-align: middle;
+}
+
 /* Tree connectors for subtask nesting */
 .tree-connector {
   font-family: monospace;

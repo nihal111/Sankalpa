@@ -139,6 +139,11 @@ export function TasksPane({
         />
       )}
       <ul className="item-list">
+        {flatTasks.length === 0 && (
+          <li className="empty-list-hint">
+            Press <span className="hotkey-badge">⌘</span> <span className="hotkey-badge">N</span> to create a task
+          </li>
+        )}
         {flatTasks.map((flatTask, i) => {
           const task = flatTask.task;
           const sourceListName = getSourceListName(task);
