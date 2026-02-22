@@ -742,6 +742,17 @@ h2 {
   font-family: system-ui, sans-serif;
 }
 
+.keycap-badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--bg-primary);
+  background: var(--text-secondary);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: system-ui, sans-serif;
+}
+
 .detail-created {
   margin-top: auto;
   padding: 16px;

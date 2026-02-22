@@ -27,6 +27,7 @@ interface MoveListState {
   outdentList: () => Promise<void>;
   cycleSidebarNext: () => void;
   cycleSidebarPrev: () => void;
+  selectSidebarByListNumber: (n: number) => void;
 }
 
 export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength, setSelectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
@@ -111,7 +112,14 @@ export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, s
     setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItemsLength) % sidebarItemsLength);
   }, [sidebarItemsLength, setSelectedSidebarIndex]);
 
-  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev };
+  const selectSidebarByListNumber = useCallback((n: number) => {
+    let count = 0;
+    for (let i = 0; i < sidebarItems.length; i++) {
+      if (sidebarItems[i].type === 'list') { count++; if (count === n) { setSelectedSidebarIndex(() => i); return; } }
+    }
+  }, [sidebarItems, setSelectedSidebarIndex]);
+
+  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber };
 }
 
 function useCycleSidebar(length: number, setter: (fn: (i: number) => number) => void): { next: () => void; prev: () => void } {

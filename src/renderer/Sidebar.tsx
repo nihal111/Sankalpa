@@ -70,6 +70,7 @@ interface SidebarProps {
     onDragLeave: () => void;
     onDrop: (e: React.DragEvent) => void;
   };
+  cmdHeld: boolean;
 }
 
 export function Sidebar({
@@ -92,6 +93,7 @@ export function Sidebar({
   trashIndex,
   sidebarDropTarget,
   sidebarDropProps,
+  cmdHeld,
 }: SidebarProps): ReactNode {
   const paneRef = useRef<HTMLDivElement>(null);
 
@@ -133,7 +135,7 @@ export function Sidebar({
       </ul>
       <div className="sidebar-divider" />
       <ul className="item-list">
-        {sidebarItems.slice(SMART_LISTS.length, trashIndex).map((item, idx) => {
+        {(() => { let listNum = 0; return sidebarItems.slice(SMART_LISTS.length, trashIndex).map((item, idx) => {
           const i = idx + SMART_LISTS.length;
           const isSelected = i === selectedSidebarIndex;
           const isMoveTarget = moveMode && i === moveTargetIndex;
@@ -158,6 +160,8 @@ export function Sidebar({
           }
 
           const listItem = item as { type: 'list'; list: List };
+          listNum++;
+          const keycap = cmdHeld && listNum <= 9 ? listNum : null;
           const isEditing = editMode?.type === 'list' && editMode.id === listItem.list.id;
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
@@ -176,9 +180,10 @@ export function Sidebar({
                 inputRef={inputRef}
                 badge={count}
               />
+              {keycap && <span className="keycap-badge">{keycap}</span>}
             </li>
           );
-        })}
+        }); })()}
       </ul>
       <div className="sidebar-spacer" />
       <ul className="item-list trash-list">

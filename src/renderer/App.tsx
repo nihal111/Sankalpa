@@ -36,6 +36,7 @@ export default function App(): ReactNode {
         trashIndex={state.trashIndex}
         sidebarDropTarget={state.dragState.sidebarDropTarget}
         sidebarDropProps={state.sidebarDropProps}
+        cmdHeld={state.cmdHeld}
       />
       <TasksPane
         tasks={state.tasks}

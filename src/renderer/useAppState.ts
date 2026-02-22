@@ -141,7 +141,7 @@ export function useAppState() {
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
   // Move list to folder
-  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev } = useMoveListState({
+  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
     folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, setSelectedSidebarIndex, reloadData, undoPush,
   });
 
@@ -157,7 +157,7 @@ export function useAppState() {
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
-    showListInfo,
+    showListInfo, selectSidebarByListNumber,
   });
 
   const keyboardState = useKeyboardState({

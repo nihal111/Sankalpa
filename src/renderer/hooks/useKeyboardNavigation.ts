@@ -43,6 +43,7 @@ export interface KeyboardActions {
   indentList: Command;
   outdentList: Command;
   showListInfo: Command;
+  selectSidebarByListNumber: (n: number) => void;
 }
 
 export interface KeyboardState {
@@ -102,7 +103,11 @@ export function useKeyboardNavigation(
     if (matches(e, 'openSearch')) { e.preventDefault(); actions.openSearch(); return; }
     if (e.metaKey && e.key === 'k') { e.preventDefault(); actions.togglePalette(); return; }
     const metaActions: Record<string, Command> = { d: actions.duplicateTask, i: actions.showListInfo };
-    if (e.metaKey && metaActions[e.key]) { e.preventDefault(); metaActions[e.key](); return; }
+    if (e.metaKey && (metaActions[e.key] || (e.key >= '1' && e.key <= '9'))) {
+      e.preventDefault();
+      if (metaActions[e.key]) metaActions[e.key](); else actions.selectSidebarByListNumber(parseInt(e.key));
+      return;
+    }
     if (state.isSearchOpen || state.isPaletteOpen) return;
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
