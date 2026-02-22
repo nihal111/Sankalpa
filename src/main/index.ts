@@ -19,7 +19,10 @@ const isTestHeadless = process.argv.includes('--test-headless');
 function createWindow(): void {
   const cursor = screen.getCursorScreenPoint();
   const { bounds } = screen.getDisplayNearestPoint(cursor);
-  const [winW, winH] = [800, 600];
+  const [winW, winH] = [
+    Math.min(Math.round(bounds.width * 0.75), 1600),
+    Math.min(Math.round(bounds.height * 0.75), 1000),
+  ];
 
   mainWindow = new BrowserWindow({
     width: winW,
