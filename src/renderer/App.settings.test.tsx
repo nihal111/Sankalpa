@@ -109,9 +109,10 @@ describe('App settings', () => {
     // Try to go up from Theme (first)
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Theme');
-    // Go to Hardcore then try to go down
+    // Go to Trash (last) then try to go down
     fireEvent.keyDown(window, { key: 'ArrowDown' });
-    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Should stay on Hardcore
-    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Hardcore');
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Should stay on Trash
+    expect(document.querySelector('.settings-category.selected')?.textContent).toBe('Trash');
   });
 });

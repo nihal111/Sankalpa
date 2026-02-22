@@ -104,12 +104,13 @@ interface UseKeyboardStateParams {
   isPaletteOpen: boolean;
   settingsOpen: boolean;
   isCompletedView: boolean;
+  confirmationDialogOpen: boolean;
 }
 
 export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState {
   const {
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
-    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
+    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen,
   } = params;
 
   return useMemo(() => ({
@@ -127,5 +128,6 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     isPaletteOpen,
     settingsOpen,
     isCompletedView,
-  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView]);
+    confirmationDialogOpen,
+  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen]);
 }

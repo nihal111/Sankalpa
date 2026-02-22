@@ -1,13 +1,20 @@
 import type { ReactNode } from 'react';
 import { ThemePreview, SystemThemePreview } from './ThemePreview';
 
-interface SettingsModalProps {
-  settingsThemeIndex: number;
-  settingsCategory: 'Theme' | 'Hardcore';
-  hardcoreMode: boolean;
+interface RetentionOption {
+  readonly label: string;
+  readonly value: number | null;
 }
 
-export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode }: SettingsModalProps): ReactNode {
+interface SettingsModalProps {
+  settingsThemeIndex: number;
+  settingsCategory: 'Theme' | 'Hardcore' | 'Trash';
+  hardcoreMode: boolean;
+  trashRetentionIndex: number;
+  retentionOptions: readonly RetentionOption[];
+}
+
+export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode, trashRetentionIndex, retentionOptions }: SettingsModalProps): ReactNode {
   return (
     <div className="settings-overlay">
       <div className="settings-modal">
@@ -16,6 +23,7 @@ export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMo
           <div className="settings-categories">
             <div className={`settings-category ${settingsCategory === 'Theme' ? 'selected' : ''}`}>Theme</div>
             <div className={`settings-category ${settingsCategory === 'Hardcore' ? 'selected' : ''}`}>Hardcore</div>
+            <div className={`settings-category ${settingsCategory === 'Trash' ? 'selected' : ''}`}>Trash</div>
           </div>
           <div className="settings-content">
             {settingsCategory === 'Theme' && (
@@ -47,10 +55,27 @@ export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMo
                 </div>
               </div>
             )}
+            {settingsCategory === 'Trash' && (
+              <div className="setting-item">
+                <div className="setting-row">
+                  <div className="setting-info">
+                    <div className="setting-title">Auto-delete after</div>
+                    <div className="setting-description">Automatically purge trashed tasks after this period.</div>
+                  </div>
+                  <div className="retention-options">
+                    {retentionOptions.map((opt, i) => (
+                      <div key={opt.label} className={`retention-option ${trashRetentionIndex === i ? 'selected' : ''}`}>{opt.label}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="settings-footer">
-          {settingsCategory === 'Theme' ? '↑↓ category · ←→ theme · Enter apply · Esc close' : '↑↓ category · Enter/Space toggle · Esc close'}
+          {settingsCategory === 'Theme' ? '↑↓ category · ←→ theme · Enter apply · Esc close' :
+           settingsCategory === 'Hardcore' ? '↑↓ category · Enter/Space toggle · Esc close' :
+           '↑↓ category · ←→ retention · Enter apply · Esc close'}
         </div>
       </div>
     </div>

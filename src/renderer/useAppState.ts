@@ -29,7 +29,7 @@ export function useAppState() {
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
-  const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory } = settings;
+  const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions } = settings;
   const { flashIds, flash } = useFlash();
   const { flashIds: throbIds, flash: throb } = useFlash();
   const { flashIds: completeIds, flash: completeFlash } = useFlash(500);
@@ -148,6 +148,7 @@ export function useAppState() {
   const keyboardState = useKeyboardState({
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
+    confirmationDialogOpen: trashActions.confirmationDialog !== null,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -176,7 +177,7 @@ export function useAppState() {
     sidebarItems, selectedSidebarIndex, focusedPane, moveMode, moveTargetIndex,
     editMode, editValue, setEditValue, setEditMode, handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef,
     taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
-    settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
+    settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode, trashRetentionIndex, retentionOptions,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
     handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu,

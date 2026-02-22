@@ -58,4 +58,7 @@ contextBridge.exposeInMainWorld('api', {
   // Settings
   settingsGetAll: () => ipcRenderer.invoke('settings:getAll'),
   settingsSet: (key: string, value: string) => ipcRenderer.invoke('settings:set', key, value),
+
+  // Trash purge
+  trashPurge: (retentionDays: number | null) => ipcRenderer.invoke('trash:purge', retentionDays),
 });

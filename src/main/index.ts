@@ -7,9 +7,9 @@ import {
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, reorderTask, moveTask,
   restoreTask, restoreList, setTaskListId, setTaskDueDate, updateTaskNotes,
   getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
-  calcSortKeyBetween, getAllSettings, setSetting,
+  calcSortKeyBetween, getAllSettings, setSetting, getSetting,
   getTrashedTasks, softDeleteTask, restoreFromTrash, getAllTasks,
-  setTaskParentId, toggleTaskExpanded, getTaskDescendants,
+  setTaskParentId, toggleTaskExpanded, getTaskDescendants, purgeExpiredTrash,
 } from './db';
 
 let mainWindow: BrowserWindow | null = null;
@@ -59,6 +59,13 @@ function showQuickAdd(): void {
 
 app.whenReady().then(async () => {
   const db = await getDb();
+
+  // Purge expired trash on startup
+  const retentionSetting = getSetting(db, 'trash_retention_days');
+  const retentionDays = retentionSetting === 'never' ? null : parseInt(retentionSetting ?? '7', 10);
+  purgeExpiredTrash(db, retentionDays);
+  saveDb();
+
   createWindow();
 
   // Folder IPC handlers
@@ -111,6 +118,9 @@ app.whenReady().then(async () => {
   // Settings IPC handlers
   ipcMain.handle('settings:getAll', () => getAllSettings(db));
   ipcMain.handle('settings:set', (_, key: string, value: string) => { setSetting(db, key, value); saveDb(); });
+
+  // Trash purge
+  ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { const count = purgeExpiredTrash(db, retentionDays); saveDb(); return count; });
 
   // Global hotkeys
   globalShortcut.register('CommandOrControl+Option+Control+Space', toggleWindow);

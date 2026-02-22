@@ -73,7 +73,8 @@ export function updateList(db: Database, id: string, name: string): void {
 }
 
 export function deleteList(db: Database, id: string): void {
-  db.run('DELETE FROM tasks WHERE list_id = ?', [id]);
+  const now = Date.now();
+  db.run('UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE list_id = ?', [now, now, id]);
   db.run('DELETE FROM lists WHERE id = ?', [id]);
 }
 
@@ -238,6 +239,14 @@ export function setTaskParentId(db: Database, id: string, parentId: string | nul
 
 export function toggleTaskExpanded(db: Database, id: string): void {
   db.run('UPDATE tasks SET is_expanded = NOT is_expanded, updated_at = ? WHERE id = ?', [Date.now(), id]);
+}
+
+export function purgeExpiredTrash(db: Database, retentionDays: number | null): number {
+  if (retentionDays === null) return 0;
+  const cutoff = Date.now() - retentionDays * 86400000;
+  const before = queryOne<{ count: number }>(db, 'SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at < ?', [cutoff]);
+  db.run('DELETE FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at < ?', [cutoff]);
+  return before?.count ?? 0;
 }
 
 export function getTaskDescendants(db: Database, id: string): Task[] {

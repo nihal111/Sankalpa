@@ -436,6 +436,24 @@ h2 {
   transform: translateX(20px);
 }
 
+.retention-options {
+  display: flex;
+  gap: 8px;
+}
+
+.retention-option {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.retention-option.selected {
+  background: var(--accent-cursor);
+  color: var(--text-primary);
+}
+
 /* Flash animation for reorder/move/add */
 @keyframes flash {
   0% { background: var(--accent-cursor); }

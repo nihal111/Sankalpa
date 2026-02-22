@@ -43,8 +43,10 @@ export function useListActions({
   const deleteList = useCallback(async () => {
     if (selectedSidebarItem?.type !== 'list') return;
     const list = selectedSidebarItem.list;
-    const tasks = await window.api.tasksGetByList(list.id);
     await window.api.listsDelete(list.id);
+    // After delete, tasks are now in trash - fetch them to get deleted_at
+    const trashedTasks = await window.api.tasksGetTrashed();
+    const deletedTasks = trashedTasks.filter((t) => t.list_id === list.id);
     const [f, l] = await Promise.all([window.api.foldersGetAll(), window.api.listsGetAll()]);
     setFolders(f);
     setLists(l);
@@ -52,8 +54,8 @@ export function useListActions({
     undoPush({
       undo: async () => {
         await window.api.listsRestore(list.id, list.folder_id, list.name, list.sort_key, list.created_at, list.updated_at);
-        for (const t of tasks) {
-          await window.api.tasksRestore(t.id, t.list_id, t.title, t.status, t.created_timestamp, t.completed_timestamp, t.sort_key, t.created_at, t.updated_at);
+        for (const t of deletedTasks) {
+          await window.api.tasksRestoreFromTrash(t.id);
         }
       },
       redo: async () => { await window.api.listsDelete(list.id); },

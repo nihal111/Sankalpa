@@ -52,6 +52,7 @@ export interface KeyboardState {
   isPaletteOpen: boolean;
   settingsOpen: boolean;
   isCompletedView: boolean;
+  confirmationDialogOpen: boolean;
 }
 
 function getAction(id: string): Action {
@@ -122,7 +123,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'clearSelection') && !state.cmdHeld && getAction('clearSelection').isAvailable(ctx)) { e.preventDefault(); actions.clearSelection(); return; }
     if (matches(e, 'newList')) { e.preventDefault(); actions.createList(); return; }
     if (matches(e, 'newTask')) { e.preventDefault(); actions.createTask(); return; }
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !state.confirmationDialogOpen) { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {
       e.preventDefault();
       if (state.focusedPane === 'tasks') {

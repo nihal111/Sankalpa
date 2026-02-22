@@ -74,7 +74,13 @@ export function useDataState(
       case 'overdue': return window.api.tasksGetOverdue(start);
       case 'today': return window.api.tasksGetDueBetween(start, end);
       case 'upcoming': return window.api.tasksGetUpcoming(end);
-      case 'trash': return window.api.tasksGetTrashed();
+      case 'trash': {
+        const settings = await window.api.settingsGetAll();
+        const retentionSetting = settings['trash_retention_days'];
+        const retentionDays = retentionSetting === 'never' ? null : parseInt(retentionSetting ?? '7', 10);
+        await window.api.trashPurge(retentionDays);
+        return window.api.tasksGetTrashed();
+      }
     }
     return [];
   }, []);

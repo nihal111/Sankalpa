@@ -63,7 +63,7 @@ export function TasksPane({
   editMode,
   editValue,
   setEditValue,
-  setEditMode,
+  setEditMode: _setEditMode,
   handleInputKeyDown,
   handleEditBlur,
   inputRef,

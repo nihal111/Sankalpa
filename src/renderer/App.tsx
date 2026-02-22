@@ -92,6 +92,8 @@ export default function App(): ReactNode {
           settingsThemeIndex={state.settingsThemeIndex}
           settingsCategory={state.settingsCategory}
           hardcoreMode={state.hardcoreMode}
+          trashRetentionIndex={state.trashRetentionIndex}
+          retentionOptions={state.retentionOptions}
         />
       )}
       {state.confirmationDialog && (

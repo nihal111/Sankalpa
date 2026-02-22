@@ -2,8 +2,16 @@ import { useEffect, useState, useCallback } from 'react';
 import type { Theme } from '../types';
 
 const THEMES: Theme[] = ['light', 'dark', 'system'];
-const CATEGORIES = ['Theme', 'Hardcore'] as const;
+const CATEGORIES = ['Theme', 'Hardcore', 'Trash'] as const;
 type SettingsCategory = typeof CATEGORIES[number];
+
+const RETENTION_OPTIONS = [
+  { label: '7 days', value: 7 },
+  { label: '14 days', value: 14 },
+  { label: '30 days', value: 30 },
+  { label: '90 days', value: 90 },
+  { label: 'Never', value: null },
+] as const;
 
 export interface SettingsActions {
   open: () => void;
@@ -11,7 +19,7 @@ export interface SettingsActions {
 }
 
 export function useSettingsState(): [
-  { settingsOpen: boolean; settingsThemeIndex: number; themes: Theme[]; hardcoreMode: boolean; settingsCategory: SettingsCategory },
+  { settingsOpen: boolean; settingsThemeIndex: number; themes: Theme[]; hardcoreMode: boolean; settingsCategory: SettingsCategory; trashRetentionIndex: number; retentionOptions: typeof RETENTION_OPTIONS },
   SettingsActions
 ] {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -19,6 +27,7 @@ export function useSettingsState(): [
   const [theme, setTheme] = useState<Theme>('system');
   const [hardcoreMode, setHardcoreMode] = useState(true);
   const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
+  const [trashRetentionIndex, setTrashRetentionIndex] = useState(0);
 
   // Load settings from DB on mount
   useEffect(() => {
@@ -28,6 +37,12 @@ export function useSettingsState(): [
       }
       if (settings.hardcore_mode !== undefined) {
         setHardcoreMode(settings.hardcore_mode === '1');
+      }
+      if (settings.trash_retention_days !== undefined) {
+        const idx = RETENTION_OPTIONS.findIndex((o) =>
+          settings.trash_retention_days === 'never' ? o.value === null : o.value === parseInt(settings.trash_retention_days, 10)
+        );
+        if (idx >= 0) setTrashRetentionIndex(idx);
       }
     });
   }, []);
@@ -84,11 +99,22 @@ export function useSettingsState(): [
     if (settingsCategory === 'Hardcore') {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleHardcore(); return true; }
     }
+    if (settingsCategory === 'Trash') {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); setTrashRetentionIndex((i) => Math.max(0, i - 1)); return true; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); setTrashRetentionIndex((i) => Math.min(RETENTION_OPTIONS.length - 1, i + 1)); return true; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const opt = RETENTION_OPTIONS[trashRetentionIndex];
+        window.api.settingsSet('trash_retention_days', opt.value === null ? 'never' : String(opt.value));
+        setSettingsOpen(false);
+        return true;
+      }
+    }
     return true;
-  }, [settingsOpen, settingsCategory, applyAndClose, toggleHardcore]);
+  }, [settingsOpen, settingsCategory, applyAndClose, toggleHardcore, trashRetentionIndex]);
 
   return [
-    { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory },
+    { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions: RETENTION_OPTIONS },
     { open, handleKeyDown }
   ];
 }

@@ -394,9 +394,11 @@ describe('App undo/redo', () => {
     await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalledWith('new-list', null, '', 3, 100, 100));
   });
 
-  it('undo list deletion restores list and tasks, redo re-deletes', async () => {
+  it('undo list deletion restores list and tasks from trash, redo re-deletes', async () => {
+    const trashedTasks = mockTasks.map(t => ({ ...t, deleted_at: Date.now() }));
     setupMockApi({
       tasksGetByList: vi.fn().mockResolvedValue(mockTasks),
+      tasksGetTrashed: vi.fn().mockResolvedValue(trashedTasks),
     });
     render(<App />);
     await navigateToUserList();
@@ -405,10 +407,10 @@ describe('App undo/redo', () => {
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalled());
 
-    // Undo → restore list and tasks
+    // Undo → restore list and tasks from trash
     undo();
     await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalled());
-    await waitFor(() => expect(window.api.tasksRestore).toHaveBeenCalledTimes(mockTasks.length));
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledTimes(mockTasks.length));
 
     // Redo → re-delete
     redo();
