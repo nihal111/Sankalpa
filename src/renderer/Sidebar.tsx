@@ -70,7 +70,9 @@ interface SidebarProps {
     onDragLeave: () => void;
     onDrop: (e: React.DragEvent) => void;
   };
-  cmdHeld: boolean;
+  metaHeld: boolean;
+  moveListMode: boolean;
+  moveListTargetFolderId: string | null;
 }
 
 export function Sidebar({
@@ -93,7 +95,9 @@ export function Sidebar({
   trashIndex,
   sidebarDropTarget,
   sidebarDropProps,
-  cmdHeld,
+  metaHeld,
+  moveListMode,
+  moveListTargetFolderId,
 }: SidebarProps): ReactNode {
   const paneRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +120,7 @@ export function Sidebar({
   }, []);
 
   return (
-    <div ref={paneRef} className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`}>
+    <div ref={paneRef} className={`pane lists-pane ${focusedPane === 'lists' ? 'focused' : ''}`} data-meta-held={metaHeld || undefined}>
       <ul className="item-list">
         {sidebarItems.slice(0, SMART_LISTS.length).map((item, i) => {
           const smartItem = item as { type: 'smart'; smartList: SmartList };
@@ -144,7 +148,7 @@ export function Sidebar({
             const isEditing = editMode?.type === 'folder' && editMode.id === item.folder.id;
             const folderIcon = item.folder.is_expanded ? Icons.folderOpen : Icons.folderClosed;
             return (
-              <li key={item.folder.id} className={`item folder ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
+              <li key={item.folder.id} className={`item folder ${isSelected ? 'selected' : ''}`} data-move-list-target={moveListMode && moveListTargetFolderId === item.folder.id || undefined} onClick={() => onItemClick(i)}>
                 <span className="item-icon" onClick={(e) => { e.stopPropagation(); onFolderToggle(item.folder.id); }} dangerouslySetInnerHTML={{ __html: folderIcon }} />
                 <EditableItemName
                   isEditing={isEditing}
@@ -161,7 +165,6 @@ export function Sidebar({
 
           const listItem = item as { type: 'list'; list: List };
           listNum++;
-          const keycap = cmdHeld && listNum <= 9 ? listNum : null;
           const isEditing = editMode?.type === 'list' && editMode.id === listItem.list.id;
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
@@ -169,7 +172,7 @@ export function Sidebar({
           const isDragTarget = sidebarDropTarget === listItem.list.id;
           return (
             <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} onContextMenu={(e) => { e.preventDefault(); onItemContextMenu(i, e.clientX, e.clientY); }} {...drop}>
-              {keycap ? <span className="keycap-badge">{keycap}</span> : <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />}
+              <span className="item-icon" data-keycap={listNum} dangerouslySetInnerHTML={{ __html: Icons.list }} />
               <EditableItemName
                 isEditing={isEditing}
                 name={listItem.list.name}
@@ -183,6 +186,7 @@ export function Sidebar({
             </li>
           );
         }); })()}
+        {moveListMode && <li className="item folder" data-move-list-target={moveListTargetFolderId === null || undefined}><span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.folderClosed }} /><span className="item-name">No folder</span></li>}
       </ul>
       <div className="sidebar-spacer" />
       <ul className="item-list trash-list">

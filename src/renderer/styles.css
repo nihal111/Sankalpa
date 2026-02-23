@@ -289,6 +289,11 @@ h2 {
   outline-offset: -2px;
 }
 
+.item[data-move-list-target] {
+  outline: 2px solid var(--accent-move);
+  outline-offset: -2px;
+}
+
 /* Settings modal */
 .settings-overlay {
   position: fixed;
@@ -762,6 +767,23 @@ h2 {
 
 .keycap-badge {
   flex-shrink: 0;
+  width: 16px;
+  font-size: 10px;
+  color: var(--bg-primary);
+  background: var(--text-secondary);
+  border-radius: 3px;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  line-height: 16px;
+}
+
+.lists-pane[data-meta-held] .item-icon[data-keycap] svg {
+  display: none;
+}
+
+.lists-pane[data-meta-held] .item-icon[data-keycap]::before {
+  content: attr(data-keycap);
+  display: block;
   width: 16px;
   font-size: 10px;
   color: var(--bg-primary);

@@ -10,7 +10,6 @@ import { SearchModal } from './SearchModal';
 import { DueDateModal } from './DueDateModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
-import { MoveListOverlay } from './MoveListOverlay';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -37,7 +36,9 @@ export default function App(): ReactNode {
         trashIndex={state.trashIndex}
         sidebarDropTarget={state.dragState.sidebarDropTarget}
         sidebarDropProps={state.sidebarDropProps}
-        cmdHeld={state.cmdHeld}
+        metaHeld={state.metaHeld}
+        moveListMode={state.moveListMode}
+        moveListTargetFolderId={state.moveListTargets[state.moveListTargetIndex]?.folderId ?? null}
       />
       <TasksPane
         tasks={state.tasks}
@@ -90,7 +91,11 @@ export default function App(): ReactNode {
           <div className="move-hint">Move to: {state.getMoveTargetName()} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
         </div>
       )}
-      {state.moveListMode && <MoveListOverlay targets={state.moveListTargets} targetIndex={state.moveListTargetIndex} />}
+      {state.moveListMode && (
+        <div className="move-overlay">
+          <div className="move-hint">Move list to folder (↑↓ select · Enter confirm · Esc cancel)</div>
+        </div>
+      )}
       {state.settingsOpen && (
         <SettingsModal
           settingsThemeIndex={state.settingsThemeIndex}

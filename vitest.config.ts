@@ -21,6 +21,7 @@ export default defineConfig({
         'src/renderer/hooks/useMoveListState.ts',
         'src/renderer/hooks/useDragDrop.ts',
         'src/renderer/hooks/useContextMenu.ts',
+        'src/renderer/hooks/useMetaKey.ts',
         'src/renderer/utils/taskTree.ts',
         'src/renderer/CommandPalette.tsx',
         'src/renderer/ListInfoModal.tsx',

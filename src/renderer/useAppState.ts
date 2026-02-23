@@ -22,6 +22,7 @@ import { useContextMenu } from './hooks/useContextMenu';
 import { flattenWithDepth } from './utils/taskTree';
 import { useMoveListState } from './hooks/useMoveListState';
 import { useDragDrop } from './hooks/useDragDrop';
+import { useMetaKey } from './hooks/useMetaKey';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -39,6 +40,8 @@ export function useAppState() {
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
   const [notesEditing, setNotesEditing] = useState(false);
   const [listInfoOpen, setListInfoOpen] = useState(false);
+
+  const metaHeld = useMetaKey();
 
   const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
@@ -207,6 +210,6 @@ export function useAppState() {
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
     moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex,
-    closeListInfo, listInfoOpen, selectedSidebarItem,
+    closeListInfo, listInfoOpen, selectedSidebarItem, metaHeld,
   };
 }
