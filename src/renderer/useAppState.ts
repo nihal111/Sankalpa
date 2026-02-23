@@ -141,7 +141,7 @@ export function useAppState() {
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
   // Move list to folder
-  const { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
+  const { moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
     folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, setSelectedSidebarIndex, reloadData, undoPush,
   });
 
@@ -184,7 +184,7 @@ export function useAppState() {
 
   const ctxMenu = useContextMenu({
     hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
-    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList,
+    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask,
   });
 
   const getSelectedListName = (): string => selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.name : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.name : 'Tasks';
@@ -206,7 +206,7 @@ export function useAppState() {
     notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
-    moveListMode, getMoveListTargetName,
+    moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex,
     closeListInfo, listInfoOpen, selectedSidebarItem,
   };
 }

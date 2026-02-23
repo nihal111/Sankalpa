@@ -18,11 +18,12 @@ interface UseContextMenuParams {
   toggleTaskCompleted: () => void;
   deleteTask: () => void;
   deleteList: () => void;
+  duplicateTask: () => void;
 }
 
 export function useContextMenu(params: UseContextMenuParams) {
   const { hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
-    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList } = params;
+    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask } = params;
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const handleTaskContextMenu = useCallback((index: number, x: number, y: number) => {
@@ -36,9 +37,10 @@ export function useContextMenu(params: UseContextMenuParams) {
       { label: task.status === 'COMPLETED' ? 'Mark Incomplete' : 'Mark Complete', action: toggleTaskCompleted },
       { label: 'Move to...', action: moveActions.start },
       { label: 'Set Due Date', action: dueDateActions.start },
+      { label: 'Duplicate', action: duplicateTask },
       { label: 'Delete', action: deleteTask },
     ]});
-  }, [hardcoreMode, tasks, setSelectedTaskIndex, setFocusedPane, editActions, toggleTaskCompleted, moveActions, dueDateActions, deleteTask]);
+  }, [hardcoreMode, tasks, setSelectedTaskIndex, setFocusedPane, editActions, toggleTaskCompleted, moveActions, dueDateActions, deleteTask, duplicateTask]);
 
   const handleSidebarContextMenu = useCallback((index: number, x: number, y: number) => {
     if (hardcoreMode) return;

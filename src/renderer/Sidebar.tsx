@@ -169,7 +169,7 @@ export function Sidebar({
           const isDragTarget = sidebarDropTarget === listItem.list.id;
           return (
             <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} onContextMenu={(e) => { e.preventDefault(); onItemContextMenu(i, e.clientX, e.clientY); }} {...drop}>
-              <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />
+              {keycap ? <span className="keycap-badge">{keycap}</span> : <span className="item-icon" dangerouslySetInnerHTML={{ __html: Icons.list }} />}
               <EditableItemName
                 isEditing={isEditing}
                 name={listItem.list.name}
@@ -180,7 +180,6 @@ export function Sidebar({
                 inputRef={inputRef}
                 badge={count}
               />
-              {keycap && <span className="keycap-badge">{keycap}</span>}
             </li>
           );
         }); })()}

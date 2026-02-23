@@ -21,6 +21,8 @@ interface UseMoveListStateParams {
 interface MoveListState {
   moveListMode: boolean;
   getMoveListTargetName: () => string;
+  moveListTargets: { label: string; folderId: string | null }[];
+  moveListTargetIndex: number;
   startMoveList: () => void;
   handleMoveListKeyDown: (e: KeyboardEvent) => boolean;
   indentList: () => Promise<void>;
@@ -119,7 +121,7 @@ export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, s
     }
   }, [sidebarItems, setSelectedSidebarIndex]);
 
-  return { moveListMode, getMoveListTargetName, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber };
+  return { moveListMode, getMoveListTargetName, moveListTargets: targets, moveListTargetIndex: targetIdx, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber };
 }
 
 function useCycleSidebar(length: number, setter: (fn: (i: number) => number) => void): { next: () => void; prev: () => void } {

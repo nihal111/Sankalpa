@@ -10,6 +10,7 @@ import { SearchModal } from './SearchModal';
 import { DueDateModal } from './DueDateModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
+import { MoveListOverlay } from './MoveListOverlay';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -89,11 +90,7 @@ export default function App(): ReactNode {
           <div className="move-hint">Move to: {state.getMoveTargetName()} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
         </div>
       )}
-      {state.moveListMode && (
-        <div className="move-overlay">
-          <div className="move-hint">Move list to: {state.getMoveListTargetName()} (↑↓ to select, Enter to confirm, Esc to cancel)</div>
-        </div>
-      )}
+      {state.moveListMode && <MoveListOverlay targets={state.moveListTargets} targetIndex={state.moveListTargetIndex} />}
       {state.settingsOpen && (
         <SettingsModal
           settingsThemeIndex={state.settingsThemeIndex}
