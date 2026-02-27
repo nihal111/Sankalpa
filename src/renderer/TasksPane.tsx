@@ -98,20 +98,9 @@ export function TasksPane({
     return list?.name ?? null;
   };
 
-  const getTreeConnector = (flatTask: TaskWithDepth): string => {
-    if (flatTask.depth === 0) return '';
-    const parts: string[] = [];
-    for (let d = 0; d < flatTask.depth - 1; d++) {
-      parts.push(flatTask.ancestorIsLast[d] ? '\u00A0\u00A0\u00A0' : '│\u00A0\u00A0');
-    }
-    parts.push(flatTask.isLastChild ? '└─\u00A0' : '├─\u00A0');
-    return parts.join('');
-  };
+  const hasChildTasks = (taskId: string): boolean => hasChildren(taskId, tasks);
 
-  const getCollapseIndicator = (task: Task): string | null => {
-    if (!hasChildren(task.id, tasks)) return null;
-    return task.is_expanded ? '▼' : '▶';
-  };
+  const isExpanded = (task: Task): boolean => !!task.is_expanded;
 
   const getChildCount = (task: Task): number => {
     if (task.is_expanded) return 0;
@@ -148,11 +137,16 @@ export function TasksPane({
         {flatTasks.map((flatTask, i) => {
           const task = flatTask.task;
           const sourceListName = getSourceListName(task);
-          const connector = getTreeConnector(flatTask);
-          const collapseIndicator = getCollapseIndicator(task);
+          const hasKids = hasChildTasks(task.id);
+          const expanded = isExpanded(task);
           const childCount = getChildCount(task);
           const drag = taskDragProps?.(i);
           const isOverdue = task.due_date !== null && task.due_date < Date.now() && task.status === 'PENDING';
+          // Build tree line classes for each depth level
+          const treeLines: { depth: number; isLast: boolean }[] = [];
+          for (let d = 0; d < flatTask.depth; d++) {
+            treeLines.push({ depth: d, isLast: flatTask.ancestorIsLast[d] });
+          }
           return (
             <li
               key={task.id}
@@ -161,8 +155,17 @@ export function TasksPane({
               onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(i, e.clientX, e.clientY); }}
               {...drag}
             >
-              {connector && <span className="tree-connector">{connector}</span>}
-              {collapseIndicator && <span className="collapse-indicator">{collapseIndicator}</span>}
+              <span className="task-tree-area">
+                {treeLines.map((line, idx) => (
+                  <span
+                    key={idx}
+                    className={`tree-line ${idx === treeLines.length - 1 ? (flatTask.isLastChild ? 'corner' : 'tee') : (line.isLast ? 'empty' : 'vertical')}`}
+                  />
+                ))}
+                <span className={`chevron-slot ${hasKids ? (expanded ? 'expanded' : 'collapsed') : ''}`}>
+                  {hasKids && (expanded ? '▾' : '▸')}
+                </span>
+              </span>
               <input
                 type="checkbox"
                 checked={task.status === 'COMPLETED'}
