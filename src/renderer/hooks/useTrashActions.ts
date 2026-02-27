@@ -89,10 +89,21 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     const tasksToRestore = indicesToRestore.map(i => tasks[i]).filter(Boolean);
     if (tasksToRestore.length === 0) return;
 
-    // Find subtasks of selected tasks that are also in trash
+    // Find all descendants of selected tasks that are also in trash
     const selectedIds = new Set(tasksToRestore.map(t => t.id));
-    const subtasksToRestore = tasks.filter(t => t.parent_id && selectedIds.has(t.parent_id) && !selectedIds.has(t.id));
-    const allTasksToRestore = [...tasksToRestore, ...subtasksToRestore];
+    const descendantsToRestore: Task[] = [];
+    let foundMore = true;
+    while (foundMore) {
+      foundMore = false;
+      for (const t of tasks) {
+        if (t.parent_id && (selectedIds.has(t.parent_id) || descendantsToRestore.some(d => d.id === t.parent_id)) && !selectedIds.has(t.id) && !descendantsToRestore.some(d => d.id === t.id)) {
+          descendantsToRestore.push(t);
+          foundMore = true;
+        }
+      }
+    }
+    // Restore parents first, then descendants (in order found, which preserves hierarchy)
+    const allTasksToRestore = [...tasksToRestore, ...descendantsToRestore];
 
     // Check if any task's list is missing
     const missingListTasks = tasksToRestore.filter(t => t.list_id !== null && !lists.some(l => l.id === t.list_id));
@@ -137,7 +148,7 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     setConfirmationDialog({
       title: 'Complete Task',
       message: `Completing this task will also complete ${descendantCount} subtask${descendantCount === 1 ? '' : 's'}. Continue?`,
-      options: [{ label: 'Complete All', action: () => { setConfirmationDialog(null); onConfirm(); } }],
+      options: [{ label: 'Complete All', action: () => { setConfirmationDialog(null); onConfirm(); }, hotkeyDisplay: '⌘ ↵' }],
     });
   }, []);
 
@@ -145,7 +156,7 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     setConfirmationDialog({
       title: 'Delete Task',
       message: `Deleting this task will also delete ${descendantCount} subtask${descendantCount === 1 ? '' : 's'}. Continue?`,
-      options: [{ label: 'Delete All', action: () => { setConfirmationDialog(null); onConfirm(); } }],
+      options: [{ label: 'Delete All', action: () => { setConfirmationDialog(null); onConfirm(); }, hotkeyDisplay: '⌘ ↵' }],
     });
   }, []);
 
