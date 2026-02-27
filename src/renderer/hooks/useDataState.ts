@@ -78,7 +78,10 @@ export function useDataState(
       case 'inbox': return window.api.tasksGetInbox();
       case 'completed': return window.api.tasksGetCompleted();
       case 'overdue': return window.api.tasksGetOverdue(start);
-      case 'today': return window.api.tasksGetDueBetween(start, end);
+      case 'today': {
+        const [overdue, today] = await Promise.all([window.api.tasksGetOverdue(start), window.api.tasksGetDueBetween(start, end)]);
+        return [...overdue, ...today];
+      }
       case 'upcoming': return window.api.tasksGetUpcoming(end);
       case 'trash': {
         const settings = await window.api.settingsGetAll();
@@ -119,10 +122,12 @@ export function useDataState(
     const loadCounts = async (): Promise<void> => {
       const [start, end] = todayBounds();
       const counts: Record<string, number> = {};
+      const overdueCount = (await window.api.tasksGetOverdue(start)).length;
       counts['inbox'] = await window.api.tasksGetInboxCount();
       counts['completed'] = (await window.api.tasksGetCompleted()).length;
-      counts['overdue'] = (await window.api.tasksGetOverdue(start)).length;
+      counts['overdue'] = overdueCount;
       counts['today'] = (await window.api.tasksGetDueBetween(start, end)).length;
+      counts['today_overdue'] = overdueCount;
       counts['upcoming'] = (await window.api.tasksGetUpcoming(end)).length;
       counts['trash'] = (await window.api.tasksGetTrashed()).length;
       for (const list of lists) {

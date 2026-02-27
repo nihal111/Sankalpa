@@ -125,14 +125,17 @@ export function Sidebar({
         {sidebarItems.slice(0, SMART_LISTS.length).map((item, i) => {
           const smartItem = item as { type: 'smart'; smartList: SmartList };
           const isSelected = i === selectedSidebarIndex;
-          const count = taskCounts[smartItem.smartList.id] ?? 0;
-          const hasItems = count > 0;
-          const showBadge = count > 0;
+          const smartId = smartItem.smartList.id;
+          const count = taskCounts[smartId] ?? 0;
+          const overdueCount = smartId === 'today' ? (taskCounts['today_overdue'] ?? 0) : 0;
+          const isOverdueList = smartId === 'overdue';
+          const hasItems = count > 0 || overdueCount > 0;
           return (
-            <li key={smartItem.smartList.id} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
+            <li key={smartId} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
-              {showBadge && <span className="item-badge">{count}</span>}
+              {overdueCount > 0 && <span className="item-badge overdue">{overdueCount}</span>}
+              {count > 0 && <span className={`item-badge${isOverdueList ? ' overdue' : ''}`}>{count}</span>}
             </li>
           );
         })}

@@ -159,6 +159,11 @@ h2 {
   text-align: center;
 }
 
+.item-badge.overdue {
+  color: #fff;
+  background: #e55;
+}
+
 .item.smart-list {
   color: var(--text-secondary);
 }
@@ -240,6 +245,10 @@ h2 {
 }
 
 .task-due-date.overdue {
+  color: #e55;
+}
+
+.task-item.overdue .task-content {
   color: #e55;
 }
 
