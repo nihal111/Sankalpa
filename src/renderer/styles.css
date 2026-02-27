@@ -1160,11 +1160,11 @@ h2 {
   opacity: 0.4;
 }
 
-/* Vertical line continuing down - spans full height */
+/* Vertical line continuing down - extends up to connect, down to bottom of row */
 .tree-line.vertical::before {
   left: 7px;
   top: -8px;
-  bottom: -8px;
+  bottom: 0;
   border-left: 1px solid;
 }
 
@@ -1178,11 +1178,11 @@ h2 {
   width: 8px;
 }
 
-/* Tee (not last child) - vertical full height, horizontal goes right */
+/* Tee (not last child) - vertical extends up and down to bottom, horizontal goes right */
 .tree-line.tee::before {
   left: 7px;
   top: -8px;
-  bottom: -8px;
+  bottom: 0;
   border-left: 1px solid;
 }
 
