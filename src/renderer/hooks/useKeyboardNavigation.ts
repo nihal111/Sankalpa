@@ -43,6 +43,7 @@ export interface KeyboardActions {
   indentList: Command;
   outdentList: Command;
   showListInfo: Command;
+  closeListInfo: Command;
   selectSidebarByListNumber: (n: number) => void;
 }
 
@@ -63,6 +64,7 @@ export interface KeyboardState {
   isCompletedView: boolean;
   confirmationDialogOpen: boolean;
   moveListMode: boolean;
+  listInfoOpen: boolean;
 }
 
 function getAction(id: string): Action {
@@ -110,6 +112,7 @@ export function useKeyboardNavigation(
     }
     if (matches(e, 'duplicateTask')) { e.preventDefault(); actions.duplicateTask(); return; }
     if (state.isSearchOpen || state.isPaletteOpen) return;
+    if (state.listInfoOpen) { if (e.key === 'Escape') { e.preventDefault(); actions.closeListInfo(); } return; }
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
     if (isFilterControl) {

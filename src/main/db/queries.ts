@@ -65,11 +65,15 @@ export function createList(db: Database, id: string, name: string, folderId?: st
   const now = Date.now();
   db.run('INSERT INTO lists (id, folder_id, name, sort_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
     [id, folderId ?? null, name, sortKey, now, now]);
-  return { id, folder_id: folderId ?? null, name, sort_key: sortKey, created_at: now, updated_at: now };
+  return { id, folder_id: folderId ?? null, name, notes: null, sort_key: sortKey, created_at: now, updated_at: now };
 }
 
 export function updateList(db: Database, id: string, name: string): void {
   db.run('UPDATE lists SET name = ?, updated_at = ? WHERE id = ?', [name, Date.now(), id]);
+}
+
+export function updateListNotes(db: Database, id: string, notes: string | null): void {
+  db.run('UPDATE lists SET notes = ?, updated_at = ? WHERE id = ?', [notes, Date.now(), id]);
 }
 
 export function deleteList(db: Database, id: string): void {

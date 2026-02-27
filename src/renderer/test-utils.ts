@@ -5,8 +5,8 @@ import type { Folder, List, Task } from '../shared/types';
 export const mockFolders: Folder[] = [];
 
 export const mockLists: List[] = [
-  { id: '1', folder_id: null, name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-  { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+  { id: '1', folder_id: null, name: 'Inbox', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
+  { id: '2', folder_id: null, name: 'Work', notes: null, sort_key: 2, created_at: 0, updated_at: 0 },
 ];
 
 export const mockTasks: Task[] = [
@@ -22,7 +22,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     foldersUpdate: vi.fn().mockResolvedValue(undefined),
     listsGetAll: vi.fn().mockResolvedValue(mockLists),
     listsGetTaskCount: vi.fn().mockResolvedValue(2),
-    listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: null, name: '', sort_key: 3, created_at: 0, updated_at: 0 }),
+    listsCreate: vi.fn().mockResolvedValue({ id: 'new', folder_id: null, name: '', notes: null, sort_key: 3, created_at: 0, updated_at: 0 }),
     tasksGetInbox: vi.fn().mockResolvedValue([]),
     tasksGetCompleted: vi.fn().mockResolvedValue([]),
     tasksGetInboxCount: vi.fn().mockResolvedValue(0),
@@ -30,6 +30,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     tasksGetTrashed: vi.fn().mockResolvedValue([]),
     tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 }),
     listsUpdate: vi.fn().mockResolvedValue(undefined),
+    listsUpdateNotes: vi.fn().mockResolvedValue(undefined),
     tasksUpdate: vi.fn().mockResolvedValue(undefined),
     tasksToggleCompleted: vi.fn().mockResolvedValue(undefined),
     listsReorder: vi.fn().mockResolvedValue(undefined),

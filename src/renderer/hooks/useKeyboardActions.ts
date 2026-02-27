@@ -42,6 +42,7 @@ interface UseKeyboardActionsParams {
   indentList: () => void;
   outdentList: () => void;
   showListInfo: () => void;
+  closeListInfo: () => void;
   selectSidebarByListNumber: (n: number) => void;
 }
 
@@ -55,7 +56,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
-    showListInfo, selectSidebarByListNumber,
+    showListInfo, closeListInfo, selectSidebarByListNumber,
   } = params;
 
   const startMove = useCallback(() => {
@@ -100,6 +101,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     indentList,
     outdentList,
     showListInfo,
+    closeListInfo,
     selectSidebarByListNumber,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
@@ -108,7 +110,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette, duplicateTask,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
-    indentList, outdentList, showListInfo, selectSidebarByListNumber,
+    indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber,
   ]);
 }
 
@@ -130,12 +132,13 @@ interface UseKeyboardStateParams {
   isCompletedView: boolean;
   confirmationDialogOpen: boolean;
   moveListMode: boolean;
+  listInfoOpen: boolean;
 }
 
 export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState {
   const {
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
-    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode,
+    selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen,
   } = params;
 
   return useMemo(() => ({
@@ -155,5 +158,6 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     isCompletedView,
     confirmationDialogOpen,
     moveListMode,
-  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode]);
+    listInfoOpen,
+  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen]);
 }

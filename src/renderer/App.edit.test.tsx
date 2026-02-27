@@ -315,3 +315,39 @@ describe('App edit mode', () => {
     await waitFor(() => expect(document.querySelector('.context-menu')).toBeNull());
   });
 });
+
+describe('List info modal', () => {
+  it('Cmd+I opens list info and Esc closes it', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'i', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.list-info-modal')).not.toBeNull());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(document.querySelector('.list-info-modal')).toBeNull());
+  });
+
+  it('saves list notes via onNotesChange', async () => {
+    const listsUpdateNotes = vi.fn().mockResolvedValue(undefined);
+    setupMockApi({ listsUpdateNotes });
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'i', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.list-info-modal')).not.toBeNull());
+    const notesDisplay = document.querySelector('.list-notes-display') as HTMLElement;
+    fireEvent.click(notesDisplay);
+    const textarea = document.querySelector('.list-notes-editor') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'hello' } });
+    fireEvent.blur(textarea);
+    await waitFor(() => expect(listsUpdateNotes).toHaveBeenCalledWith('1', 'hello'));
+  });
+
+  it('blocks other keys while list info is open', async () => {
+    render(<App />);
+    await navigateToUserList();
+    fireEvent.keyDown(window, { key: 'i', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.list-info-modal')).not.toBeNull());
+    // pressing 'e' should not enter edit mode
+    fireEvent.keyDown(window, { key: 'e' });
+    expect(document.querySelector('.edit-input')).toBeNull();
+  });
+});

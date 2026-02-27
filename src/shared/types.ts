@@ -11,6 +11,7 @@ export interface List {
   id: string;
   folder_id: string | null;
   name: string;
+  notes: string | null;
   sort_key: number;
   created_at: number;
   updated_at: number;
@@ -45,6 +46,7 @@ export interface Api {
   listsGetAll: () => Promise<List[]>;
   listsCreate: (id: string, name: string, folderId?: string) => Promise<List>;
   listsUpdate: (id: string, name: string) => Promise<void>;
+  listsUpdateNotes: (id: string, notes: string | null) => Promise<void>;
   listsDelete: (id: string) => Promise<void>;
   listsReorder: (id: string, sortKey: number) => Promise<void>;
   listsMove: (id: string, folderId: string | null) => Promise<void>;

@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
   listsGetAll: () => ipcRenderer.invoke('lists:getAll'),
   listsCreate: (id: string, name: string, folderId?: string) => ipcRenderer.invoke('lists:create', id, name, folderId),
   listsUpdate: (id: string, name: string) => ipcRenderer.invoke('lists:update', id, name),
+  listsUpdateNotes: (id: string, notes: string | null) => ipcRenderer.invoke('lists:updateNotes', id, notes),
   listsDelete: (id: string) => ipcRenderer.invoke('lists:delete', id),
   listsReorder: (id: string, sortKey: number) => ipcRenderer.invoke('lists:reorder', id, sortKey),
   listsMove: (id: string, folderId: string | null) => ipcRenderer.invoke('lists:move', id, folderId),

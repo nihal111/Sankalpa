@@ -149,8 +149,8 @@ describe('App move mode', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-      { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Inbox', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '2', folder_id: null, name: 'Work', notes: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
@@ -181,8 +181,8 @@ describe('App move mode', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 0, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', sort_key: 1, created_at: 0, updated_at: 0 },
-      { id: '2', folder_id: null, name: 'Work', sort_key: 2, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Inbox', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '2', folder_id: null, name: 'Work', notes: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),

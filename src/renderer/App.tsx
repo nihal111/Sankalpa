@@ -142,7 +142,7 @@ export default function App(): ReactNode {
         onClose={state.closePalette}
         onExecute={state.executePaletteAction}
       />
-      <ListInfoModal isOpen={state.listInfoOpen} selectedSidebarItem={state.selectedSidebarItem} onClose={state.closeListInfo} />
+      <ListInfoModal isOpen={state.listInfoOpen} selectedSidebarItem={state.selectedSidebarItem} onClose={state.closeListInfo} onNotesChange={state.handleListNotesChange} />
     </div>
   );
 }

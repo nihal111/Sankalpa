@@ -368,7 +368,7 @@ describe('App undo/redo', () => {
   });
 
   it('undo list creation deletes list, redo restores it', async () => {
-    const newList = { id: 'new-list', folder_id: null, name: '', sort_key: 3, created_at: 100, updated_at: 100 };
+    const newList = { id: 'new-list', folder_id: null, name: '', notes: null, sort_key: 3, created_at: 100, updated_at: 100 };
     setupMockApi({
       listsCreate: vi.fn().mockResolvedValue(newList),
       listsDelete: vi.fn().mockResolvedValue(undefined),

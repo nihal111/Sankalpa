@@ -265,7 +265,7 @@ describe('App navigation', () => {
         { id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
       ]),
       listsGetAll: vi.fn().mockResolvedValue([
-        { id: '1', folder_id: 'f1', name: 'Nested', sort_key: 1, created_at: 0, updated_at: 0 },
+        { id: '1', folder_id: 'f1', name: 'Nested', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
       ]),
     });
     render(<App />);

@@ -3,7 +3,7 @@ import path from 'path';
 import {
   getDb, closeDb, saveDb,
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
-  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
+  getAllLists, createList, updateList, updateListNotes, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, reorderTask, moveTask,
   restoreTask, restoreList, setTaskListId, setTaskDueDate, updateTaskNotes,
   getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
@@ -83,6 +83,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('lists:getAll', () => getAllLists(db));
   ipcMain.handle('lists:create', (_, id: string, name: string, folderId?: string) => { const r = createList(db, id, name, folderId); saveDb(); return r; });
   ipcMain.handle('lists:update', (_, id: string, name: string) => { updateList(db, id, name); saveDb(); });
+  ipcMain.handle('lists:updateNotes', (_, id: string, notes: string | null) => { updateListNotes(db, id, notes); saveDb(); });
   ipcMain.handle('lists:delete', (_, id: string) => { deleteList(db, id); saveDb(); });
   ipcMain.handle('lists:reorder', (_, id: string, sortKey: number) => { reorderList(db, id, sortKey); saveDb(); });
   ipcMain.handle('lists:move', (_, id: string, folderId: string | null) => { moveList(db, id, folderId); saveDb(); });

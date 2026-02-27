@@ -152,7 +152,7 @@ describe('App trash', () => {
   it('Create list and restore option works', async () => {
     setupMockApi({
       tasksGetTrashed: vi.fn().mockResolvedValue([trashedTaskNoList]),
-      listsCreate: vi.fn().mockResolvedValue({ id: 'new-list', folder_id: null, name: 'deleted-list', sort_key: 3, created_at: 0, updated_at: 0 }),
+      listsCreate: vi.fn().mockResolvedValue({ id: 'new-list', folder_id: null, name: 'deleted-list', notes: null, sort_key: 3, created_at: 0, updated_at: 0 }),
     });
     render(<App />);
     await navigateToTrashTasks();

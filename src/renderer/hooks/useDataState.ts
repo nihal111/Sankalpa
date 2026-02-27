@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { Folder, List, Task } from '../../shared/types';
 import { parseRetentionDays } from '../../shared/trashRetention';
 import { buildSidebarItems, SidebarItem } from '../utils/buildSidebarItems';
@@ -30,6 +30,7 @@ interface DataActions {
 
 export function useDataState(
   selectedSidebarIndex: number,
+  selectedTaskIndex: number,
   setSelectedTaskIndex: (index: number) => void
 ): [DataState, DataActions] {
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -38,6 +39,10 @@ export function useDataState(
   const [allCompletedTasks, setAllCompletedTasks] = useState<Task[]>([]);
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
   const [completedFilter, setCompletedFilter] = useState<CompletedFilter>({ listId: 'all', dateRange: 'all' });
+  const cursorMap = useRef<Map<string, number>>(new Map());
+  const prevListId = useRef<string | null>(null);
+  const taskIndexRef = useRef(selectedTaskIndex);
+  taskIndexRef.current = selectedTaskIndex;
 
   const sidebarItems = useMemo(() => buildSidebarItems(folders, lists), [folders, lists]);
   const trashIndex = useMemo(() => sidebarItems.length - 1, [sidebarItems]);
@@ -130,7 +135,14 @@ export function useDataState(
   }, [lists, tasks]);
 
   useEffect(() => {
+    if (prevListId.current) cursorMap.current.set(prevListId.current, taskIndexRef.current);
     let stale = false;
+    const listKey = selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.id
+      : selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id : null;
+    const restoreCursor = (taskCount: number): void => {
+      const saved = listKey ? cursorMap.current.get(listKey) : undefined;
+      setSelectedTaskIndex(saved !== undefined ? Math.min(saved, Math.max(0, taskCount - 1)) : 0);
+    };
     if (selectedSidebarItem?.type === 'smart') {
       const smartId = selectedSidebarItem.smartList.id;
       if (smartId === 'completed') {
@@ -138,21 +150,22 @@ export function useDataState(
           if (!stale) {
             setAllCompletedTasks(t);
             setTasks(t);
-            setSelectedTaskIndex(0);
+            restoreCursor(t.length);
           }
         });
       } else {
         loadSmartTasks(smartId).then((t) => {
-          if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
+          if (!stale) { setTasks(t); restoreCursor(t.length); }
         });
       }
     } else if (selectedListId && selectedSidebarItem?.type === 'list') {
       window.api.tasksGetByList(selectedListId).then((t) => {
-        if (!stale) { setTasks(t); setSelectedTaskIndex(0); }
+        if (!stale) { setTasks(t); restoreCursor(t.length); }
       });
     } else {
       setTasks([]);
     }
+    prevListId.current = listKey;
     return () => { stale = true; };
   }, [selectedListId, selectedSidebarItem, setSelectedTaskIndex, loadSmartTasks]);
 

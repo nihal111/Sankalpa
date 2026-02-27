@@ -43,7 +43,7 @@ export function useAppState() {
 
   const metaHeld = useMetaKey();
 
-  const [data, dataActions] = useDataState(selectedSidebarIndex, setSelectedTaskIndex);
+  const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
 
@@ -150,6 +150,10 @@ export function useAppState() {
 
   const showListInfo = useCallback(() => setListInfoOpen(true), []);
   const closeListInfo = useCallback(() => setListInfoOpen(false), []);
+  const handleListNotesChange = useCallback(async (listId: string, notes: string | null) => {
+    await window.api.listsUpdateNotes(listId, notes);
+    await reloadData();
+  }, [reloadData]);
 
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
@@ -160,14 +164,14 @@ export function useAppState() {
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
-    showListInfo, selectSidebarByListNumber,
+    showListInfo, closeListInfo, selectSidebarByListNumber,
   });
 
   const keyboardState = useKeyboardState({
     editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
     confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
-    moveListMode,
+    moveListMode, listInfoOpen,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -211,6 +215,6 @@ export function useAppState() {
     dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
     moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex,
-    closeListInfo, listInfoOpen, selectedSidebarItem, metaHeld,
+    closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
   };
 }
