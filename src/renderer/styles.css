@@ -1160,19 +1160,19 @@ h2 {
   opacity: 0.4;
 }
 
-/* Vertical line continuing down */
+/* Vertical line continuing down - spans full height */
 .tree-line.vertical::before {
   left: 7px;
-  top: 0;
-  bottom: 0;
+  top: -8px;
+  bottom: -8px;
   border-left: 1px solid;
 }
 
-/* Corner (last child) - vertical stops at center, horizontal goes right */
+/* Corner (last child) - vertical from top to center, horizontal goes right */
 .tree-line.corner::before {
   left: 7px;
-  top: 0;
-  height: 50%;
+  top: -8px;
+  height: calc(50% + 8px);
   border-left: 1px solid;
   border-bottom: 1px solid;
   width: 8px;
@@ -1181,8 +1181,8 @@ h2 {
 /* Tee (not last child) - vertical full height, horizontal goes right */
 .tree-line.tee::before {
   left: 7px;
-  top: 0;
-  bottom: 0;
+  top: -8px;
+  bottom: -8px;
   border-left: 1px solid;
 }
 
@@ -1207,7 +1207,8 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 1;
   color: var(--text-secondary);
 }
 

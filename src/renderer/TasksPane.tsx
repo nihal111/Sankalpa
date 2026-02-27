@@ -32,6 +32,7 @@ interface TasksPaneProps {
   onTaskClick: (index: number) => void;
   onTaskContextMenu: (index: number, x: number, y: number) => void;
   onTaskToggle: (taskId: string) => void;
+  onToggleExpand: (taskId: string) => void;
   flashIds: Set<string>;
   throbIds: Set<string>;
   completeIds: Set<string>;
@@ -75,6 +76,7 @@ export function TasksPane({
   onTaskClick,
   onTaskContextMenu,
   onTaskToggle,
+  onToggleExpand,
   flashIds,
   throbIds,
   completeIds,
@@ -162,7 +164,10 @@ export function TasksPane({
                     className={`tree-line ${idx === treeLines.length - 1 ? (flatTask.isLastChild ? 'corner' : 'tee') : (line.isLast ? 'empty' : 'vertical')}`}
                   />
                 ))}
-                <span className={`chevron-slot ${hasKids ? (expanded ? 'expanded' : 'collapsed') : ''}`}>
+                <span
+                  className={`chevron-slot ${hasKids ? (expanded ? 'expanded' : 'collapsed') : ''}`}
+                  onClick={hasKids ? (e) => { e.stopPropagation(); onToggleExpand(task.id); } : undefined}
+                >
                   {hasKids && (expanded ? '▾' : '▸')}
                 </span>
               </span>

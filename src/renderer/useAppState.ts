@@ -165,6 +165,7 @@ export function useAppState() {
   const handleSidebarClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedSidebarIndex(index); setFocusedPane('lists'); }, [hardcoreMode]);
   const handleTaskClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedTaskIndex(index); setFocusedPane('tasks'); multiSelectActions.clear(); }, [hardcoreMode, multiSelectActions]);
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
+  const handleToggleExpand = useCallback(async (taskId: string) => { if (hardcoreMode) return; await window.api.tasksToggleExpanded(taskId); await reloadTasks(); }, [hardcoreMode, reloadTasks]);
   const handleFolderToggle = useCallback(async (folderId: string) => { if (hardcoreMode) return; await window.api.foldersToggleExpanded(folderId); await reloadData(); }, [hardcoreMode, reloadData]);
 
   const ctxMenu = useContextMenu({
@@ -181,7 +182,7 @@ export function useAppState() {
     handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef, taskCounts, tasks, selectedTaskIndex,
     selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor, settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
     trashRetentionIndex, retentionOptions, getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
-    handleFolderToggle, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
+    handleFolderToggle, handleToggleExpand, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu, flashIds, throbIds, completeIds, uncompleteIds, moveIds,
     evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     durationIndex, commitDuration: durationActions.commit, cancelDuration: durationActions.cancel, trashIndex, isTrashView, lists,

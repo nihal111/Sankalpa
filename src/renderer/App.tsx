@@ -61,6 +61,7 @@ export default function App(): ReactNode {
         onTaskClick={state.handleTaskClick}
         onTaskContextMenu={state.handleTaskContextMenu}
         onTaskToggle={state.handleTaskToggle}
+        onToggleExpand={state.handleToggleExpand}
         flashIds={state.flashIds}
         throbIds={state.throbIds}
         completeIds={state.completeIds}
