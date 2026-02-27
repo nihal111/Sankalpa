@@ -16,8 +16,8 @@ interface UseTrashActionsParams {
   selectedTaskIndex: number;
   selectedTaskIndices: Set<number>;
   setSelectedTaskIndex: (fn: number | ((i: number) => number)) => void;
+  multiSelectClear: () => void;
   reloadTasks: () => Promise<void>;
-  reloadData: () => Promise<void>;
   undoPush: (entry: UndoEntry) => void;
 }
 
@@ -31,7 +31,7 @@ interface TrashActions {
 }
 
 export function useTrashActions(params: UseTrashActionsParams): TrashActions {
-  const { isTrashView, tasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, reloadTasks, reloadData, undoPush } = params;
+  const { isTrashView, tasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear, reloadTasks, undoPush } = params;
   const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
   const closeConfirmationDialog = useCallback(() => setConfirmationDialog(null), []);
@@ -48,21 +48,23 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     });
   }, [reloadTasks, setSelectedTaskIndex, tasks.length, undoPush]);
 
-  const handlePermanentDeleteMulti = useCallback(async (tasksToDelete: Task[]) => {
+  const handlePermanentDeleteMulti = useCallback(async (tasksToDelete: Task[], firstIndex: number) => {
     for (const t of tasksToDelete) await window.api.tasksDelete(t.id);
     await reloadTasks();
-    setSelectedTaskIndex(0);
+    multiSelectClear();
+    setSelectedTaskIndex(Math.min(firstIndex, tasks.length - tasksToDelete.length - 1));
     setConfirmationDialog(null);
     undoPush({
       undo: async () => { for (const t of tasksToDelete) await window.api.tasksRestore(t.id, t.list_id, t.title, t.status, t.created_timestamp, t.completed_timestamp, t.sort_key, t.created_at, t.updated_at, t.deleted_at); },
       redo: async () => { for (const t of tasksToDelete) await window.api.tasksDelete(t.id); },
     });
-  }, [reloadTasks, setSelectedTaskIndex, undoPush]);
+  }, [reloadTasks, multiSelectClear, setSelectedTaskIndex, tasks.length, undoPush]);
 
   const handlePermanentDeleteRequest = useCallback((task: Task) => {
     const indicesToDelete = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [tasks.indexOf(task)];
     const tasksToDelete = indicesToDelete.map(i => tasks[i]).filter(Boolean);
     if (tasksToDelete.length === 0) return;
+    const firstIndex = indicesToDelete[0];
 
     if (tasksToDelete.length === 1) {
       setConfirmationDialog({
@@ -74,58 +76,62 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
       setConfirmationDialog({
         title: 'Permanently Delete',
         message: `Are you sure you want to permanently delete ${tasksToDelete.length} selected tasks? This cannot be undone.`,
-        options: [{ label: 'Delete All', action: () => handlePermanentDeleteMulti(tasksToDelete), hotkeyDisplay: '⌘ ↵' }],
+        options: [{ label: 'Delete All', action: () => handlePermanentDeleteMulti(tasksToDelete, firstIndex), hotkeyDisplay: '⌘ ↵' }],
       });
     }
   }, [handlePermanentDelete, handlePermanentDeleteMulti, selectedTaskIndices, tasks]);
 
   const handleRestoreTask = useCallback(async () => {
     if (!isTrashView || tasks.length === 0) return;
-    const task = tasks[selectedTaskIndex];
-    if (!task) return;
 
-    const listExists = task.list_id === null || lists.some((l) => l.id === task.list_id);
+    // Get tasks to restore (multi-select or single)
+    const indicesToRestore = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [selectedTaskIndex];
+    const tasksToRestore = indicesToRestore.map(i => tasks[i]).filter(Boolean);
+    if (tasksToRestore.length === 0) return;
 
-    if (listExists) {
-      await window.api.tasksRestoreFromTrash(task.id);
-      await reloadTasks();
-      setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-      undoPush({
-        undo: async () => { await window.api.tasksSoftDelete(task.id); },
-        redo: async () => { await window.api.tasksRestoreFromTrash(task.id); },
-      });
-    } else {
-      const listName = task.list_id ?? 'Unknown';
+    // Find subtasks of selected tasks that are also in trash
+    const selectedIds = new Set(tasksToRestore.map(t => t.id));
+    const subtasksToRestore = tasks.filter(t => t.parent_id && selectedIds.has(t.parent_id) && !selectedIds.has(t.id));
+    const allTasksToRestore = [...tasksToRestore, ...subtasksToRestore];
+
+    // Check if any task's list is missing
+    const missingListTasks = tasksToRestore.filter(t => t.list_id !== null && !lists.some(l => l.id === t.list_id));
+
+    if (missingListTasks.length > 0) {
+      // For simplicity, if any list is missing, offer to restore all to inbox
       setConfirmationDialog({
-        title: 'Restore Task',
-        message: `The original list no longer exists.`,
-        options: [
-          {
-            label: 'Restore to Inbox',
-            action: async () => {
-              await window.api.tasksSetListId(task.id, null);
-              await window.api.tasksRestoreFromTrash(task.id);
-              await reloadTasks();
-              setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-              setConfirmationDialog(null);
-            },
+        title: 'Restore Task' + (tasksToRestore.length > 1 ? 's' : ''),
+        message: tasksToRestore.length === 1
+          ? `The original list no longer exists.`
+          : `Some original lists no longer exist.`,
+        options: [{
+          label: 'Restore to Inbox',
+          hotkeyDisplay: '⌘ ↵',
+          action: async () => {
+            for (const t of allTasksToRestore) {
+              if (missingListTasks.some(m => m.id === t.id)) await window.api.tasksSetListId(t.id, null);
+              await window.api.tasksRestoreFromTrash(t.id);
+            }
+            await reloadTasks();
+            multiSelectClear();
+            setSelectedTaskIndex(Math.min(indicesToRestore[0], tasks.length - allTasksToRestore.length - 1));
+            setConfirmationDialog(null);
           },
-          {
-            label: `Create "${listName}" and restore`,
-            action: async () => {
-              const newList = await window.api.listsCreate(crypto.randomUUID(), listName);
-              await window.api.tasksSetListId(task.id, newList.id);
-              await window.api.tasksRestoreFromTrash(task.id);
-              await reloadData();
-              await reloadTasks();
-              setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2));
-              setConfirmationDialog(null);
-            },
-          },
-        ],
+        }],
       });
+      return;
     }
-  }, [isTrashView, tasks, selectedTaskIndex, lists, reloadTasks, reloadData, setSelectedTaskIndex, undoPush]);
+
+    // All lists exist, restore directly
+    for (const t of allTasksToRestore) await window.api.tasksRestoreFromTrash(t.id);
+    await reloadTasks();
+    multiSelectClear();
+    setSelectedTaskIndex(Math.min(indicesToRestore[0], tasks.length - allTasksToRestore.length - 1));
+    undoPush({
+      undo: async () => { for (const t of allTasksToRestore) await window.api.tasksSoftDelete(t.id); },
+      redo: async () => { for (const t of allTasksToRestore) await window.api.tasksRestoreFromTrash(t.id); },
+    });
+  }, [isTrashView, tasks, selectedTaskIndex, selectedTaskIndices, lists, reloadTasks, multiSelectClear, setSelectedTaskIndex, undoPush]);
 
   const handleCascadeComplete = useCallback((task: Task, descendantCount: number, onConfirm: () => void) => {
     setConfirmationDialog({

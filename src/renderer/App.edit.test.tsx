@@ -126,14 +126,14 @@ describe('App edit mode', () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Delete' });
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('t1'));
   });
 
   it('deletes task on Backspace key', async () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'Backspace' });
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('t1'));
   });
 
   it('Delete does nothing when no tasks', async () => {
@@ -168,14 +168,14 @@ describe('App edit mode', () => {
     ];
     setupMockApi({
       tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),
-      tasksDelete: vi.fn().mockResolvedValue(undefined),
+      tasksSoftDelete: vi.fn().mockResolvedValue(undefined),
     });
     render(<App />);
     // Smart Inbox is selected by default
     await waitFor(() => expect(screen.getByText('Inbox Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'Delete' });
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('inbox-t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('inbox-t1'));
     expect(window.api.tasksGetInbox).toHaveBeenCalled();
   });
 

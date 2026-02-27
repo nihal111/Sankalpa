@@ -248,8 +248,8 @@ describe('App navigation', () => {
     fireEvent.keyDown(window, { key: 'Backspace' });
     await waitFor(() => expect(screen.getByText('Delete All')).toBeDefined());
     fireEvent.click(screen.getByText('Delete All'));
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('p1'));
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('c1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('p1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('c1'));
   });
 
   it('right arrow on list in sidebar focuses tasks pane', async () => {

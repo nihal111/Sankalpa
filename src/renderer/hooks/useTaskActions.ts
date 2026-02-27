@@ -91,8 +91,8 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     const descendantIds = getDescendantIds(task.id, tasks);
     const doDelete = async () => {
       const { id } = task;
-      await window.api.tasksDelete(task.id);
-      for (const descId of descendantIds) await window.api.tasksDelete(descId);
+      await window.api.tasksSoftDelete(task.id);
+      for (const descId of descendantIds) await window.api.tasksSoftDelete(descId);
       await reloadTasks();
       setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2 - descendantIds.length));
       undoPush({
@@ -101,8 +101,8 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
           for (const descId of descendantIds) await window.api.tasksRestoreFromTrash(descId);
         },
         redo: async () => {
-          await window.api.tasksDelete(id);
-          for (const descId of descendantIds) await window.api.tasksDelete(descId);
+          await window.api.tasksSoftDelete(id);
+          for (const descId of descendantIds) await window.api.tasksSoftDelete(descId);
         },
       });
     };

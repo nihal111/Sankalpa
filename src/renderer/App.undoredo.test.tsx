@@ -51,13 +51,13 @@ describe('App undo/redo', () => {
     await navigateToTasksPane();
 
     fireEvent.keyDown(window, { key: 'Delete' });
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('t1'));
 
     undo();
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('t1'));
 
     redo();
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledTimes(2));
   });
 
   it('create + rename: two undos then two redos replays full sequence', async () => {
@@ -237,7 +237,7 @@ describe('App undo/redo', () => {
 
     // Action 2: delete t1
     fireEvent.keyDown(window, { key: 'Delete' });
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('t1'));
 
     // Action 3: create new task + name it
     fireEvent.keyDown(window, { key: 'n', metaKey: true });
@@ -280,7 +280,7 @@ describe('App undo/redo', () => {
 
     // Redo 2: re-delete t1
     redo();
-    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+    await waitFor(() => expect(window.api.tasksSoftDelete).toHaveBeenCalledWith('t1'));
 
     // Redo 3: restore new task creation
     redo();

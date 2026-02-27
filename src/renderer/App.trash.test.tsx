@@ -149,18 +149,17 @@ describe('App trash', () => {
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('trash2'));
   });
 
-  it('Create list and restore option works', async () => {
+  it('Restore to Inbox option works when list is missing', async () => {
     setupMockApi({
       tasksGetTrashed: vi.fn().mockResolvedValue([trashedTaskNoList]),
-      listsCreate: vi.fn().mockResolvedValue({ id: 'new-list', folder_id: null, name: 'deleted-list', notes: null, sort_key: 3, created_at: 0, updated_at: 0 }),
     });
     render(<App />);
     await navigateToTrashTasks();
     await waitFor(() => expect(screen.getByText('Orphan Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'r' });
-    await waitFor(() => expect(screen.getByText(/Create "deleted-list" and restore/)).toBeDefined());
-    fireEvent.click(screen.getByText(/Create "deleted-list" and restore/));
-    await waitFor(() => expect(window.api.tasksSetListId).toHaveBeenCalledWith('trash2', 'new-list'));
+    await waitFor(() => expect(screen.getByText('Restore to Inbox')).toBeDefined());
+    fireEvent.click(screen.getByText('Restore to Inbox'));
+    await waitFor(() => expect(window.api.tasksSetListId).toHaveBeenCalledWith('trash2', null));
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('trash2'));
   });
 
@@ -227,5 +226,27 @@ describe('App trash', () => {
     // Redo deletes both again
     fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
     await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledTimes(4));
+  });
+
+  it('multi-select restore with missing lists shows dialog', async () => {
+    const trashedTask2: Task = { ...trashedTaskNoList, id: 'trash3', title: 'Another Orphan', sort_key: 3 };
+    setupMockApi({ tasksGetTrashed: vi.fn().mockResolvedValue([trashedTaskNoList, trashedTask2]) });
+    render(<App />);
+    await navigateToTrashTasks();
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'r' });
+    await waitFor(() => expect(screen.getByText(/Some original lists no longer exist/)).toBeDefined());
+  });
+
+  it('restore also restores subtasks', async () => {
+    const parent: Task = { ...trashedTask, id: 'parent', title: 'Parent' };
+    const child: Task = { ...trashedTask, id: 'child', title: 'Child', parent_id: 'parent', sort_key: 2 };
+    setupMockApi({ tasksGetTrashed: vi.fn().mockResolvedValue([parent, child]) });
+    render(<App />);
+    await navigateToTrashTasks();
+    fireEvent.keyDown(window, { key: 'r' });
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('parent'));
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('child'));
   });
 });
