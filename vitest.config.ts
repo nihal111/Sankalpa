@@ -16,13 +16,14 @@ export default defineConfig({
         'src/main/db/index.ts',
         'src/main/index.ts',
         'src/renderer/main.tsx',
+        // Hooks with heavy window.api dependencies - tested via App.*.test.tsx integration tests
         'src/renderer/hooks/useTaskNesting.ts',
         'src/renderer/hooks/usePaletteState.ts',
         'src/renderer/hooks/useMoveListState.ts',
         'src/renderer/hooks/useDragDrop.ts',
         'src/renderer/hooks/useContextMenu.ts',
         'src/renderer/hooks/useMetaKey.ts',
-        'src/renderer/utils/taskTree.ts',
+        // UI components - tested via App.*.test.tsx integration tests
         'src/renderer/CommandPalette.tsx',
         'src/renderer/ListInfoModal.tsx',
         'src/renderer/ConfirmationDialog.tsx',

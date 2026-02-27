@@ -15,7 +15,7 @@ interface UseListActionsParams {
   selectedSidebarIndex: number;
   setSelectedSidebarIndex: (index: number) => void;
   setFocusedPane: (pane: Pane) => void;
-  setEditMode: (mode: { type: 'list'; id: string }) => void;
+  setEditMode: (mode: { type: 'list'; id: string } | { type: 'folder'; id: string }) => void;
   setEditValue: (value: string) => void;
   setFolders: (folders: Folder[]) => void;
   setLists: (lists: List[]) => void;
