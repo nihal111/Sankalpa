@@ -219,7 +219,7 @@ describe('Context menu', () => {
     const workItem = screen.getByText('Work').closest('li');
     fireEvent.contextMenu(workItem!, { clientX: 100, clientY: 100 });
     await waitFor(() => expect(document.querySelector('.context-menu')).toBeDefined());
-    expect(screen.getByText('Edit')).toBeDefined();
+    expect(screen.getByText('Rename')).toBeDefined();
     expect(screen.getByText('Delete')).toBeDefined();
   });
 

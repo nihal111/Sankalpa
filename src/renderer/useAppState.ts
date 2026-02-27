@@ -188,6 +188,7 @@ export function useAppState() {
   const ctxMenu = useContextMenu({
     hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
     editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask,
+    duplicateList, startMoveList, showListInfo,
   });
 
   const getSelectedListName = (): string => selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.name : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.name : 'Tasks';

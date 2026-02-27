@@ -20,11 +20,14 @@ interface UseContextMenuParams {
   deleteTask: () => void;
   deleteList: () => void;
   duplicateTask: () => void;
+  duplicateList: () => Promise<void>;
+  startMoveList: () => void;
+  showListInfo: () => void;
 }
 
 export function useContextMenu(params: UseContextMenuParams) {
   const { hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
-    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask } = params;
+    editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask, duplicateList, startMoveList, showListInfo } = params;
   const [menuState, setMenuState] = useState<ContextMenuState | null>(null);
 
   const handleTaskContextMenu = useCallback((index: number, x: number, y: number) => {
@@ -58,11 +61,14 @@ export function useContextMenu(params: UseContextMenuParams) {
           { label: 'Delete', action: deleteTask },
         ]
       : [
-          { label: 'Edit', action: editActions.start },
+          { label: 'Rename', action: editActions.start },
+          { label: 'Duplicate', action: duplicateList },
+          { label: 'Move to Folder', action: startMoveList },
+          { label: 'Show Info', action: showListInfo },
           { label: 'Delete', action: deleteList },
         ];
     return { x, y, items };
-  }, [menuState, editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask]);
+  }, [menuState, editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask, duplicateList, startMoveList, showListInfo]);
 
   const closeContextMenu = useCallback(() => setMenuState(null), []);
 
