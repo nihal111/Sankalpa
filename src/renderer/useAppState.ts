@@ -48,17 +48,18 @@ export function useAppState() {
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
   const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
+  const selectedTask = useMemo(() => flatTasks[selectedTaskIndex]?.task ?? null, [flatTasks, selectedTaskIndex]);
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
   const trashActions = useTrashActions({ isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
-  const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
-  const [durationIndex, durationActions] = useDurationState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
-  const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush, onEvaporate: evaporateFlash });
+  const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, selectedTask, selectedTaskIndex, reloadTasks });
+  const [durationIndex, durationActions] = useDurationState({ focusedPane, selectedTask, selectedTaskIndex, reloadTasks });
+  const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTask, selectedTaskIndex, reloadData, reloadTasks, undoPush, onEvaporate: evaporateFlash });
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
   const handleMoveCommit = useMoveCommit({ sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash: moveFlash, undoPush });
   const [move, moveActions] = useMoveState({
-    sidebarItems, selectedListId, tasks, selectedTaskIndex, selectedTaskIndices, onCommit: handleMoveCommit,
+    sidebarItems, selectedListId, selectedTask, flatTasks, selectedTaskIndex, selectedTaskIndices, onCommit: handleMoveCommit,
   });
   const { moveMode, moveTargetIndex } = move;
 
@@ -85,7 +86,7 @@ export function useAppState() {
   }, [setEditMode, setEditValue, setTasks]);
 
   const { createTask, toggleTaskCompleted, deleteTask, duplicateTask } = useTaskActions({
-    focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
+    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
     onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete,
@@ -106,8 +107,7 @@ export function useAppState() {
     setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn), setFocusedPane, reloadData, clearSelection: multiSelectActions.clear,
   });
 
-  const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
-  const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
+  const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions, setFocusedPane]);
   const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
   const handleDetailEditDuration = useCallback(() => { if (selectedTask) durationActions.start(); }, [selectedTask, durationActions]);
   const { notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit } = useNotesState({ selectedTask, reloadTasks });

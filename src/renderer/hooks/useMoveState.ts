@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
+import type { Task } from '../../shared/types';
 import type { SidebarItem } from '../types';
+import type { TaskWithDepth } from '../utils/taskTree';
 
 export interface MoveActions {
   start: () => void;
@@ -11,7 +13,8 @@ export interface MoveActions {
 interface UseMoveStateParams {
   sidebarItems: SidebarItem[];
   selectedListId: string | null;
-  tasks: { id: string }[];
+  selectedTask: Task | null;
+  flatTasks: TaskWithDepth[];
   selectedTaskIndex: number;
   selectedTaskIndices: Set<number>;
   onCommit: (targetListId: string, taskIds: string[]) => Promise<void>;
@@ -20,7 +23,8 @@ interface UseMoveStateParams {
 export function useMoveState({
   sidebarItems,
   selectedListId,
-  tasks,
+  selectedTask,
+  flatTasks,
   selectedTaskIndex,
   selectedTaskIndices,
   onCommit,
@@ -29,12 +33,12 @@ export function useMoveState({
   const [moveTargetIndex, setMoveTargetIndex] = useState(0);
 
   const start = useCallback(() => {
-    if (tasks[selectedTaskIndex] || selectedTaskIndices.size > 0) {
+    if (selectedTask || selectedTaskIndices.size > 0) {
       setMoveMode(true);
       const listIndex = sidebarItems.findIndex((item) => item.type === 'list');
       setMoveTargetIndex(Math.max(0, listIndex));
     }
-  }, [tasks, selectedTaskIndex, selectedTaskIndices.size, sidebarItems]);
+  }, [selectedTask, selectedTaskIndices.size, sidebarItems]);
 
   const cancel = useCallback(() => setMoveMode(false), []);
 
@@ -47,10 +51,10 @@ export function useMoveState({
     const indicesToMove = selectedTaskIndices.size > 0
       ? Array.from(selectedTaskIndices).sort((a, b) => a - b)
       : [selectedTaskIndex];
-    const taskIds = indicesToMove.map((idx) => tasks[idx]?.id).filter(Boolean) as string[];
+    const taskIds = indicesToMove.map((idx) => flatTasks[idx]?.task.id).filter(Boolean) as string[];
     await onCommit(targetItem.list.id, taskIds);
     setMoveMode(false);
-  }, [sidebarItems, moveTargetIndex, selectedListId, selectedTaskIndices, selectedTaskIndex, tasks, onCommit]);
+  }, [sidebarItems, moveTargetIndex, selectedListId, selectedTaskIndices, selectedTaskIndex, flatTasks, onCommit]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent): boolean => {
     if (!moveMode) return false;

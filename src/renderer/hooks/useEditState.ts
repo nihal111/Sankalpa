@@ -12,8 +12,8 @@ interface SidebarItem {
 interface UseEditStateParams {
   focusedPane: Pane;
   selectedSidebarItem: SidebarItem | undefined;
+  selectedTask: Task | null;
   selectedTaskIndex: number;
-  tasks: Task[];
   reloadData: () => Promise<void>;
   reloadTasks: () => Promise<void>;
   undoPush: (entry: UndoEntry) => void;
@@ -32,11 +32,12 @@ export function useEditState(params: UseEditStateParams): [
   EditActions,
   { setEditMode: (mode: EditMode) => void; setEditValue: (value: string) => void }
 ] {
-  const { focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush, onEvaporate } = params;
+  const { focusedPane, selectedSidebarItem, selectedTask, selectedTaskIndex, reloadData, reloadTasks, undoPush, onEvaporate } = params;
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const prevValueRef = useRef<string>('');
+  const editTaskIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (editMode && inputRef.current) {
@@ -52,9 +53,10 @@ export function useEditState(params: UseEditStateParams): [
 
   // Sync prevValueRef whenever edit mode is entered (covers both start() and direct setEditMode)
   useEffect(() => {
-    if (!editMode) { prevValueRef.current = ''; return; }
-    if (editMode.type === 'task' && tasks[editMode.index]) {
-      prevValueRef.current = tasks[editMode.index].title;
+    if (!editMode) { prevValueRef.current = ''; editTaskIdRef.current = null; return; }
+    if (editMode.type === 'task' && selectedTask) {
+      prevValueRef.current = selectedTask.title;
+      editTaskIdRef.current = selectedTask.id;
     } else if (editMode.type === 'list' && selectedSidebarItem?.type === 'list') {
       prevValueRef.current = selectedSidebarItem.list!.name;
     } else if (editMode.type === 'folder' && selectedSidebarItem?.type === 'folder') {
@@ -72,21 +74,22 @@ export function useEditState(params: UseEditStateParams): [
       prevValueRef.current = item.folder!.name;
       setEditMode({ type: 'folder', id: item.folder!.id });
       setEditValue(item.folder!.name);
-    } else if (focusedPane === 'tasks' && tasks[selectedTaskIndex]) {
-      prevValueRef.current = tasks[selectedTaskIndex].title;
+    } else if (focusedPane === 'tasks' && selectedTask) {
+      prevValueRef.current = selectedTask.title;
+      editTaskIdRef.current = selectedTask.id;
       setEditMode({ type: 'task', index: selectedTaskIndex });
-      setEditValue(tasks[selectedTaskIndex].title);
+      setEditValue(selectedTask.title);
     }
-  }, [focusedPane, selectedSidebarItem, selectedTaskIndex, tasks]);
+  }, [focusedPane, selectedSidebarItem, selectedTask, selectedTaskIndex]);
 
   const commit = useCallback(async () => {
     if (!editMode) { setEditMode(null); return; }
     const oldValue = prevValueRef.current;
     const newValue = editValue.trim();
+    const taskId = editTaskIdRef.current;
     if (!newValue) {
       // Empty title: delete the task (evaporate)
-      if (editMode.type === 'task' && tasks[editMode.index]) {
-        const taskId = tasks[editMode.index].id;
+      if (editMode.type === 'task' && taskId) {
         onEvaporate?.(taskId);
         setTimeout(async () => {
           await window.api.tasksDelete(taskId);
@@ -110,8 +113,7 @@ export function useEditState(params: UseEditStateParams): [
         undoPush({ undo: async () => { await window.api.foldersUpdate(id, oldValue); }, redo: async () => { await window.api.foldersUpdate(id, newValue); } });
       }
       await reloadData();
-    } else {
-      const taskId = tasks[editMode.index].id;
+    } else if (taskId) {
       await window.api.tasksUpdate(taskId, newValue);
       if (oldValue != null && oldValue !== newValue) {
         undoPush({ undo: async () => { await window.api.tasksUpdate(taskId, oldValue); }, redo: async () => { await window.api.tasksUpdate(taskId, newValue); } });
@@ -119,12 +121,12 @@ export function useEditState(params: UseEditStateParams): [
       await reloadTasks();
     }
     setEditMode(null);
-  }, [editMode, editValue, tasks, reloadData, reloadTasks, undoPush, onEvaporate]);
+  }, [editMode, editValue, reloadData, reloadTasks, undoPush, onEvaporate]);
 
   const cancel = useCallback(() => {
     // If canceling an empty task, evaporate it
-    if (editMode?.type === 'task' && !editValue.trim() && tasks[editMode.index]) {
-      const taskId = tasks[editMode.index].id;
+    const taskId = editTaskIdRef.current;
+    if (editMode?.type === 'task' && !editValue.trim() && taskId) {
       onEvaporate?.(taskId);
       setTimeout(async () => {
         await window.api.tasksDelete(taskId);
@@ -132,7 +134,7 @@ export function useEditState(params: UseEditStateParams): [
       }, 200);
     }
     setEditMode(null);
-  }, [editMode, editValue, tasks, onEvaporate, reloadTasks]);
+  }, [editMode, editValue, onEvaporate, reloadTasks]);
 
   const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') { e.preventDefault(); commit(); }

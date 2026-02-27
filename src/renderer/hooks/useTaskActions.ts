@@ -9,7 +9,7 @@ interface UseTaskActionsParams {
   focusedPane: Pane;
   selectedSidebarItem: SidebarItem | undefined;
   selectedListId: string | null;
-  selectedTaskIndex: number;
+  selectedTask: Task | null;
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
   setSelectedTaskIndex: (fn: number | ((i: number) => number)) => void;
@@ -35,7 +35,7 @@ interface TaskActions {
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
-    focusedPane, selectedSidebarItem, selectedListId, selectedTaskIndex, tasks,
+    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, onCompleteFlash, undoPush,
     isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete,
   } = params;
@@ -62,36 +62,32 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
-    if (focusedPane !== 'tasks' || tasks.length === 0) return;
-    const task = tasks[selectedTaskIndex];
-    if (!task) return;
+    if (focusedPane !== 'tasks' || !selectedTask) return;
 
-    const descendantIds = getDescendantIds(task.id, tasks);
-    if (descendantIds.length > 0 && task.status !== 'COMPLETED') {
-      onCascadeComplete?.(task, descendantIds.length, async () => {
-        await window.api.tasksToggleCompleted(task.id);
+    const descendantIds = getDescendantIds(selectedTask.id, tasks);
+    if (descendantIds.length > 0 && selectedTask.status !== 'COMPLETED') {
+      onCascadeComplete?.(selectedTask, descendantIds.length, async () => {
+        await window.api.tasksToggleCompleted(selectedTask.id);
         for (const id of descendantIds) await window.api.tasksToggleCompleted(id);
         await reloadTasks();
       });
       return;
     }
 
-    await window.api.tasksToggleCompleted(task.id);
-    onCompleteFlash?.(task.id, task.status === 'COMPLETED');
+    await window.api.tasksToggleCompleted(selectedTask.id);
+    onCompleteFlash?.(selectedTask.id, selectedTask.status === 'COMPLETED');
     await reloadTasks();
-  }, [focusedPane, selectedTaskIndex, tasks, reloadTasks, onCascadeComplete, onCompleteFlash]);
+  }, [focusedPane, selectedTask, tasks, reloadTasks, onCascadeComplete, onCompleteFlash]);
 
   const deleteTask = useCallback(async () => {
-    if (focusedPane !== 'tasks' || tasks.length === 0) return;
-    const task = tasks[selectedTaskIndex];
-    if (!task) return;
+    if (focusedPane !== 'tasks' || !selectedTask) return;
 
-    if (isTrashView) { onPermanentDeleteRequest?.(task); return; }
+    if (isTrashView) { onPermanentDeleteRequest?.(selectedTask); return; }
 
-    const descendantIds = getDescendantIds(task.id, tasks);
+    const descendantIds = getDescendantIds(selectedTask.id, tasks);
     const doDelete = async () => {
-      const { id } = task;
-      await window.api.tasksSoftDelete(task.id);
+      const { id } = selectedTask;
+      await window.api.tasksSoftDelete(selectedTask.id);
       for (const descId of descendantIds) await window.api.tasksSoftDelete(descId);
       await reloadTasks();
       setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2 - descendantIds.length));
@@ -107,31 +103,29 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       });
     };
 
-    if (descendantIds.length > 0) { onCascadeDelete?.(task, descendantIds.length, doDelete); return; }
+    if (descendantIds.length > 0) { onCascadeDelete?.(selectedTask, descendantIds.length, doDelete); return; }
     await doDelete();
-  }, [focusedPane, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
+  }, [focusedPane, selectedTask, tasks, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
 
   const duplicateTask = useCallback(async () => {
-    if (focusedPane !== 'tasks' || tasks.length === 0 || isTrashView) return;
-    const task = tasks[selectedTaskIndex];
-    if (!task) return;
+    if (focusedPane !== 'tasks' || !selectedTask || isTrashView) return;
     const id = crypto.randomUUID();
-    await window.api.tasksCreate(id, task.list_id, task.title);
-    await window.api.tasksSetDueDate(id, task.due_date);
-    await window.api.tasksUpdateNotes(id, task.notes);
-    if (task.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+    await window.api.tasksCreate(id, selectedTask.list_id, selectedTask.title);
+    await window.api.tasksSetDueDate(id, selectedTask.due_date);
+    await window.api.tasksUpdateNotes(id, selectedTask.notes);
+    if (selectedTask.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
     await reloadTasks();
     onFlash?.(id);
     undoPush({
       undo: async () => { await window.api.tasksDelete(id); },
       redo: async () => {
-        await window.api.tasksCreate(id, task.list_id, task.title);
-        await window.api.tasksSetDueDate(id, task.due_date);
-        await window.api.tasksUpdateNotes(id, task.notes);
-        if (task.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+        await window.api.tasksCreate(id, selectedTask.list_id, selectedTask.title);
+        await window.api.tasksSetDueDate(id, selectedTask.due_date);
+        await window.api.tasksUpdateNotes(id, selectedTask.notes);
+        if (selectedTask.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
       },
     });
-  }, [focusedPane, tasks, selectedTaskIndex, isTrashView, reloadTasks, onFlash, undoPush]);
+  }, [focusedPane, selectedTask, isTrashView, reloadTasks, onFlash, undoPush]);
 
   return { createTask, toggleTaskCompleted, deleteTask, duplicateTask };
 }
