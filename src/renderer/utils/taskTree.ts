@@ -22,10 +22,11 @@ export function getTaskDepth(task: Task, taskMap: Map<string, Task>): number {
 }
 
 export function flattenWithDepth(tasks: Task[]): TaskWithDepth[] {
+  const taskIds = new Set(tasks.map(t => t.id));
   const childrenMap = new Map<string | null, Task[]>();
 
   for (const task of tasks) {
-    const parentId = task.parent_id;
+    const parentId = task.parent_id && taskIds.has(task.parent_id) ? task.parent_id : null;
     if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
     childrenMap.get(parentId)!.push(task);
   }

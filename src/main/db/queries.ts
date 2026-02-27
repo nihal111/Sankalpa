@@ -212,7 +212,13 @@ export function getOverdueTasks(db: Database, before: number): Task[] {
 }
 
 export function getUpcomingTasks(db: Database, from: number): Task[] {
-  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date >= ? AND status = 'PENDING' ORDER BY due_date", [from]);
+  return queryAll<Task>(db, `
+    SELECT * FROM tasks WHERE status = 'PENDING' AND deleted_at IS NULL AND (
+      due_date >= ?
+      OR (parent_id IS NOT NULL AND parent_id IN (
+        SELECT id FROM tasks WHERE due_date >= ? AND status = 'PENDING' AND deleted_at IS NULL
+      ))
+    ) ORDER BY due_date, sort_key`, [from, from]);
 }
 
 // Settings

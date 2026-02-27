@@ -305,6 +305,37 @@ describe('tasks', () => {
     expect(upcoming).toHaveLength(1);
     expect(upcoming[0].id).toBe('t2');
   });
+
+  it('getUpcomingTasks includes subtasks of upcoming parents', () => {
+    createTask(db, 'parent', 'inbox', 'Parent');
+    createTask(db, 'child', 'inbox', 'Child');
+    setTaskDueDate(db, 'parent', 500);
+    setTaskParentId(db, 'child', 'parent');
+    const upcoming = getUpcomingTasks(db, 300);
+    expect(upcoming.map(t => t.id)).toContain('parent');
+    expect(upcoming.map(t => t.id)).toContain('child');
+  });
+
+  it('getUpcomingTasks includes subtask with its own upcoming due date', () => {
+    createTask(db, 'parent', 'inbox', 'Parent');
+    createTask(db, 'child', 'inbox', 'Child');
+    setTaskDueDate(db, 'child', 500);
+    setTaskParentId(db, 'child', 'parent');
+    const upcoming = getUpcomingTasks(db, 300);
+    expect(upcoming.map(t => t.id)).toContain('child');
+    expect(upcoming.map(t => t.id)).not.toContain('parent');
+  });
+
+  it('getUpcomingTasks excludes deleted subtasks', () => {
+    createTask(db, 'parent', 'inbox', 'Parent');
+    createTask(db, 'child', 'inbox', 'Child');
+    setTaskDueDate(db, 'parent', 500);
+    setTaskParentId(db, 'child', 'parent');
+    softDeleteTask(db, 'child');
+    const upcoming = getUpcomingTasks(db, 300);
+    expect(upcoming.map(t => t.id)).toContain('parent');
+    expect(upcoming.map(t => t.id)).not.toContain('child');
+  });
 });
 
 

@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Task } from '../../shared/types';
 import type { SidebarItem, Pane } from '../types';
 
-interface ContextMenuItem { label: string; action: () => void }
-interface ContextMenuState { x: number; y: number; items: ContextMenuItem[] }
+export interface ContextMenuItem { label: string; action: () => void }
+type MenuType = { type: 'task'; taskStatus: string } | { type: 'sidebar' };
+interface ContextMenuState { x: number; y: number; menuType: MenuType }
 
 interface UseContextMenuParams {
   hardcoreMode: boolean;
@@ -24,7 +25,7 @@ interface UseContextMenuParams {
 export function useContextMenu(params: UseContextMenuParams) {
   const { hardcoreMode, tasks, sidebarItems, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
     editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask } = params;
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [menuState, setMenuState] = useState<ContextMenuState | null>(null);
 
   const handleTaskContextMenu = useCallback((index: number, x: number, y: number) => {
     if (hardcoreMode) return;
@@ -32,15 +33,8 @@ export function useContextMenu(params: UseContextMenuParams) {
     setFocusedPane('tasks');
     const task = tasks[index];
     if (!task) return;
-    setContextMenu({ x, y, items: [
-      { label: 'Edit', action: editActions.start },
-      { label: task.status === 'COMPLETED' ? 'Mark Incomplete' : 'Mark Complete', action: toggleTaskCompleted },
-      { label: 'Move to...', action: moveActions.start },
-      { label: 'Set Due Date', action: dueDateActions.start },
-      { label: 'Duplicate', action: duplicateTask },
-      { label: 'Delete', action: deleteTask },
-    ]});
-  }, [hardcoreMode, tasks, setSelectedTaskIndex, setFocusedPane, editActions, toggleTaskCompleted, moveActions, dueDateActions, deleteTask, duplicateTask]);
+    setMenuState({ x, y, menuType: { type: 'task', taskStatus: task.status } });
+  }, [hardcoreMode, tasks, setSelectedTaskIndex, setFocusedPane]);
 
   const handleSidebarContextMenu = useCallback((index: number, x: number, y: number) => {
     if (hardcoreMode) return;
@@ -48,13 +42,29 @@ export function useContextMenu(params: UseContextMenuParams) {
     setFocusedPane('lists');
     const item = sidebarItems[index];
     if (!item || item.type !== 'list') return;
-    setContextMenu({ x, y, items: [
-      { label: 'Edit', action: editActions.start },
-      { label: 'Delete', action: deleteList },
-    ]});
-  }, [hardcoreMode, sidebarItems, setSelectedSidebarIndex, setFocusedPane, editActions, deleteList]);
+    setMenuState({ x, y, menuType: { type: 'sidebar' } });
+  }, [hardcoreMode, sidebarItems, setSelectedSidebarIndex, setFocusedPane]);
 
-  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+  const contextMenu = useMemo(() => {
+    if (!menuState) return null;
+    const { x, y, menuType } = menuState;
+    const items: ContextMenuItem[] = menuType.type === 'task'
+      ? [
+          { label: 'Edit', action: editActions.start },
+          { label: menuType.taskStatus === 'COMPLETED' ? 'Mark Incomplete' : 'Mark Complete', action: toggleTaskCompleted },
+          { label: 'Move to...', action: moveActions.start },
+          { label: 'Set Due Date', action: dueDateActions.start },
+          { label: 'Duplicate', action: duplicateTask },
+          { label: 'Delete', action: deleteTask },
+        ]
+      : [
+          { label: 'Edit', action: editActions.start },
+          { label: 'Delete', action: deleteList },
+        ];
+    return { x, y, items };
+  }, [menuState, editActions, moveActions, dueDateActions, toggleTaskCompleted, deleteTask, deleteList, duplicateTask]);
+
+  const closeContextMenu = useCallback(() => setMenuState(null), []);
 
   return { contextMenu, handleTaskContextMenu, handleSidebarContextMenu, closeContextMenu };
 }
