@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import App from './App';
 import type { Task } from '../shared/types';
-import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
+import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks, mockLists } from './test-utils';
 
 const undo = () => fireEvent.keyDown(window, { key: 'z', metaKey: true });
 const redo = () => fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
@@ -369,7 +369,11 @@ describe('App undo/redo', () => {
 
   it('undo list creation deletes list, redo restores it', async () => {
     const newList = { id: 'new-list', folder_id: null, name: '', notes: null, sort_key: 3, created_at: 100, updated_at: 100 };
+    const listsGetAll = vi.fn()
+      .mockResolvedValueOnce(mockLists)                // initial load
+      .mockResolvedValueOnce([...mockLists, newList]); // after create
     setupMockApi({
+      listsGetAll,
       listsCreate: vi.fn().mockResolvedValue(newList),
       listsDelete: vi.fn().mockResolvedValue(undefined),
       listsRestore: vi.fn().mockResolvedValue(newList),
@@ -381,7 +385,7 @@ describe('App undo/redo', () => {
     fireEvent.keyDown(window, { key: 'n', metaKey: true, shiftKey: true });
     await waitFor(() => expect(window.api.listsCreate).toHaveBeenCalled());
     // Wait for edit mode to appear and dismiss it
-    await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
+    await waitFor(() => expect(document.querySelector('.lists-pane input')).not.toBeNull());
     fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeNull());
 
