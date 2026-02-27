@@ -59,7 +59,8 @@ export function TaskDetailPane({
 
   const handleNotesKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onNotesCancelEdit(); }
-  }, [onNotesCancelEdit]);
+    if (e.key === 'Enter' && e.metaKey) { e.preventDefault(); e.stopPropagation(); onNotesCommit(notesValue); }
+  }, [onNotesCancelEdit, onNotesCommit, notesValue]);
 
   const renderedNotes = useMemo(() => {
     if (!task?.notes) return '';
@@ -121,15 +122,21 @@ export function TaskDetailPane({
           <span className="hotkey-badge">N</span>
         </div>
         {notesEditing ? (
-          <textarea
-            ref={textareaRef}
-            className="notes-textarea"
-            value={notesValue}
-            onChange={(e) => setNotesValue(e.target.value)}
-            onBlur={handleNotesBlur}
-            onKeyDown={handleNotesKeyDown}
-            placeholder="Write notes in markdown..."
-          />
+          <>
+            <textarea
+              ref={textareaRef}
+              className="notes-textarea"
+              value={notesValue}
+              onChange={(e) => setNotesValue(e.target.value)}
+              onBlur={handleNotesBlur}
+              onKeyDown={handleNotesKeyDown}
+              placeholder="Write notes in markdown..."
+            />
+            <div className="notes-hints">
+              <span><span className="hotkey-badge">⌘</span><span className="hotkey-badge">↵</span> save</span>
+              <span><span className="hotkey-badge">esc</span> cancel</span>
+            </div>
+          </>
         ) : t.notes ? (
           <div className="notes-rendered" dangerouslySetInnerHTML={{ __html: renderedNotes }} />
         ) : null}

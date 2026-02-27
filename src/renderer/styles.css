@@ -849,6 +849,16 @@ h2 {
   resize: vertical;
 }
 
+.notes-hints {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.notes-hints .hotkey-badge { margin-right: 2px; }
+
 .notes-rendered {
   margin-top: 8px;
   font-size: 13px;

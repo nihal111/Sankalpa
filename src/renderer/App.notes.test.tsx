@@ -46,4 +46,16 @@ describe('App notes', () => {
     fireEvent.click(notesSection!);
     await waitFor(() => expect(document.querySelector('.notes-textarea')).not.toBeNull());
   });
+
+  it('Cmd+Enter saves notes', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-textarea')).not.toBeNull());
+    const textarea = document.querySelector('.notes-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'saved via cmd+enter' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksUpdateNotes).toHaveBeenCalledWith('t1', 'saved via cmd+enter'));
+    expect(document.querySelector('.notes-textarea')).toBeNull();
+  });
 });
