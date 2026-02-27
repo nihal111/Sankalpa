@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import type { Task, List } from '../../shared/types';
 import type { UndoEntry } from './useUndoStack';
 import type { ConfirmationOption } from '../ConfirmationDialog';
+import type { TaskWithDepth } from '../utils/taskTree';
 
 interface ConfirmationDialogState {
   title: string;
@@ -12,6 +13,7 @@ interface ConfirmationDialogState {
 interface UseTrashActionsParams {
   isTrashView: boolean;
   tasks: Task[];
+  flatTasks: TaskWithDepth[];
   lists: List[];
   selectedTaskIndex: number;
   selectedTaskIndices: Set<number>;
@@ -31,7 +33,7 @@ interface TrashActions {
 }
 
 export function useTrashActions(params: UseTrashActionsParams): TrashActions {
-  const { isTrashView, tasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear, reloadTasks, undoPush } = params;
+  const { isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear, reloadTasks, undoPush } = params;
   const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
   const closeConfirmationDialog = useCallback(() => setConfirmationDialog(null), []);
@@ -82,11 +84,11 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
   }, [handlePermanentDelete, handlePermanentDeleteMulti, selectedTaskIndices, tasks]);
 
   const handleRestoreTask = useCallback(async () => {
-    if (!isTrashView || tasks.length === 0) return;
+    if (!isTrashView || flatTasks.length === 0) return;
 
-    // Get tasks to restore (multi-select or single)
+    // Get tasks to restore (multi-select or single) - use flatTasks for index lookup
     const indicesToRestore = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [selectedTaskIndex];
-    const tasksToRestore = indicesToRestore.map(i => tasks[i]).filter(Boolean);
+    const tasksToRestore = indicesToRestore.map(i => flatTasks[i]?.task).filter(Boolean);
     if (tasksToRestore.length === 0) return;
 
     // Find all descendants of selected tasks that are also in trash
@@ -102,7 +104,7 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
         }
       }
     }
-    // Restore parents first, then descendants (in order found, which preserves hierarchy)
+    // Restore selected first, then descendants
     const allTasksToRestore = [...tasksToRestore, ...descendantsToRestore];
 
     // Check if any task's list is missing
@@ -125,7 +127,7 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
             }
             await reloadTasks();
             multiSelectClear();
-            setSelectedTaskIndex(Math.min(indicesToRestore[0], tasks.length - allTasksToRestore.length - 1));
+            setSelectedTaskIndex(Math.min(indicesToRestore[0], flatTasks.length - allTasksToRestore.length - 1));
             setConfirmationDialog(null);
           },
         }],
@@ -137,12 +139,12 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     for (const t of allTasksToRestore) await window.api.tasksRestoreFromTrash(t.id);
     await reloadTasks();
     multiSelectClear();
-    setSelectedTaskIndex(Math.min(indicesToRestore[0], tasks.length - allTasksToRestore.length - 1));
+    setSelectedTaskIndex(Math.min(indicesToRestore[0], flatTasks.length - allTasksToRestore.length - 1));
     undoPush({
       undo: async () => { for (const t of allTasksToRestore) await window.api.tasksSoftDelete(t.id); },
       redo: async () => { for (const t of allTasksToRestore) await window.api.tasksRestoreFromTrash(t.id); },
     });
-  }, [isTrashView, tasks, selectedTaskIndex, selectedTaskIndices, lists, reloadTasks, multiSelectClear, setSelectedTaskIndex, undoPush]);
+  }, [isTrashView, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices, lists, reloadTasks, multiSelectClear, setSelectedTaskIndex, undoPush]);
 
   const handleCascadeComplete = useCallback((task: Task, descendantCount: number, onConfirm: () => void) => {
     setConfirmationDialog({

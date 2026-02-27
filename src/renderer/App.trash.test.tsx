@@ -249,4 +249,20 @@ describe('App trash', () => {
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('parent'));
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('child'));
   });
+
+  it('restore parent restores all descendants (trash order: grandchild, child, parent)', async () => {
+    // Trash API returns by deleted_at DESC, but flattenWithDepth reorganizes into tree order
+    const grandchild: Task = { ...trashedTask, id: 'grandchild', title: 'Grandchild', parent_id: 'child', sort_key: 3 };
+    const child: Task = { ...trashedTask, id: 'child', title: 'Child', parent_id: 'parent', sort_key: 2 };
+    const parent: Task = { ...trashedTask, id: 'parent', title: 'Parent', sort_key: 1 };
+    setupMockApi({ tasksGetTrashed: vi.fn().mockResolvedValue([grandchild, child, parent]) });
+    render(<App />);
+    await navigateToTrashTasks();
+    // After tree flattening, order is: parent (0), child (1), grandchild (2)
+    // Selection starts at index 0 (parent)
+    fireEvent.keyDown(window, { key: 'r' });
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('parent'));
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('child'));
+    await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledWith('grandchild'));
+  });
 });
