@@ -173,7 +173,7 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
       requestAnimationFrame(() => draggedTasks.forEach((dt) => moveFlash(dt.id)));
       reset();
     },
-  }), [tasks, getDraggedIndices, sidebarItems, reloadData, setSelectedSidebarIndex, setFocusedPane, flash, moveFlash, undoPush, multiSelectClear, reset]);
+  }), [tasks, getDraggedIndices, sidebarItems, reloadData, setSelectedSidebarIndex, setFocusedPane, moveFlash, undoPush, multiSelectClear, reset]);
 
   return { state: dragState, taskDragProps, sidebarDropProps };
 }

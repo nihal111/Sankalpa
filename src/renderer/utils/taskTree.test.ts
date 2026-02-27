@@ -21,6 +21,7 @@ const makeTask = (id: string, parent_id: string | null = null, is_expanded = 1):
   created_at: 0,
   updated_at: 0,
   due_date: null,
+  duration: null,
   notes: null,
   deleted_at: null,
   created_timestamp: 0,

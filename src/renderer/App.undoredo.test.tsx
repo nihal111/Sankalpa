@@ -61,7 +61,7 @@ describe('App undo/redo', () => {
   });
 
   it('create + rename: two undos then two redos replays full sequence', async () => {
-    const newTask: Task = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 100, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 100, updated_at: 100, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
+    const newTask: Task = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 100, completed_timestamp: null, due_date: null, duration: null, sort_key: 3, created_at: 100, updated_at: 100, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     const namedTask: Task = { ...newTask, title: 'Fresh' };
     const tasksGetByList = vi.fn()
       .mockResolvedValueOnce(mockTasks)                    // initial load
@@ -216,7 +216,7 @@ describe('App undo/redo', () => {
   });
 
   it('interleaved create, rename, delete: undo all then redo all', async () => {
-    const newTask: Task = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 50, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 50, updated_at: 50, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
+    const newTask: Task = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 50, completed_timestamp: null, due_date: null, duration: null, sort_key: 3, created_at: 50, updated_at: 50, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     const tasksWithNew = [...mockTasks, newTask];
     const tasksGetByList = vi.fn()
       .mockResolvedValueOnce(mockTasks)    // initial
@@ -319,7 +319,7 @@ describe('App undo/redo', () => {
 
   it('undo move from inbox uses tasksSetListId to restore null list_id', async () => {
     const inboxTasks: Task[] = [
-      { id: 'it1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+      { id: 'it1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetInbox: vi.fn().mockResolvedValue(inboxTasks),

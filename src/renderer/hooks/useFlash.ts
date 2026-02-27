@@ -29,7 +29,7 @@ export function useFlash(durationMs: number = DEFAULT_FLASH_DURATION_MS): FlashS
       });
     }, durationMs);
     timersRef.current.set(id, timer);
-  }, []);
+  }, [durationMs]);
 
   return { flashIds, flash };
 }

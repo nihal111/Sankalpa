@@ -104,7 +104,7 @@ export function useListActions({
     if (selectedSidebarItem?.type !== 'list') return;
     const src = selectedSidebarItem.list;
     const newId = crypto.randomUUID();
-    const newList = await window.api.listsCreate(newId, `${src.name} (copy)`, src.folder_id ?? undefined);
+    await window.api.listsCreate(newId, `${src.name} (copy)`, src.folder_id ?? undefined);
     const srcTasks = await window.api.tasksGetByList(src.id);
     const newTaskIds: string[] = [];
     for (const t of srcTasks) {

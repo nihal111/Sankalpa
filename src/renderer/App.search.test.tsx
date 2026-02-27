@@ -68,7 +68,7 @@ describe('App search', () => {
 
   it('selecting a search result with null list_id navigates to inbox', async () => {
     const inboxTask: Task[] = [
-      { id: 'inbox1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 'inbox1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(inboxTask),
@@ -87,7 +87,7 @@ describe('App search', () => {
 
   it('selecting a search result with unknown list_id falls back to index 0', async () => {
     const orphanTask: Task[] = [
-      { id: 'orph1', list_id: 'nonexistent', title: 'Orphan Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 'orph1', list_id: 'nonexistent', title: 'Orphan Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(orphanTask),
@@ -138,7 +138,7 @@ describe('App search', () => {
 
   it('shows notes snippet with bold match when search matches notes', async () => {
     const tasksWithNotes: Task[] = [
-      { id: 't1', list_id: '1', title: 'Buy groceries', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: 'Remember to get organic apples and bananas', sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 't1', list_id: '1', title: 'Buy groceries', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: 'Remember to get organic apples and bananas', sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),
@@ -158,7 +158,7 @@ describe('App search', () => {
   it('shows ellipsis in notes snippet when match is deep in long notes', async () => {
     const longNotes = 'A'.repeat(80) + ' findme ' + 'B'.repeat(80);
     const tasksWithNotes: Task[] = [
-      { id: 't1', list_id: '1', title: 'Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: longNotes, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 't1', list_id: '1', title: 'Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: longNotes, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
     ];
     setupMockApi({
       tasksGetAll: vi.fn().mockResolvedValue(tasksWithNotes),

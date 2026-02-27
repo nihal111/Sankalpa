@@ -7,6 +7,7 @@ const baseTask = {
   status: 'COMPLETED' as const,
   created_timestamp: 0,
   due_date: null,
+  duration: null,
   notes: null,
   sort_key: 1,
   created_at: 0,

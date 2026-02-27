@@ -123,9 +123,3 @@ export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, s
 
   return { moveListMode, getMoveListTargetName, moveListTargets: targets, moveListTargetIndex: targetIdx, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber };
 }
-
-function useCycleSidebar(length: number, setter: (fn: (i: number) => number) => void): { next: () => void; prev: () => void } {
-  const next = useCallback(() => setter((i: number) => (i + 1) % length), [length, setter]);
-  const prev = useCallback(() => setter((i: number) => (i - 1 + length) % length), [length, setter]);
-  return { next, prev };
-}

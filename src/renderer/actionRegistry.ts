@@ -32,6 +32,7 @@ export const actions: Action[] = [
   { id: 'edit', name: 'Edit', hotkey: 'e', hotkeyDisplay: 'E', isAvailable: (ctx) => (ctx.focusedPane === 'tasks' && !ctx.hasSelection) || (ctx.focusedPane === 'lists' && ctx.canEdit) },
   { id: 'moveToList', name: 'Move to List', hotkey: 'm', hotkeyDisplay: 'M', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'setDueDate', name: 'Set Due Date', hotkey: 'd', hotkeyDisplay: 'D', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && !ctx.hasSelection },
+  { id: 'setDuration', name: 'Set Duration', hotkey: 'alt+d', hotkeyDisplay: '⌥ D', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && !ctx.hasSelection },
   { id: 'editNotes', name: 'Edit Notes', hotkey: 'n', hotkeyDisplay: 'N', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask },
   { id: 'indent', name: 'Indent', hotkey: 'Tab', hotkeyDisplay: 'Tab', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'outdent', name: 'Outdent', hotkey: 'shift+Tab', hotkeyDisplay: '⇧ Tab', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
@@ -48,10 +49,12 @@ export function matchesHotkey(e: KeyboardEvent, action: Action): boolean {
   const needsMeta = parts.includes('meta');
   const needsShift = parts.includes('shift');
   const needsCtrl = parts.includes('ctrl');
+  const needsAlt = parts.includes('alt');
 
   if (needsMeta !== e.metaKey) return false;
   if (needsShift !== e.shiftKey) return false;
   if (needsCtrl !== e.ctrlKey) return false;
+  if (needsAlt !== e.altKey) return false;
   
   const eventKey = e.key.toLowerCase();
   if (key === 'backspace' && (eventKey === 'backspace' || eventKey === 'delete')) return true;

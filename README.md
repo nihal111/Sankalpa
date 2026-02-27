@@ -38,6 +38,7 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Cmd+Shift+↑/↓` | Reorder item |
 | `M` | Move task to another list |
 | `D` | Set due date on task |
+| `⌥D` | Set duration on task |
 | `F` | Cycle through filters (Completed view) |
 | `Cmd+Enter` | Mark selected task complete |
 | `Cmd+Z` | Undo |

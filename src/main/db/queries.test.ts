@@ -5,7 +5,7 @@ import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
   getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
-  restoreList, setTaskDueDate, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
+  restoreList, setTaskDueDate, setTaskDuration, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
   restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks, updateTaskNotes,
   setTaskParentId, toggleTaskExpanded, getTaskDescendants,
@@ -272,6 +272,14 @@ describe('tasks', () => {
     expect(getTasksByList(db, 'inbox')[0].due_date).toBe(1000);
     setTaskDueDate(db, 't1', null);
     expect(getTasksByList(db, 'inbox')[0].due_date).toBeNull();
+  });
+
+  it('setTaskDuration sets and clears duration', () => {
+    createTask(db, 't1', 'inbox', 'Task');
+    setTaskDuration(db, 't1', 60);
+    expect(getTasksByList(db, 'inbox')[0].duration).toBe(60);
+    setTaskDuration(db, 't1', null);
+    expect(getTasksByList(db, 'inbox')[0].duration).toBeNull();
   });
 
   it('getOverdueTasks returns tasks due before given time', () => {

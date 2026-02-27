@@ -30,6 +30,9 @@ export function migrateTasksTable(db: Database): void {
   if (!taskColumnNames.includes('is_expanded')) {
     db.run('ALTER TABLE tasks ADD COLUMN is_expanded INTEGER NOT NULL DEFAULT 1');
   }
+  if (!taskColumnNames.includes('duration')) {
+    db.run('ALTER TABLE tasks ADD COLUMN duration INTEGER DEFAULT NULL');
+  }
 
   // Lists migrations
   const listColumns = db.exec('PRAGMA table_info(lists)')[0]?.values ?? [];

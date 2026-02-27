@@ -16,6 +16,7 @@ interface UseKeyboardActionsParams {
   };
   editActions: { start: () => void; cancel: () => void };
   dueDateActions: { start: () => void; cancel: () => void };
+  durationActions: { start: () => void; cancel: () => void };
   selectedTaskIndex: number;
   toggleTaskCompleted: () => void;
   createList: () => Promise<void>;
@@ -48,7 +49,7 @@ interface UseKeyboardActionsParams {
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
   const {
-    settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
+    settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
@@ -71,7 +72,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     handleShiftUp: multiSelectActions.handleShiftUp,
     handleCmdDown: () => multiSelectActions.handleCmdDown(selectedTaskIndex),
     handleCmdUp: multiSelectActions.handleCmdUp,
-    cancelEdit: () => { editActions.cancel(); dueDateActions.cancel(); },
+    cancelEdit: () => { editActions.cancel(); dueDateActions.cancel(); durationActions.cancel(); },
     clearSelection: multiSelectActions.clear,
     toggleAtCursor: () => multiSelectActions.toggleAtCursor(selectedTaskIndex),
     toggleTaskCompleted,
@@ -84,6 +85,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     startEdit: editActions.start,
     startMove,
     startDueDate: dueDateActions.start,
+    startDuration: durationActions.start,
     undo,
     redo,
     restoreTask: handleRestoreTask,
@@ -105,7 +107,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectSidebarByListNumber,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
-    editActions, dueDateActions, toggleTaskCompleted, createList, createTask,
+    editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, deleteList, togglePalette, duplicateTask,
@@ -117,6 +119,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
 interface UseKeyboardStateParams {
   editMode: unknown;
   dueDateIndex: number | null;
+  durationIndex: number | null;
   notesEditing: boolean;
   moveMode: boolean;
   focusedPane: Pane;
@@ -137,13 +140,14 @@ interface UseKeyboardStateParams {
 
 export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState {
   const {
-    editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
+    editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen,
   } = params;
 
   return useMemo(() => ({
-    editMode: editMode || dueDateIndex !== null || notesEditing,
+    editMode: editMode || dueDateIndex !== null || durationIndex !== null || notesEditing,
     dueDateMode: dueDateIndex !== null,
+    durationMode: durationIndex !== null,
     moveMode,
     focusedPane,
     shiftHeld,
@@ -159,5 +163,5 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     confirmationDialogOpen,
     moveListMode,
     listInfoOpen,
-  }), [editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen]);
+  }), [editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen]);
 }

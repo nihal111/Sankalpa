@@ -26,6 +26,7 @@ export interface KeyboardActions {
   startEdit: Command;
   startMove: Command;
   startDueDate: Command;
+  startDuration: Command;
   undo: Command;
   redo: Command;
   restoreTask: Command;
@@ -50,6 +51,7 @@ export interface KeyboardActions {
 export interface KeyboardState {
   editMode: unknown;
   dueDateMode: boolean;
+  durationMode: boolean;
   moveMode: boolean;
   focusedPane: 'lists' | 'tasks' | 'detail';
   shiftHeld: boolean;
@@ -130,7 +132,7 @@ export function useKeyboardNavigation(
       return;
     }
     if (state.editMode) {
-      if (state.dueDateMode) return; // modal handles its own keys
+      if (state.dueDateMode || state.durationMode) return; // modal handles its own keys
       if (e.key === 'Escape') { e.preventDefault(); actions.cancelEdit(); }
       return;
     }
@@ -165,6 +167,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'moveToList') && getAction('moveToList').isAvailable(ctx)) { e.preventDefault(); actions.startMove(); return; }
     if (e.key === 'm' && !e.metaKey && state.focusedPane === 'lists' && !state.moveListMode) { e.preventDefault(); actions.startMoveList(); return; }
     if (matches(e, 'setDueDate') && getAction('setDueDate').isAvailable(ctx)) { e.preventDefault(); actions.startDueDate(); return; }
+    if (matches(e, 'setDuration') && getAction('setDuration').isAvailable(ctx)) { e.preventDefault(); actions.startDuration(); return; }
     if (matches(e, 'editNotes') && !e.metaKey && !e.shiftKey && getAction('editNotes').isAvailable(ctx)) { e.preventDefault(); actions.startNotes(); return; }
     if (matches(e, 'restoreFromTrash') && getAction('restoreFromTrash').isAvailable(ctx)) { e.preventDefault(); actions.restoreTask(); return; }
   }, [actions, state, focusNextFilter]);

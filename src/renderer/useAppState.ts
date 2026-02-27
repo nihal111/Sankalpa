@@ -15,6 +15,7 @@ import { useKeyboardActions, useKeyboardState } from './hooks/useKeyboardActions
 import { useFlash } from './hooks/useFlash';
 import { useUndoStack } from './hooks/useUndoStack';
 import { useDueDateState } from './hooks/useDueDateState';
+import { useDurationState } from './hooks/useDurationState';
 import { useListActions, useMoveCommit } from './hooks/useListActions';
 import { usePaletteState } from './hooks/usePaletteState';
 import { useSearchState } from './hooks/useSearchState';
@@ -23,6 +24,7 @@ import { flattenWithDepth } from './utils/taskTree';
 import { useMoveListState } from './hooks/useMoveListState';
 import { useDragDrop } from './hooks/useDragDrop';
 import { useMetaKey } from './hooks/useMetaKey';
+import { useNotesState } from './hooks/useNotesState';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -38,37 +40,23 @@ export function useAppState() {
   const { flashIds: uncompleteIds, flash: uncompleteFlash } = useFlash(500);
   const { flashIds: moveIds, flash: moveFlash } = useFlash(500);
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
-  const [notesEditing, setNotesEditing] = useState(false);
-  const [listInfoOpen, setListInfoOpen] = useState(false);
-
   const metaHeld = useMetaKey();
-
   const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
   const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
-
   const listNames = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists]);
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
   const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
-
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
-
-  const trashActions = useTrashActions({
-    isTrashView, tasks, lists, selectedTaskIndex, setSelectedTaskIndex, reloadTasks, reloadData, undoPush,
-  });
-
+  const trashActions = useTrashActions({ isTrashView, tasks, lists, selectedTaskIndex, setSelectedTaskIndex, reloadTasks, reloadData, undoPush });
   const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
-
+  const [durationIndex, durationActions] = useDurationState({ focusedPane, tasks, selectedTaskIndex, reloadTasks });
   const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTaskIndex, tasks, reloadData, reloadTasks, undoPush, onEvaporate: evaporateFlash });
   const { editMode, editValue, inputRef } = edit;
   const { setEditMode, setEditValue } = editSetters;
-
-  const handleMoveCommit = useMoveCommit({
-    sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash: moveFlash, undoPush,
-  });
-
+  const handleMoveCommit = useMoveCommit({ sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash: moveFlash, undoPush });
   const [move, moveActions] = useMoveState({
     sidebarItems, selectedListId, tasks, selectedTaskIndex, selectedTaskIndices, onCommit: handleMoveCommit,
   });
@@ -119,17 +107,9 @@ export function useAppState() {
   });
 
   const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
-
   const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
   const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
-  const handleStartNotesEdit = useCallback(() => { if (selectedTask) setNotesEditing(true); }, [selectedTask]);
-  const handleNotesCommit = useCallback(async (value: string) => {
-    if (!selectedTask) return;
-    await window.api.tasksUpdateNotes(selectedTask.id, value.trim() || null);
-    await reloadTasks();
-    setNotesEditing(false);
-  }, [selectedTask, reloadTasks]);
-  const handleNotesCancelEdit = useCallback(() => { setNotesEditing(false); }, []);
+  const { notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit } = useNotesState({ selectedTask, reloadTasks });
 
   const paletteState = usePaletteState({
     focusedPane, editMode: !!editMode, moveMode, settingsOpen, isSearchOpen, isTrashView,
@@ -143,20 +123,17 @@ export function useAppState() {
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
-  // Move list to folder
   const { moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
     folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, setSelectedSidebarIndex, reloadData, undoPush,
   });
 
+  const [listInfoOpen, setListInfoOpen] = useState(false);
   const showListInfo = useCallback(() => setListInfoOpen(true), []);
   const closeListInfo = useCallback(() => setListInfoOpen(false), []);
-  const handleListNotesChange = useCallback(async (listId: string, notes: string | null) => {
-    await window.api.listsUpdateNotes(listId, notes);
-    await reloadData();
-  }, [reloadData]);
+  const handleListNotesChange = useCallback(async (listId: string, notes: string | null) => { await window.api.listsUpdateNotes(listId, notes); await reloadData(); }, [reloadData]);
 
   const keyboardActions = useKeyboardActions({
-    settingsActions, moveActions, multiSelectActions, editActions, dueDateActions,
+    settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
@@ -168,7 +145,7 @@ export function useAppState() {
   });
 
   const keyboardState = useKeyboardState({
-    editMode, dueDateIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
+    editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
     confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
     moveListMode, listInfoOpen,
@@ -199,22 +176,21 @@ export function useAppState() {
   const getMoveTargetName = (): string => { const item = sidebarItems[moveTargetIndex]; return item?.type === 'list' ? item.list.name : ''; };
 
   return {
-    sidebarItems, selectedSidebarIndex, focusedPane, moveMode, moveTargetIndex,
-    editMode, editValue, setEditValue, setEditMode, handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef,
-    taskCounts, tasks, selectedTaskIndex, selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor,
-    settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode, trashRetentionIndex, retentionOptions,
-    getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle, handleFolderToggle,
-    handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
-    contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu,
-    flashIds, throbIds, completeIds, uncompleteIds, moveIds, evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
-    trashIndex, isTrashView, lists, confirmationDialog: trashActions.confirmationDialog || listConfirmationDialog, closeConfirmationDialog: trashActions.confirmationDialog ? trashActions.closeConfirmationDialog : closeListConfirmation,
+    sidebarItems, selectedSidebarIndex, focusedPane, moveMode, moveTargetIndex, editMode, editValue, setEditValue, setEditMode,
+    handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef, taskCounts, tasks, selectedTaskIndex,
+    selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor, settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
+    trashRetentionIndex, retentionOptions, getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
+    handleFolderToggle, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
+    contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu, flashIds, throbIds, completeIds, uncompleteIds, moveIds,
+    evaporateIds, flatTasks, listNames, isCompletedView, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
+    durationIndex, commitDuration: durationActions.commit, cancelDuration: durationActions.cancel, trashIndex, isTrashView, lists,
+    confirmationDialog: trashActions.confirmationDialog || listConfirmationDialog,
+    closeConfirmationDialog: trashActions.confirmationDialog ? trashActions.closeConfirmationDialog : closeListConfirmation,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
-    isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery,
-    notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit,
-    dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
-    isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction,
-    moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex,
-    closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
+    isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery, notesEditing, handleStartNotesEdit, handleNotesCommit,
+    handleNotesCancelEdit, dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
+    isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,
+    moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
   };
 }

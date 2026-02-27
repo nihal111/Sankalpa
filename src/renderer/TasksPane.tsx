@@ -4,6 +4,7 @@ import type { EditMode, Pane, CompletedFilter } from './types';
 import type { TaskWithDepth } from './utils/taskTree';
 import { CompletedFilterBar } from './CompletedFilterBar';
 import { hasChildren } from './utils/taskTree';
+import { formatDurationShort } from './DurationModal';
 
 function formatDueDate(ms: number): string {
   const d = new Date(ms);
@@ -187,6 +188,9 @@ export function TasksPane({
                 )}
               </span>
               {sourceListName && <span className="task-origin">{sourceListName}</span>}
+              {task.duration ? (
+                <span className="task-duration">📏 {formatDurationShort(task.duration)}</span>
+              ) : null}
               {task.due_date ? (
                 <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
               ) : null}

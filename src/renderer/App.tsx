@@ -8,6 +8,7 @@ import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
 import { DueDateModal } from './DueDateModal';
+import { DurationModal } from './DurationModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
 
@@ -127,6 +128,12 @@ export default function App(): ReactNode {
         currentDueDate={state.selectedTask?.due_date ?? null}
         onCommit={state.commitDueDate}
         onClose={state.cancelDueDate}
+      />
+      <DurationModal
+        isOpen={state.durationIndex !== null}
+        currentDuration={state.selectedTask?.duration ?? null}
+        onCommit={state.commitDuration}
+        onClose={state.cancelDuration}
       />
       {state.contextMenu && (
         <ContextMenu
