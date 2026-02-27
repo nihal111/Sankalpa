@@ -168,7 +168,14 @@ export function TasksPane({
                   className={`chevron-slot ${hasKids ? (expanded ? 'expanded' : 'collapsed') : ''}`}
                   onClick={hasKids ? (e) => { e.stopPropagation(); onToggleExpand(task.id); } : undefined}
                 >
-                  {hasKids && (expanded ? '▾' : '▸')}
+                  {hasKids && (
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+                      {expanded
+                        ? <path d="M0 2 L4 6 L8 2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                        : <path d="M2 0 L6 4 L2 8" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                      }
+                    </svg>
+                  )}
                 </span>
               </span>
               <input
