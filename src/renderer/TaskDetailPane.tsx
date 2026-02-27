@@ -11,6 +11,18 @@ function formatDueDate(ms: number | null): string {
     d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
+function formatDuration(minutes: number | null): string {
+  if (!minutes) return 'Set duration';
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 24 * 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m ? `${h}h ${m}m` : `${h} hour${h > 1 ? 's' : ''}`;
+  }
+  const d = Math.floor(minutes / (24 * 60));
+  return `${d} day${d > 1 ? 's' : ''}`;
+}
+
 function formatCreatedDate(ms: number): string {
   const d = new Date(ms);
   const date = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -25,6 +37,7 @@ interface TaskDetailPaneProps {
   tasksLength: number;
   onEditTitle: () => void;
   onEditDueDate: () => void;
+  onEditDuration: () => void;
   notesEditing: boolean;
   onStartNotesEdit: () => void;
   onNotesCommit: (value: string) => void;
@@ -38,6 +51,7 @@ export function TaskDetailPane({
   tasksLength,
   onEditTitle,
   onEditDueDate,
+  onEditDuration,
   notesEditing,
   onStartNotesEdit,
   onNotesCommit,
@@ -97,6 +111,13 @@ export function TaskDetailPane({
           {formatDueDate(t.due_date)}
         </span>
         <span className="hotkey-badge">D</span>
+      </div>
+      <div className="detail-section" onClick={onEditDuration}>
+        <span className="detail-icon">📏</span>
+        <span className="detail-label">
+          {formatDuration(t.duration)}
+        </span>
+        <span className="hotkey-badge">⌥</span><span className="hotkey-badge">D</span>
       </div>
       <div className="detail-section disabled" aria-disabled="true">
         <span className="detail-icon">🕐</span>

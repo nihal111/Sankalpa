@@ -109,6 +109,7 @@ export function useAppState() {
   const selectedTask = useMemo(() => tasks[selectedTaskIndex] ?? null, [tasks, selectedTaskIndex]);
   const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions]);
   const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
+  const handleDetailEditDuration = useCallback(() => { if (selectedTask) durationActions.start(); }, [selectedTask, durationActions]);
   const { notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit } = useNotesState({ selectedTask, reloadTasks });
 
   const paletteState = usePaletteState({
@@ -187,7 +188,7 @@ export function useAppState() {
     confirmationDialog: trashActions.confirmationDialog || listConfirmationDialog,
     closeConfirmationDialog: trashActions.confirmationDialog ? trashActions.closeConfirmationDialog : closeListConfirmation,
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
-    listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate,
+    listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate, handleDetailEditDuration,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery, notesEditing, handleStartNotesEdit, handleNotesCommit,
     handleNotesCancelEdit, dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,

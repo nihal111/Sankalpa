@@ -58,5 +58,9 @@ export function matchesHotkey(e: KeyboardEvent, action: Action): boolean {
   
   const eventKey = e.key.toLowerCase();
   if (key === 'backspace' && (eventKey === 'backspace' || eventKey === 'delete')) return true;
+  // On macOS, Alt+key produces special characters, so check e.code for alt combos
+  if (needsAlt && key.length === 1) {
+    return e.code.toLowerCase() === `key${key}`;
+  }
   return eventKey === key;
 }

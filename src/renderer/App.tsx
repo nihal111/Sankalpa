@@ -84,6 +84,7 @@ export default function App(): ReactNode {
         tasksLength={state.tasks.length}
         onEditTitle={state.handleDetailEditTitle}
         onEditDueDate={state.handleDetailEditDueDate}
+        onEditDuration={state.handleDetailEditDuration}
         notesEditing={state.notesEditing}
         onStartNotesEdit={state.handleStartNotesEdit}
         onNotesCommit={state.handleNotesCommit}
