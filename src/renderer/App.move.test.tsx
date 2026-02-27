@@ -161,7 +161,7 @@ describe('App move mode', () => {
     for (let i = 0; i < 6; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     await waitFor(() => expect(screen.getByText(/Move to:/)).toBeDefined());
@@ -193,7 +193,7 @@ describe('App move mode', () => {
     for (let i = 0; i < 6; i++) {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });
     await waitFor(() => expect(screen.getByText(/Move to:/)).toBeDefined());

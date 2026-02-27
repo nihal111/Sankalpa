@@ -23,9 +23,9 @@ describe('App mouse interactions', () => {
     // Navigate to Work list first
     const workItem = screen.getByText('Work').closest('li');
     fireEvent.click(workItem!);
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     // Click second task
-    const task2 = screen.getByText('Task 2').closest('li');
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li');
     fireEvent.click(task2!);
     await waitFor(() => expect(task2?.classList.contains('selected')).toBe(true));
     expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
@@ -133,7 +133,7 @@ describe('Checkbox interactions', () => {
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
     const workItem = screen.getByText('Work').closest('li');
     fireEvent.click(workItem!);
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     const checkbox = screen.getByLabelText('mark Task 1 as complete');
     fireEvent.click(checkbox);
     await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
@@ -144,11 +144,11 @@ describe('Checkbox interactions', () => {
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
     const workItem = screen.getByText('Work').closest('li');
     fireEvent.click(workItem!);
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     const checkbox = screen.getByLabelText('mark Task 2 as complete');
     fireEvent.click(checkbox);
     // Task 2 row should not become selected (click was on checkbox, not row)
-    const task2 = screen.getByText('Task 2').closest('li');
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li');
     expect(task2?.classList.contains('selected')).toBe(false);
   });
 
@@ -173,7 +173,7 @@ describe('Checkbox interactions', () => {
     render(<App />);
     // Navigate to Completed (index 4) using keyboard
     for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
-    await waitFor(() => expect(screen.getByText('Done task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Done task', { selector: '.task-content' })).toBeDefined());
     const origins = document.querySelectorAll('.task-origin');
     expect(origins.length).toBe(2);
     expect(origins[0].textContent).toBe('Work');
@@ -203,8 +203,8 @@ describe('Context menu', () => {
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
     const workItem = screen.getByText('Work').closest('li');
     fireEvent.click(workItem!);
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
-    const task1 = screen.getByText('Task 1').closest('li');
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li');
     fireEvent.contextMenu(task1!, { clientX: 100, clientY: 100 });
     await waitFor(() => expect(document.querySelector('.context-menu')).toBeDefined());
     expect(screen.getByText('Edit')).toBeDefined();

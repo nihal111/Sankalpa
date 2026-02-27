@@ -77,8 +77,10 @@ export default function App(): ReactNode {
         taskDragProps={state.taskDragProps}
       />
       <TaskDetailPane
-        task={state.focusedPane !== 'lists' ? state.selectedTask : null}
+        task={state.selectedTask}
         focusedPane={state.focusedPane}
+        selectedCount={state.selectedTaskIndices.size}
+        tasksLength={state.tasks.length}
         onEditTitle={state.handleDetailEditTitle}
         onEditDueDate={state.handleDetailEditDueDate}
         notesEditing={state.notesEditing}

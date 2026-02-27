@@ -28,8 +28,8 @@ describe('App navigation', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     await waitFor(() => {
-      expect(screen.getByText('Task 1')).toBeDefined();
-      expect(screen.getByText('Task 2')).toBeDefined();
+      expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined();
+      expect(screen.getByText('Task 2', { selector: '.task-content' })).toBeDefined();
     });
   });
 
@@ -85,7 +85,7 @@ describe('App navigation', () => {
   it('loads new tasks when list selection changes', async () => {
     render(<App />);
     await navigateToUserList();
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     await waitFor(() => {
       expect(window.api.tasksGetByList).toHaveBeenCalledWith('2');
@@ -345,12 +345,12 @@ describe('App navigation', () => {
     for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
     // Both tasks visible initially
-    await waitFor(() => expect(screen.getByText('Inbox Done')).toBeDefined());
-    expect(screen.getByText('List Done')).toBeDefined();
+    await waitFor(() => expect(screen.getByText('Inbox Done', { selector: '.task-content' })).toBeDefined());
+    expect(screen.getByText('List Done', { selector: '.task-content' })).toBeDefined();
     // Filter to inbox
     const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'null' } });
-    await waitFor(() => expect(screen.getByText('Inbox Done')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Inbox Done', { selector: '.task-content' })).toBeDefined());
     expect(screen.queryByText('List Done')).toBeNull();
   });
 
@@ -365,9 +365,9 @@ describe('App navigation', () => {
     const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
     // Filter to specific list, then back to all
     fireEvent.change(select, { target: { value: 'null' } });
-    await waitFor(() => expect(screen.queryByText('Done Task')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Done Task', { selector: '.task-content' })).toBeNull());
     fireEvent.change(select, { target: { value: 'all' } });
-    await waitFor(() => expect(screen.getByText('Done Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
   });
 
   it('completed filter bar changes date range filter', async () => {

@@ -21,6 +21,8 @@ function formatCreatedDate(ms: number): string {
 interface TaskDetailPaneProps {
   task: Task | null;
   focusedPane: Pane;
+  selectedCount: number;
+  tasksLength: number;
   onEditTitle: () => void;
   onEditDueDate: () => void;
   notesEditing: boolean;
@@ -32,6 +34,8 @@ interface TaskDetailPaneProps {
 export function TaskDetailPane({
   task,
   focusedPane,
+  selectedCount,
+  tasksLength,
   onEditTitle,
   onEditDueDate,
   notesEditing,
@@ -62,19 +66,34 @@ export function TaskDetailPane({
     return marked.parse(task.notes, { async: false }) as string;
   }, [task?.notes]);
 
-  if (!task) return null;
+  const emptyMessage = useMemo((): string | null => {
+    if (selectedCount > 1) return `${selectedCount} tasks selected`;
+    if (tasksLength === 0) return 'No tasks in section';
+    if (!task) return 'No task selected';
+    return null;
+  }, [selectedCount, tasksLength, task]);
+
+  if (emptyMessage) {
+    return (
+      <div className="pane detail-pane">
+        <div className="detail-empty">{emptyMessage}</div>
+      </div>
+    );
+  }
+
+  const t = task!;
 
   return (
     <div className={`pane detail-pane ${focusedPane === 'detail' ? 'focused' : ''}`}>
       <div className="detail-section detail-title" onClick={onEditTitle}>
-        <span className="detail-label">{task.title || 'Untitled'}</span>
+        <span className="detail-label">{t.title || 'Untitled'}</span>
         <span className="hotkey-badge">E</span>
       </div>
       <div className="detail-separator" />
       <div className="detail-section" onClick={onEditDueDate}>
         <span className="detail-icon">🔔</span>
         <span className="detail-label">
-          {formatDueDate(task.due_date)}
+          {formatDueDate(t.due_date)}
         </span>
         <span className="hotkey-badge">D</span>
       </div>
@@ -111,11 +130,11 @@ export function TaskDetailPane({
             onKeyDown={handleNotesKeyDown}
             placeholder="Write notes in markdown..."
           />
-        ) : task.notes ? (
+        ) : t.notes ? (
           <div className="notes-rendered" dangerouslySetInnerHTML={{ __html: renderedNotes }} />
         ) : null}
       </div>
-      <div className="detail-created">{formatCreatedDate(task.created_timestamp)}</div>
+      <div className="detail-created">{formatCreatedDate(t.created_timestamp)}</div>
     </div>
   );
 }

@@ -326,7 +326,7 @@ describe('App undo/redo', () => {
     });
     render(<App />);
     // Inbox is selected by default — switch to tasks pane
-    await waitFor(() => expect(screen.getByText('Inbox Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Inbox Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
 
     // Move inbox task to list '2' (Work) — target index: Inbox=0, Work=1

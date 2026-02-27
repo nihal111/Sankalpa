@@ -19,7 +19,7 @@ function setupWithTasks(): void {
 async function navigateToTasks(): Promise<void> {
   await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
   fireEvent.click(screen.getByText('Work').closest('li')!);
-  await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+  await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
 }
 
 function getSidebarListItem(name: string): HTMLElement {
@@ -33,7 +33,7 @@ describe('Drag-to-reorder tasks', () => {
   it('task items are draggable', async () => {
     render(<App />);
     await navigateToTasks();
-    const item = screen.getByText('Task 1').closest('li')!;
+    const item = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
     expect(item.getAttribute('draggable')).toBe('true');
   });
 
@@ -55,8 +55,8 @@ describe('Drag-to-reorder tasks', () => {
   it('shows drop indicator on dragover', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
-    const task2 = screen.getByText('Task 2').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
     // Simulate dragover on task2 bottom half
@@ -71,8 +71,8 @@ describe('Drag-to-reorder tasks', () => {
   it('clears indicator on dragleave', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
-    const task2 = screen.getByText('Task 2').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
     Object.defineProperty(task2, 'getBoundingClientRect', {
@@ -88,8 +88,8 @@ describe('Drag-to-reorder tasks', () => {
   it('calls tasksReorder on drop', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
-    const task3 = screen.getByText('Task 3').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
+    const task3 = screen.getByText('Task 3', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
     Object.defineProperty(task3, 'getBoundingClientRect', {
@@ -104,8 +104,8 @@ describe('Drag-to-reorder tasks', () => {
   it('clears state on dragend', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
-    const task2 = screen.getByText('Task 2').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
+    const task2 = screen.getByText('Task 2', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
     Object.defineProperty(task2, 'getBoundingClientRect', {
@@ -125,7 +125,7 @@ describe('Drag-to-move to sidebar list', () => {
   it('highlights sidebar list on dragover from task', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
 
@@ -138,7 +138,7 @@ describe('Drag-to-move to sidebar list', () => {
   it('clears sidebar highlight on dragleave', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
 
@@ -153,7 +153,7 @@ describe('Drag-to-move to sidebar list', () => {
   it('calls tasksMove on drop to sidebar list', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
 
@@ -167,7 +167,7 @@ describe('Drag-to-move to sidebar list', () => {
   it('undo reverses drag-to-move', async () => {
     render(<App />);
     await navigateToTasks();
-    const task1 = screen.getByText('Task 1').closest('li')!;
+    const task1 = screen.getByText('Task 1', { selector: '.task-content' }).closest('li')!;
 
     fireEvent.dragStart(task1, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
     const workItem = getSidebarListItem('Work');

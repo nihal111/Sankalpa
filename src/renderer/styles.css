@@ -801,6 +801,12 @@ h2 {
   color: var(--text-secondary);
 }
 
+.detail-empty {
+  margin: auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 /* Notes */
 .detail-notes-section {
   flex-direction: column;

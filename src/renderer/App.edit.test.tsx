@@ -172,7 +172,7 @@ describe('App edit mode', () => {
     });
     render(<App />);
     // Smart Inbox is selected by default
-    await waitFor(() => expect(screen.getByText('Inbox Task')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Inbox Task', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'Delete' });
     await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('inbox-t1'));

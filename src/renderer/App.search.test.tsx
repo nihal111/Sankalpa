@@ -37,7 +37,7 @@ describe('App search', () => {
     openSearch();
     const input = await screen.findByPlaceholderText('Search tasks...');
     fireEvent.change(input, { target: { value: 'Task 1' } });
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.search-result-title' })).toBeDefined());
   });
 
   it('shows no results message for unmatched query', async () => {
@@ -126,7 +126,7 @@ describe('App search', () => {
     await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
     // Navigate to a user list with tasks and focus tasks pane
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
-    await waitFor(() => expect(screen.getByText('Task 1')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     // Press D to open due date modal
     fireEvent.keyDown(window, { key: 'd' });
