@@ -121,7 +121,18 @@ export function useEditState(params: UseEditStateParams): [
     setEditMode(null);
   }, [editMode, editValue, tasks, reloadData, reloadTasks, undoPush, onEvaporate]);
 
-  const cancel = useCallback(() => setEditMode(null), []);
+  const cancel = useCallback(() => {
+    // If canceling an empty task, evaporate it
+    if (editMode?.type === 'task' && !editValue.trim() && tasks[editMode.index]) {
+      const taskId = tasks[editMode.index].id;
+      onEvaporate?.(taskId);
+      setTimeout(async () => {
+        await window.api.tasksDelete(taskId);
+        await reloadTasks();
+      }, 200);
+    }
+    setEditMode(null);
+  }, [editMode, editValue, tasks, onEvaporate, reloadTasks]);
 
   const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') { e.preventDefault(); commit(); }
