@@ -59,6 +59,19 @@ describe('App edit mode', () => {
     await waitFor(() => expect(window.api.tasksUpdate).toHaveBeenCalledWith('t1', 'New Task'));
   });
 
+  it('editing task to empty evaporates it', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'e' });
+    await waitFor(() => expect(document.querySelector('.tasks-pane .edit-input')).toBeDefined());
+    const input = document.querySelector('.tasks-pane .edit-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    // Evaporate animation takes 200ms
+    await new Promise((r) => setTimeout(r, 300));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('t1'));
+  });
+
   it('cancels edit on blur', async () => {
     render(<App />);
     await navigateToUserList();

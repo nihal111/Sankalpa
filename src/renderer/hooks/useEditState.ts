@@ -84,8 +84,8 @@ export function useEditState(params: UseEditStateParams): [
     const oldValue = prevValueRef.current;
     const newValue = editValue.trim();
     if (!newValue) {
-      // Empty title: if this was a new task (previously empty), delete it
-      if (editMode.type === 'task' && oldValue === '' && tasks[editMode.index]) {
+      // Empty title: delete the task (evaporate)
+      if (editMode.type === 'task' && tasks[editMode.index]) {
         const taskId = tasks[editMode.index].id;
         onEvaporate?.(taskId);
         setTimeout(async () => {
