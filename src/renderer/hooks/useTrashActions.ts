@@ -14,6 +14,7 @@ interface UseTrashActionsParams {
   tasks: Task[];
   lists: List[];
   selectedTaskIndex: number;
+  selectedTaskIndices: Set<number>;
   setSelectedTaskIndex: (fn: number | ((i: number) => number)) => void;
   reloadTasks: () => Promise<void>;
   reloadData: () => Promise<void>;
@@ -30,7 +31,7 @@ interface TrashActions {
 }
 
 export function useTrashActions(params: UseTrashActionsParams): TrashActions {
-  const { isTrashView, tasks, lists, selectedTaskIndex, setSelectedTaskIndex, reloadTasks, reloadData, undoPush } = params;
+  const { isTrashView, tasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, reloadTasks, reloadData, undoPush } = params;
   const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialogState | null>(null);
 
   const closeConfirmationDialog = useCallback(() => setConfirmationDialog(null), []);
@@ -47,13 +48,36 @@ export function useTrashActions(params: UseTrashActionsParams): TrashActions {
     });
   }, [reloadTasks, setSelectedTaskIndex, tasks.length, undoPush]);
 
-  const handlePermanentDeleteRequest = useCallback((task: Task) => {
-    setConfirmationDialog({
-      title: 'Permanently Delete',
-      message: `Are you sure you want to permanently delete "${task.title || 'Untitled'}"? This cannot be undone.`,
-      options: [{ label: 'Delete', action: () => handlePermanentDelete(task) }],
+  const handlePermanentDeleteMulti = useCallback(async (tasksToDelete: Task[]) => {
+    for (const t of tasksToDelete) await window.api.tasksDelete(t.id);
+    await reloadTasks();
+    setSelectedTaskIndex(0);
+    setConfirmationDialog(null);
+    undoPush({
+      undo: async () => { for (const t of tasksToDelete) await window.api.tasksRestore(t.id, t.list_id, t.title, t.status, t.created_timestamp, t.completed_timestamp, t.sort_key, t.created_at, t.updated_at, t.deleted_at); },
+      redo: async () => { for (const t of tasksToDelete) await window.api.tasksDelete(t.id); },
     });
-  }, [handlePermanentDelete]);
+  }, [reloadTasks, setSelectedTaskIndex, undoPush]);
+
+  const handlePermanentDeleteRequest = useCallback((task: Task) => {
+    const indicesToDelete = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [tasks.indexOf(task)];
+    const tasksToDelete = indicesToDelete.map(i => tasks[i]).filter(Boolean);
+    if (tasksToDelete.length === 0) return;
+
+    if (tasksToDelete.length === 1) {
+      setConfirmationDialog({
+        title: 'Permanently Delete',
+        message: `Are you sure you want to permanently delete "${tasksToDelete[0].title || 'Untitled'}"? This cannot be undone.`,
+        options: [{ label: 'Delete', action: () => handlePermanentDelete(tasksToDelete[0]), hotkeyDisplay: '⌘ ↵' }],
+      });
+    } else {
+      setConfirmationDialog({
+        title: 'Permanently Delete',
+        message: `Are you sure you want to permanently delete ${tasksToDelete.length} selected tasks? This cannot be undone.`,
+        options: [{ label: 'Delete All', action: () => handlePermanentDeleteMulti(tasksToDelete), hotkeyDisplay: '⌘ ↵' }],
+      });
+    }
+  }, [handlePermanentDelete, handlePermanentDeleteMulti, selectedTaskIndices, tasks]);
 
   const handleRestoreTask = useCallback(async () => {
     if (!isTrashView || tasks.length === 0) return;

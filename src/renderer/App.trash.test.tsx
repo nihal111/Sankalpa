@@ -199,4 +199,33 @@ describe('App trash', () => {
     fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
     await waitFor(() => expect(window.api.tasksRestoreFromTrash).toHaveBeenCalledTimes(2));
   });
+
+  it('Cmd+Enter confirms permanent delete', async () => {
+    render(<App />);
+    await navigateToTrashTasks();
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(document.querySelector('.confirmation-dialog')).not.toBeNull());
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('trash1'));
+  });
+
+  it('multi-select permanent delete shows count in message', async () => {
+    const trashedTask2: Task = { ...trashedTask, id: 'trash2', title: 'Second Task', sort_key: 2 };
+    setupMockApi({ tasksGetTrashed: vi.fn().mockResolvedValue([trashedTask, trashedTask2]) });
+    render(<App />);
+    await navigateToTrashTasks();
+    fireEvent.keyDown(window, { key: 'Shift' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(screen.getByText(/permanently delete 2 selected tasks/)).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('trash1'));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith('trash2'));
+    // Undo restores both
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+    await waitFor(() => expect(window.api.tasksRestore).toHaveBeenCalledTimes(2));
+    // Redo deletes both again
+    fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledTimes(4));
+  });
 });
