@@ -84,20 +84,39 @@ export function computeReorder(
     if (rangeEnd >= flatTasks.length) return null;
     const below = flatTasks[rangeEnd];
 
-    const targetDepth = below.depth;
-    const belowSize = visibleSubtreeSize(flatTasks, rangeEnd);
-    const belowEnd = rangeEnd + belowSize;
-
-    const newParentId = targetDepth === 0 ? null
-      : getAncestorAtDepth(below, targetDepth - 1, taskMap)!.id;
-
-    const lastOfBelow = flatTasks[belowEnd - 1].task.sort_key;
-    const afterBelow = belowEnd < flatTasks.length ? flatTasks[belowEnd].task.sort_key : null;
-    const newSortKey = calcSortKeyBetween(lastOfBelow, afterBelow);
-
-    return {
-      mutations: [{ id: task.id, sortKey: newSortKey, parentId: newParentId }, ...orphanMutations()],
-      newSelectedIndex: taskIndex + belowSize,
-    };
+    // If below task is expanded and has children, go inside (become first child)
+    // Otherwise, swap positions (go after its subtree)
+    const belowIsExpanded = !!below.task.is_expanded;
+    const belowHasChildren = tasks.some(t => t.parent_id === below.task.id);
+    
+    if (belowIsExpanded && belowHasChildren) {
+      // Move inside: become first child of below
+      const targetDepth = below.depth + 1;
+      const newParentId = below.task.id;
+      const firstChild = flatTasks[rangeEnd + 1];
+      const newSortKey = calcSortKeyBetween(null, firstChild.task.sort_key);
+      
+      return {
+        mutations: [{ id: task.id, sortKey: newSortKey, parentId: newParentId }, ...orphanMutations()],
+        newSelectedIndex: rangeEnd + 1,
+      };
+    } else {
+      // Swap: go after below's entire subtree
+      const belowSize = visibleSubtreeSize(flatTasks, rangeEnd);
+      const belowEnd = rangeEnd + belowSize;
+      const targetDepth = below.depth;
+      
+      const newParentId = targetDepth === 0 ? null
+        : getAncestorAtDepth(below, targetDepth - 1, taskMap)!.id;
+      
+      const lastOfBelow = flatTasks[belowEnd - 1].task.sort_key;
+      const afterBelow = belowEnd < flatTasks.length ? flatTasks[belowEnd].task.sort_key : null;
+      const newSortKey = calcSortKeyBetween(lastOfBelow, afterBelow);
+      
+      return {
+        mutations: [{ id: task.id, sortKey: newSortKey, parentId: newParentId }, ...orphanMutations()],
+        newSelectedIndex: rangeEnd,
+      };
+    }
   }
 }

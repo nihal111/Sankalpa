@@ -95,7 +95,7 @@ describe('computeReorder', () => {
     expect(result!.mutations[0].parentId).toBeNull();
   });
 
-  it('adopts depth when moving down into deeper task', () => {
+  it('moves into expanded task with children', () => {
     const task1 = makeTask('1', null, 1, 1);
     const task2 = makeTask('2', null, 1, 2);
     const child2 = makeTask('3', '2', 1, 3);
@@ -104,7 +104,8 @@ describe('computeReorder', () => {
     const result = computeReorder(flat, tasks, 0, 1);
     expect(result).not.toBeNull();
     expect(result!.mutations[0].id).toBe('1');
-    expect(result!.mutations[0].parentId).toBeNull();
+    expect(result!.mutations[0].parentId).toBe('2'); // becomes child of task2
+    expect(result!.newSelectedIndex).toBe(2); // goes to position 2 (between task2 and child2)
   });
 
   it('moves into nested position when target has children', () => {
