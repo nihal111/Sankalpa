@@ -145,9 +145,12 @@ export function TasksPane({
           const drag = taskDragProps?.(i);
           const isOverdue = task.due_date !== null && task.due_date < Date.now() && task.status === 'PENDING';
           // Build tree line classes for each depth level
-          const treeLines: { depth: number; isLast: boolean }[] = [];
-          for (let d = 0; d < flatTask.depth; d++) {
-            treeLines.push({ depth: d, isLast: flatTask.ancestorIsLast[d] });
+          const treeLines: { type: 'vertical' | 'empty' | 'tee' | 'corner' }[] = [];
+          for (let d = 1; d < flatTask.depth; d++) {
+            treeLines.push({ type: flatTask.ancestorIsLast[d] ? 'empty' : 'vertical' });
+          }
+          if (flatTask.depth > 0) {
+            treeLines.push({ type: flatTask.isLastChild ? 'corner' : 'tee' });
           }
           return (
             <li
@@ -161,7 +164,7 @@ export function TasksPane({
                 {treeLines.map((line, idx) => (
                   <span
                     key={idx}
-                    className={`tree-line ${idx === treeLines.length - 1 ? (flatTask.isLastChild ? 'corner' : 'tee') : (line.isLast ? 'empty' : 'vertical')}`}
+                    className={`tree-line ${line.type}`}
                   />
                 ))}
                 <span
