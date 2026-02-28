@@ -105,7 +105,7 @@ describe('computeReorder', () => {
     expect(result).not.toBeNull();
     expect(result!.mutations[0].id).toBe('1');
     expect(result!.mutations[0].parentId).toBe('2'); // becomes child of task2
-    expect(result!.newSelectedIndex).toBe(2); // goes to position 2 (between task2 and child2)
+    expect(result!.newSelectedIndex).toBe(1); // task1 is now at position 1 (first child of task2)
   });
 
   it('moves into nested position when target has children', () => {

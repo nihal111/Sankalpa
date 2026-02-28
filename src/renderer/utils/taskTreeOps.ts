@@ -98,7 +98,7 @@ export function computeReorder(
       
       return {
         mutations: [{ id: task.id, sortKey: newSortKey, parentId: newParentId }, ...orphanMutations()],
-        newSelectedIndex: rangeEnd + 1,
+        newSelectedIndex: rangeEnd,
       };
     } else {
       // Swap: go after below's entire subtree
