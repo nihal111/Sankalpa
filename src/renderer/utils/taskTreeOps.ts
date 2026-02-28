@@ -115,7 +115,7 @@ export function computeReorder(
       
       return {
         mutations: [{ id: task.id, sortKey: newSortKey, parentId: newParentId }, ...orphanMutations()],
-        newSelectedIndex: rangeEnd,
+        newSelectedIndex: taskIndex + belowSize,
       };
     }
   }
