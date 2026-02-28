@@ -8,6 +8,35 @@ export interface ReorderMutation {
   parentId?: string | null;
 }
 
+export interface DuplicateSpec {
+  task: Task;
+  newId: string;
+  newParentId: string | null;
+}
+
+export function computeDuplicate(task: Task, allTasks: Task[]): DuplicateSpec[] {
+  const specs: DuplicateSpec[] = [];
+  const idMap = new Map<string, string>();
+  const rootId = crypto.randomUUID();
+  idMap.set(task.id, rootId);
+  
+  specs.push({ task, newId: rootId, newParentId: task.parent_id });
+  
+  if (!task.is_expanded) {
+    const collect = (parentId: string): void => {
+      allTasks.filter(t => t.parent_id === parentId).forEach(child => {
+        const newId = crypto.randomUUID();
+        idMap.set(child.id, newId);
+        specs.push({ task: child, newId, newParentId: idMap.get(child.parent_id!)! });
+        collect(child.id);
+      });
+    };
+    collect(task.id);
+  }
+  
+  return specs;
+}
+
 export interface ReorderResult {
   mutations: ReorderMutation[];
   newSelectedIndex: number;

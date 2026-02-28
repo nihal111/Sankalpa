@@ -4,6 +4,7 @@ import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
 import type { UndoEntry } from './useUndoStack';
 import { getDescendantIds } from '../utils/taskTree';
+import { computeDuplicate } from '../utils/taskTreeOps';
 
 interface UseTaskActionsParams {
   focusedPane: Pane;
@@ -109,23 +110,32 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
 
   const duplicateTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask || isTrashView) return;
-    const id = crypto.randomUUID();
-    await window.api.tasksCreate(id, selectedTask.list_id, selectedTask.title);
-    await window.api.tasksSetDueDate(id, selectedTask.due_date);
-    await window.api.tasksUpdateNotes(id, selectedTask.notes);
-    if (selectedTask.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+    const specs = computeDuplicate(selectedTask, tasks);
+    const allIds = specs.map(s => s.newId);
+    
+    for (const spec of specs) {
+      await window.api.tasksCreate(spec.newId, spec.task.list_id, spec.task.title);
+      if (spec.newParentId) await window.api.tasksSetParentId(spec.newId, spec.newParentId);
+      await window.api.tasksSetDueDate(spec.newId, spec.task.due_date);
+      await window.api.tasksUpdateNotes(spec.newId, spec.task.notes);
+      if (spec.task.status === 'COMPLETED') await window.api.tasksToggleCompleted(spec.newId);
+    }
+    
     await reloadTasks();
-    onFlash?.(id);
+    onFlash?.(specs[0].newId);
     undoPush({
-      undo: async () => { await window.api.tasksDelete(id); },
+      undo: async () => { for (const id of allIds) await window.api.tasksDelete(id); },
       redo: async () => {
-        await window.api.tasksCreate(id, selectedTask.list_id, selectedTask.title);
-        await window.api.tasksSetDueDate(id, selectedTask.due_date);
-        await window.api.tasksUpdateNotes(id, selectedTask.notes);
-        if (selectedTask.status === 'COMPLETED') await window.api.tasksToggleCompleted(id);
+        for (const spec of specs) {
+          await window.api.tasksCreate(spec.newId, spec.task.list_id, spec.task.title);
+          if (spec.newParentId) await window.api.tasksSetParentId(spec.newId, spec.newParentId);
+          await window.api.tasksSetDueDate(spec.newId, spec.task.due_date);
+          await window.api.tasksUpdateNotes(spec.newId, spec.task.notes);
+          if (spec.task.status === 'COMPLETED') await window.api.tasksToggleCompleted(spec.newId);
+        }
       },
     });
-  }, [focusedPane, selectedTask, isTrashView, reloadTasks, onFlash, undoPush]);
+  }, [focusedPane, selectedTask, isTrashView, tasks, reloadTasks, onFlash, undoPush]);
 
   return { createTask, toggleTaskCompleted, deleteTask, duplicateTask };
 }
