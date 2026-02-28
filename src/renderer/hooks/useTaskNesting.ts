@@ -69,13 +69,21 @@ export function useTaskNesting(params: UseTaskNestingParams): TaskNestingActions
 
     if (!canIndent(selectedTaskIndex, flatTasks)) { onThrob?.(flatTask.task.id); return; }
 
-    const taskAbove = flatTasks[selectedTaskIndex - 1].task;
+    const targetDepth = flatTask.depth + 1;
+    let newParentId: string | null = null;
+    for (let i = selectedTaskIndex - 1; i >= 0; i--) {
+      if (flatTasks[i].depth === targetDepth - 1) {
+        newParentId = flatTasks[i].task.id;
+        break;
+      }
+    }
+
     const oldParentId = flatTask.task.parent_id;
-    await window.api.tasksSetParentId(flatTask.task.id, taskAbove.id);
+    await window.api.tasksSetParentId(flatTask.task.id, newParentId);
     await reloadTasks();
     undoPush({
       undo: async () => { await window.api.tasksSetParentId(flatTask.task.id, oldParentId); },
-      redo: async () => { await window.api.tasksSetParentId(flatTask.task.id, taskAbove.id); },
+      redo: async () => { await window.api.tasksSetParentId(flatTask.task.id, newParentId); },
     });
   }, [focusedPane, flatTasks, selectedTaskIndex, reloadTasks, onThrob, undoPush]);
 
