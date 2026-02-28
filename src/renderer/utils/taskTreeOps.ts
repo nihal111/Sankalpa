@@ -69,7 +69,7 @@ export function computeReorder(
     if (taskIndex === 0) return null;
     const above = flatTasks[taskIndex - 1];
 
-    const targetDepth = above.depth < flatTask.depth ? above.depth : flatTask.depth;
+    const targetDepth = above.depth;
     const newParentId = targetDepth === 0 ? null
       : getAncestorAtDepth(above, targetDepth - 1, taskMap)!.id;
 
@@ -84,7 +84,7 @@ export function computeReorder(
     if (rangeEnd >= flatTasks.length) return null;
     const below = flatTasks[rangeEnd];
 
-    const targetDepth = below.depth < flatTask.depth ? below.depth : flatTask.depth;
+    const targetDepth = below.depth;
     const belowSize = visibleSubtreeSize(flatTasks, rangeEnd);
     const belowEnd = rangeEnd + belowSize;
 
