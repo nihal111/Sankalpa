@@ -43,10 +43,10 @@ describe('App create and reorder', () => {
     expect(window.api.tasksCreate).not.toHaveBeenCalled();
   });
 
-  it('reorders task with Cmd+Shift+Down', async () => {
+  it('reorders task with Opt+Down', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true, shiftKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown', altKey: true });
     await waitFor(() => {
       expect(window.api.tasksReorder).toHaveBeenCalled();
     });
@@ -55,7 +55,7 @@ describe('App create and reorder', () => {
   it('does not reorder at boundary', async () => {
     render(<App />);
     await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'ArrowUp', metaKey: true, shiftKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowUp', altKey: true });
     expect(window.api.tasksReorder).not.toHaveBeenCalled();
   });
 

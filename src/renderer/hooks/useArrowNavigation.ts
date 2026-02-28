@@ -27,7 +27,7 @@ export function useArrowNavigation(params: UseArrowNavigationParams): (e: Keyboa
 
   return useCallback((e: KeyboardEvent) => {
     const delta = e.key === 'ArrowUp' ? -1 : 1;
-    if (e.metaKey && e.shiftKey && focusedPane === 'tasks') {
+    if (e.altKey && !e.metaKey && !e.shiftKey && focusedPane === 'tasks') {
       if (selectedTaskIndicesSize > 0) multiSelectActions.clear();
       handleReorder(delta);
       return;

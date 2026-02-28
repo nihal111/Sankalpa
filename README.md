@@ -35,7 +35,7 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | `Delete/Backspace` | Delete selected task |
 | `Cmd+N` | New task in current list |
 | `Cmd+Shift+N` | New list |
-| `Cmd+Shift+↑/↓` | Reorder item |
+| `Opt+↑/↓` | Reorder item |
 | `M` | Move task to another list |
 | `D` | Set due date on task |
 | `⌥D` | Set duration on task |

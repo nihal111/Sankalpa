@@ -57,7 +57,7 @@ describe('getTaskDepth', () => {
     expect(getTaskDepth(grandchild, taskMap)).toBe(2);
   });
 
-  it('caps at MAX_DEPTH (2)', () => {
+  it('returns depth for deeply nested task', () => {
     const t1 = makeTask('1');
     const t2 = makeTask('2', '1');
     const t3 = makeTask('3', '2');
@@ -68,7 +68,7 @@ describe('getTaskDepth', () => {
       [t3.id, t3],
       [t4.id, t4],
     ]);
-    expect(getTaskDepth(t4, taskMap)).toBe(2);
+    expect(getTaskDepth(t4, taskMap)).toBe(3);
   });
 });
 
@@ -154,7 +154,7 @@ describe('findValidParent', () => {
     expect(findValidParent(task, taskMap)).toBe('1');
   });
 
-  it('returns parent_id when task above is at max depth', () => {
+  it('returns task id for any task above', () => {
     const t1 = makeTask('1');
     const t2 = makeTask('2', '1');
     const t3 = makeTask('3', '2');
@@ -163,7 +163,7 @@ describe('findValidParent', () => {
       [t2.id, t2],
       [t3.id, t3],
     ]);
-    expect(findValidParent(t3, taskMap)).toBe('2');
+    expect(findValidParent(t3, taskMap)).toBe('3');
   });
 });
 
@@ -181,13 +181,13 @@ describe('canIndent', () => {
     expect(canIndent(1, flat)).toBe(true);
   });
 
-  it('returns false when already at max depth', () => {
+  it('returns true when at any depth if task above is at same or greater depth', () => {
     const t1 = makeTask('1');
     const t2 = makeTask('2', '1');
     const t3 = makeTask('3', '2');
     const t4 = makeTask('4', '2');
     const flat = flattenWithDepth([t1, t2, t3, t4]);
-    expect(canIndent(3, flat)).toBe(false);
+    expect(canIndent(3, flat)).toBe(true);
   });
 });
 

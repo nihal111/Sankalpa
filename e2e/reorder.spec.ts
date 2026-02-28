@@ -22,18 +22,18 @@ test.afterAll(async () => {
   await closeApp(app, dbPath, recorder);
 });
 
-test('Cmd+Shift+Arrow reorders tasks', async () => {
+test('Opt+Arrow reorders tasks', async () => {
   // Verify initial order
   expect(await getTaskTitles(page)).toEqual(['First', 'Second', 'Third']);
   
-  // Reorder First down using Cmd+Shift+Down
-  await press(page, 'ArrowDown', { meta: true, shift: true });
+  // Reorder First down using Opt+Down
+  await press(page, 'ArrowDown', { alt: true });
   await page.waitForTimeout(150);
   
   expect(await getTaskTitles(page)).toEqual(['Second', 'First', 'Third']);
   
   // Reorder back up
-  await press(page, 'ArrowUp', { meta: true, shift: true });
+  await press(page, 'ArrowUp', { alt: true });
   await page.waitForTimeout(150);
   
   expect(await getTaskTitles(page)).toEqual(['First', 'Second', 'Third']);

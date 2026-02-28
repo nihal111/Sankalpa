@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import type { Task } from '../../shared/types';
 import type { Pane } from '../types';
 import type { UndoEntry } from './useUndoStack';
-import { type TaskWithDepth, canIndent, canOutdent, hasChildren, getDescendantIds } from '../utils/taskTree';
+import { type TaskWithDepth, canIndent, canOutdent, hasChildren } from '../utils/taskTree';
+import { computeReorder, type ReorderMutation } from '../utils/taskTreeOps';
 
 interface UseTaskNestingParams {
   focusedPane: Pane;
@@ -23,64 +24,41 @@ interface TaskNestingActions {
   toggleCollapse: () => Promise<void>;
 }
 
+async function applyMutations(mutations: ReorderMutation[]): Promise<void> {
+  for (const m of mutations) {
+    if (m.sortKey !== undefined) await window.api.tasksReorder(m.id, m.sortKey);
+    if ('parentId' in m) await window.api.tasksSetParentId(m.id, m.parentId!);
+  }
+}
+
+function invertMutations(mutations: ReorderMutation[], tasks: Task[]): ReorderMutation[] {
+  const taskMap = new Map(tasks.map(t => [t.id, t]));
+  return mutations.map(m => {
+    const orig = taskMap.get(m.id)!;
+    const inv: ReorderMutation = { id: m.id };
+    if (m.sortKey !== undefined) inv.sortKey = orig.sort_key;
+    if ('parentId' in m) inv.parentId = orig.parent_id;
+    return inv;
+  });
+}
+
 export function useTaskNesting(params: UseTaskNestingParams): TaskNestingActions {
   const { focusedPane, selectedTaskIndex, tasks, flatTasks, setSelectedTaskIndex, reloadTasks, onFlash, onThrob, undoPush } = params;
 
   const handleReorder = useCallback(async (direction: -1 | 1) => {
     if (focusedPane !== 'tasks' || flatTasks.length === 0) return;
-    const flatTask = flatTasks[selectedTaskIndex];
-    if (!flatTask) return;
-    const task = flatTask.task;
+    const result = computeReorder(flatTasks, tasks, selectedTaskIndex, direction);
+    if (!result) return;
 
-    const descendantIds = !task.is_expanded ? getDescendantIds(task.id, tasks) : [];
-    const subtreeSize = 1 + descendantIds.length;
-    const newIndex = direction === -1 ? selectedTaskIndex - 1 : selectedTaskIndex + subtreeSize;
-    if (newIndex < 0 || newIndex >= flatTasks.length) return;
-
-    const taskAboveIndex = direction === -1 ? newIndex - 1 : newIndex;
-    const taskAbove = taskAboveIndex >= 0 ? flatTasks[taskAboveIndex] : null;
-    const maxDepth = taskAbove ? taskAbove.depth + 1 : 0;
-    const newDepth = Math.min(flatTask.depth, maxDepth);
-
-    let newParentId: string | null = null;
-    if (newDepth > 0 && taskAbove) {
-      if (newDepth === 1) newParentId = taskAbove.depth === 0 ? taskAbove.task.id : taskAbove.task.parent_id;
-      else if (newDepth === 2) newParentId = taskAbove.depth >= 1 ? (taskAbove.depth === 1 ? taskAbove.task.id : taskAbove.task.parent_id) : null;
-    }
-
-    const orphanedChildren = task.is_expanded ? tasks.filter(t => t.parent_id === task.id) : [];
-    const oldOrphanParents = orphanedChildren.map(c => ({ id: c.id, parentId: c.parent_id }));
-    const orphanNewParent = task.parent_id;
-
-    const neighbor = flatTasks[direction === -1 ? newIndex : selectedTaskIndex + 1];
-    if (!neighbor) return;
-
-    const origItemSortKey = task.sort_key;
-    const origNeighborSortKey = neighbor.task.sort_key;
-    const oldParentId = task.parent_id;
-
-    await window.api.tasksReorder(task.id, neighbor.task.sort_key);
-    await window.api.tasksReorder(neighbor.task.id, task.sort_key);
-    if (newParentId !== oldParentId) await window.api.tasksSetParentId(task.id, newParentId);
-    for (const child of orphanedChildren) await window.api.tasksSetParentId(child.id, orphanNewParent);
-
+    const undoMutations = invertMutations(result.mutations, tasks);
+    await applyMutations(result.mutations);
     await reloadTasks();
-    setSelectedTaskIndex(direction === -1 ? newIndex : selectedTaskIndex + 1);
-    onFlash?.(task.id);
+    setSelectedTaskIndex(result.newSelectedIndex);
+    onFlash?.(flatTasks[selectedTaskIndex].task.id);
 
     undoPush({
-      undo: async () => {
-        await window.api.tasksReorder(task.id, origItemSortKey);
-        await window.api.tasksReorder(neighbor.task.id, origNeighborSortKey);
-        if (newParentId !== oldParentId) await window.api.tasksSetParentId(task.id, oldParentId);
-        for (const { id, parentId } of oldOrphanParents) await window.api.tasksSetParentId(id, parentId);
-      },
-      redo: async () => {
-        await window.api.tasksReorder(task.id, neighbor.task.sort_key);
-        await window.api.tasksReorder(neighbor.task.id, task.sort_key);
-        if (newParentId !== oldParentId) await window.api.tasksSetParentId(task.id, newParentId);
-        for (const child of orphanedChildren) await window.api.tasksSetParentId(child.id, orphanNewParent);
-      },
+      undo: async () => { await applyMutations(undoMutations); },
+      redo: async () => { await applyMutations(result.mutations); },
     });
   }, [focusedPane, flatTasks, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, onFlash, undoPush]);
 

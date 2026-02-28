@@ -7,12 +7,10 @@ export interface TaskWithDepth {
   ancestorIsLast: boolean[];
 }
 
-const MAX_DEPTH = 2; // 0, 1, 2 = 3 levels
-
 export function getTaskDepth(task: Task, taskMap: Map<string, Task>): number {
   let depth = 0;
   let current = task;
-  while (current.parent_id && depth < MAX_DEPTH) {
+  while (current.parent_id) {
     const parent = taskMap.get(current.parent_id);
     if (!parent) break;
     depth++;
@@ -71,17 +69,14 @@ export function getDescendantIds(taskId: string, tasks: Task[]): string[] {
 
 export function findValidParent(taskAbove: Task | undefined, taskMap: Map<string, Task>): string | null {
   if (!taskAbove) return null;
-  const aboveDepth = getTaskDepth(taskAbove, taskMap);
-  if (aboveDepth < MAX_DEPTH) return taskAbove.id;
-  // taskAbove is at max depth, return its parent
-  return taskAbove.parent_id;
+  return taskAbove.id;
 }
 
 export function canIndent(taskIndex: number, flatTasks: TaskWithDepth[]): boolean {
   if (taskIndex === 0) return false;
   const current = flatTasks[taskIndex];
   const above = flatTasks[taskIndex - 1];
-  return current.depth < MAX_DEPTH && above.depth >= current.depth;
+  return above.depth >= current.depth;
 }
 
 export function canOutdent(taskIndex: number, flatTasks: TaskWithDepth[]): boolean {
