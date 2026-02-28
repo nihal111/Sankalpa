@@ -3,6 +3,7 @@ import type { Task } from '../../shared/types';
 import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
 import type { UndoEntry } from './useUndoStack';
+import type { TaskWithDepth } from '../utils/taskTree';
 import { getDescendantIds } from '../utils/taskTree';
 import { computeDuplicate } from '../utils/taskTreeOps';
 
@@ -12,6 +13,9 @@ interface UseTaskActionsParams {
   selectedListId: string | null;
   selectedTask: Task | null;
   tasks: Task[];
+  flatTasks: TaskWithDepth[];
+  selectedTaskIndex: number;
+  selectedTaskIndices: Set<number>;
   setTasks: (tasks: Task[]) => void;
   setSelectedTaskIndex: (fn: number | ((i: number) => number)) => void;
   setFocusedPane: (pane: Pane) => void;
@@ -25,6 +29,7 @@ interface UseTaskActionsParams {
   onPermanentDeleteRequest?: (task: Task) => void;
   onCascadeComplete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
   onCascadeDelete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
+  multiSelectClear: () => void;
 }
 
 interface TaskActions {
@@ -36,9 +41,9 @@ interface TaskActions {
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
-    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks,
+    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, onCompleteFlash, undoPush,
-    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete,
+    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -85,28 +90,41 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
 
     if (isTrashView) { onPermanentDeleteRequest?.(selectedTask); return; }
 
-    const descendantIds = getDescendantIds(selectedTask.id, tasks);
+    // Get tasks to delete (multi-select or single)
+    const indicesToDelete = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [selectedTaskIndex];
+    const tasksToDelete = indicesToDelete.map(i => flatTasks[i]?.task).filter(Boolean);
+    if (tasksToDelete.length === 0) return;
+
+    // Collect all descendants for each task to delete
+    const allTasksToDelete = new Set<string>();
+    const descendantsByTask = new Map<string, string[]>();
+    for (const task of tasksToDelete) {
+      allTasksToDelete.add(task.id);
+      const descendants = getDescendantIds(task.id, tasks);
+      descendantsByTask.set(task.id, descendants);
+      descendants.forEach(id => allTasksToDelete.add(id));
+    }
+
     const doDelete = async () => {
-      const { id } = selectedTask;
-      await window.api.tasksSoftDelete(selectedTask.id);
-      for (const descId of descendantIds) await window.api.tasksSoftDelete(descId);
+      for (const id of allTasksToDelete) await window.api.tasksSoftDelete(id);
       await reloadTasks();
-      setSelectedTaskIndex((i: number) => Math.min(i, tasks.length - 2 - descendantIds.length));
+      multiSelectClear();
+      setSelectedTaskIndex(Math.min(indicesToDelete[0], flatTasks.length - allTasksToDelete.size - 1));
       undoPush({
-        undo: async () => {
-          await window.api.tasksRestoreFromTrash(id);
-          for (const descId of descendantIds) await window.api.tasksRestoreFromTrash(descId);
-        },
-        redo: async () => {
-          await window.api.tasksSoftDelete(id);
-          for (const descId of descendantIds) await window.api.tasksSoftDelete(descId);
-        },
+        undo: async () => { for (const id of allTasksToDelete) await window.api.tasksRestoreFromTrash(id); },
+        redo: async () => { for (const id of allTasksToDelete) await window.api.tasksSoftDelete(id); },
       });
     };
 
-    if (descendantIds.length > 0) { onCascadeDelete?.(selectedTask, descendantIds.length, doDelete); return; }
+    // Check if any task has descendants
+    const totalDescendants = Array.from(descendantsByTask.values()).reduce((sum, arr) => sum + arr.length, 0);
+    if (totalDescendants > 0 && tasksToDelete.length === 1) {
+      onCascadeDelete?.(tasksToDelete[0], totalDescendants, doDelete);
+      return;
+    }
+
     await doDelete();
-  }, [focusedPane, selectedTask, tasks, reloadTasks, setSelectedTaskIndex, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
+  }, [focusedPane, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices, reloadTasks, setSelectedTaskIndex, multiSelectClear, undoPush, isTrashView, onPermanentDeleteRequest, onCascadeDelete]);
 
   const duplicateTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask || isTrashView) return;

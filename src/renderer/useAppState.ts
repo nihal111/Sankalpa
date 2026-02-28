@@ -86,10 +86,10 @@ export function useAppState() {
   }, [setEditMode, setEditValue, setTasks]);
 
   const { createTask, toggleTaskCompleted, deleteTask, duplicateTask } = useTaskActions({
-    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks,
+    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
-    onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete,
+    onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete, multiSelectClear: multiSelectActions.clear,
   });
 
   const { handleReorder, indentTask, outdentTask, toggleCollapse } = useTaskNesting({
