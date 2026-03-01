@@ -1186,16 +1186,16 @@ h2 {
 /* Vertical line continuing down - spans full height */
 .tree-line.vertical::before {
   left: 7px;
-  top: -8px;
-  bottom: -8px;
+  top: -6px;
+  bottom: -6px;
   border-left: 1px solid;
 }
 
 /* Corner (last child) - vertical from top to center, horizontal goes right */
 .tree-line.corner::before {
   left: 7px;
-  top: -8px;
-  height: calc(50% + 8px);
+  top: -6px;
+  height: calc(50% + 6px);
   border-left: 1px solid;
   border-bottom: 1px solid;
   width: 8px;
@@ -1204,8 +1204,8 @@ h2 {
 /* Tee (not last child) - vertical full height, horizontal goes right */
 .tree-line.tee::before {
   left: 7px;
-  top: -8px;
-  bottom: -8px;
+  top: -6px;
+  bottom: -6px;
   border-left: 1px solid;
 }
 
