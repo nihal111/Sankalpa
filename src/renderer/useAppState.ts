@@ -72,18 +72,15 @@ export function useAppState() {
     if (!isFolder) {
       const current = flatTasks[index];
       if (!current) return undefined;
-      // Use effective parent: if depth is 0, treat as root (null parent) even if parent_id points elsewhere
-      const effectiveParentId = current.depth === 0 ? null : current.task.parent_id;
-      // Find adjacent task with same effective parent
+      const parentId = current.effectiveParentId;
       const step = direction === 'before' ? -1 : 1;
       for (let j = index + step; j >= 0 && j < flatTasks.length; j += step) {
         const candidate = flatTasks[j];
-        const candidateEffectiveParent = candidate.depth === 0 ? null : candidate.task.parent_id;
-        if (candidateEffectiveParent === effectiveParentId) {
+        if (candidate.effectiveParentId === parentId) {
           return { id: candidate.task.id, sort_key: candidate.task.sort_key, list_id: candidate.task.list_id };
         }
         // If we hit a task at same or lower depth with different parent, stop
-        if (candidate.depth <= current.depth && candidateEffectiveParent !== effectiveParentId) break;
+        if (candidate.depth <= current.depth && candidate.effectiveParentId !== parentId) break;
       }
       return undefined;
     }

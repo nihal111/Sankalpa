@@ -5,6 +5,7 @@ export interface TaskWithDepth {
   depth: number;
   isLastChild: boolean;
   ancestorIsLast: boolean[];
+  effectiveParentId: string | null;
 }
 
 export function getTaskDepth(task: Task, taskMap: Map<string, Task>): number {
@@ -41,7 +42,7 @@ export function flattenWithDepth(tasks: Task[]): TaskWithDepth[] {
     const children = childrenMap.get(parentId) ?? [];
     children.forEach((task, i) => {
       const isLastChild = i === children.length - 1;
-      result.push({ task, depth, isLastChild, ancestorIsLast: [...ancestorIsLast] });
+      result.push({ task, depth, isLastChild, ancestorIsLast: [...ancestorIsLast], effectiveParentId: parentId });
       if (!collapsedIds.has(task.id)) {
         traverse(task.id, depth + 1, [...ancestorIsLast, isLastChild]);
       }
