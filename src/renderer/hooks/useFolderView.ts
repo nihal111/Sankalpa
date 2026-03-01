@@ -17,10 +17,12 @@ interface UseFolderViewResult {
   sections: ListSection[];
   rows: FolderViewRow[];
   toggleSection: (listId: string) => void;
+  reload: () => void;
 }
 
 export function useFolderView(selectedSidebarItem: SidebarItem | undefined, lists: List[]): UseFolderViewResult {
   const [sections, setSections] = useState<ListSection[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const folderId = selectedSidebarItem?.type === 'folder' ? selectedSidebarItem.folder.id : null;
   const folderLists = useMemo(() => folderId ? lists.filter((l) => l.folder_id === folderId) : [], [lists, folderId]);
@@ -30,12 +32,12 @@ export function useFolderView(selectedSidebarItem: SidebarItem | undefined, list
     let stale = false;
     Promise.all(folderLists.map(async (list) => {
       const tasks = await window.api.tasksGetByList(list.id);
-      return { list, tasks, expanded: true };
+      return { list, tasks, expanded: sections.find((s) => s.list.id === list.id)?.expanded ?? true };
     })).then((result) => {
       if (!stale) setSections(result);
     });
     return () => { stale = true; };
-  }, [folderId, folderLists]);
+  }, [folderId, folderLists, reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rows = useMemo(() => {
     const result: FolderViewRow[] = [];
@@ -54,5 +56,7 @@ export function useFolderView(selectedSidebarItem: SidebarItem | undefined, list
     setSections((prev) => prev.map((s) => s.list.id === listId ? { ...s, expanded: !s.expanded } : s));
   }, []);
 
-  return { sections, rows, toggleSection };
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { sections, rows, toggleSection, reload };
 }

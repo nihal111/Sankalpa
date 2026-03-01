@@ -49,6 +49,30 @@ export default function App(): ReactNode {
           focusedPane={state.focusedPane}
           selectedIndex={state.selectedTaskIndex}
           onToggleSection={state.folderViewToggleSection}
+          selectedTaskIndices={state.selectedTaskIndices}
+          shiftHeld={state.shiftHeld}
+          cmdHeld={state.cmdHeld}
+          boundaryCursor={state.boundaryCursor}
+          onTaskClick={state.handleTaskClick}
+          onTaskContextMenu={state.handleTaskContextMenu}
+          onTaskToggle={state.handleTaskToggle}
+          flashIds={state.flashIds}
+          throbIds={state.throbIds}
+          completeIds={state.completeIds}
+          uncompleteIds={state.uncompleteIds}
+          moveIds={state.moveIds}
+          evaporateIds={state.evaporateIds}
+          dragOverIndex={state.dragState.dragOverIndex}
+          dropPosition={state.dragState.dropPosition}
+          dragOverListId={state.dragState.dragOverListId}
+          taskDragProps={state.taskDragProps}
+          headerDropProps={state.headerDropProps}
+          editMode={state.editMode}
+          editValue={state.editValue}
+          setEditValue={state.setEditValue}
+          handleInputKeyDown={state.handleInputKeyDown}
+          handleEditBlur={state.handleEditBlur}
+          inputRef={state.inputRef}
         />
       ) : (
         <TasksPane

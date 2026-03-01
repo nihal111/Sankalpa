@@ -44,7 +44,7 @@ export function useAppState() {
   const metaHeld = useMetaKey();
   const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
-  const { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
+  const { reloadData, reloadTasks: reloadTasksBase, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
   const listNames = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists]);
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
@@ -53,6 +53,38 @@ export function useAppState() {
   const isFolder = selectedSidebarItem?.type === 'folder';
   const folderView = useFolderView(selectedSidebarItem, lists);
   const effectiveTasksLength = isFolder ? folderView.rows.length : flatTasks.length;
+  const reloadTasks = useCallback(async () => { await reloadTasksBase(); if (isFolder) folderView.reload(); }, [reloadTasksBase, isFolder, folderView]);
+  // For drag/drop: map row index to task info
+  const getTaskAtIndex = useCallback((i: number) => {
+    if (!isFolder) {
+      const t = tasks[i];
+      return t ? { id: t.id, sort_key: t.sort_key, list_id: t.list_id } : undefined;
+    }
+    const row = folderView.rows[i];
+    if (row?.type === 'task') {
+      const t = row.task;
+      return { id: t.id, sort_key: t.sort_key, list_id: t.list_id };
+    }
+    return undefined;
+  }, [isFolder, tasks, folderView.rows]);
+  // For drag/drop: find adjacent task in same list (for sort key calculation)
+  const getAdjacentTaskInSameList = useCallback((index: number, direction: 'before' | 'after', targetListId: string | null) => {
+    if (!isFolder) {
+      const adjIdx = direction === 'before' ? index - 1 : index + 1;
+      const t = tasks[adjIdx];
+      return t ? { id: t.id, sort_key: t.sort_key, list_id: t.list_id } : undefined;
+    }
+    // In folder view, search for adjacent task in the same list
+    const step = direction === 'before' ? -1 : 1;
+    for (let j = index + step; j >= 0 && j < folderView.rows.length; j += step) {
+      const row = folderView.rows[j];
+      if (row.type === 'header') break; // Hit a different section
+      if (row.type === 'task' && row.task.list_id === targetListId) {
+        return { id: row.task.id, sort_key: row.task.sort_key, list_id: row.task.list_id };
+      }
+    }
+    return undefined;
+  }, [isFolder, tasks, folderView.rows]);
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
   const trashActions = useTrashActions({ isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
@@ -166,9 +198,9 @@ export function useAppState() {
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
   const dragDrop = useDragDrop({
-    hardcoreMode, tasks, flatTasksLength: flatTasks.length,
-    selectedTaskIndex, selectedTaskIndices, sidebarItems,
-    reloadTasks, reloadData, setSelectedTaskIndex, setSelectedSidebarIndex, setFocusedPane,
+    hardcoreMode, getTaskAtIndex, getAdjacentTaskInSameList,
+    selectedTaskIndices, sidebarItems,
+    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane,
     flash, moveFlash, undoPush,
     multiSelectClear: multiSelectActions.clear,
   });
@@ -202,7 +234,7 @@ export function useAppState() {
     completedFilter: isCompletedView ? completedFilter : undefined, onFilterChange: isCompletedView ? setCompletedFilter : undefined,
     listsWithCompletedTasks: isCompletedView ? listsWithCompletedTasks : undefined, selectedTask, handleDetailEditTitle, handleDetailEditDueDate, handleDetailEditDuration,
     isSearchOpen, lastSearchQuery, closeSearch, handleSearchSelect, setLastSearchQuery, notesEditing, handleStartNotesEdit, handleNotesCommit,
-    handleNotesCancelEdit, dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
+    handleNotesCancelEdit, dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps, headerDropProps: dragDrop.headerDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,
     moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
     folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,

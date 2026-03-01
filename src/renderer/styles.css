@@ -1313,6 +1313,11 @@ h2 {
   color: #fff;
 }
 
+.folder-section-header.drag-over {
+  background: var(--bg-selected);
+  opacity: 0.7;
+}
+
 .folder-section-chevron {
   flex-shrink: 0;
   transition: transform 0.15s;
