@@ -1,14 +1,14 @@
 
 /* Dark theme */
 :root, [data-theme="dark"] {
-  --bg-primary: #2a2a28;
-  --bg-secondary: #232321;
-  --bg-selected-unfocused: #3a3a38;
-  --bg-selected: #98801f;
-  --bg-multi-selected: #7a6818;
-  --border-pane: #3a3a38;
-  --text-primary: #e8e6df;
-  --text-secondary: #8a8880;
+  --bg-primary: #171717;
+  --bg-secondary: #262626;
+  --bg-selected-unfocused: #3b3b3b;
+  --bg-selected: #62592c;
+  --bg-multi-selected: #504820;
+  --border-pane: #262626;
+  --text-primary: #e8e8e8;
+  --text-secondary: #888888;
   --accent-cursor: #d8b131;
   --accent-move: #d8b131;
   --bg-flash: #4a4530;
@@ -188,10 +188,12 @@ h2 {
 
 .pane.focused .item.selected {
   background: var(--bg-selected);
+  color: #ffffff;
 }
 
 .pane.focused .item.multi-selected {
   background: var(--bg-multi-selected);
+  color: #ffffff;
 }
 
 .pane.focused .item.cursor {
@@ -1109,7 +1111,7 @@ h2 {
 }
 
 .palette-item:hover {
-  background: var(--bg-hover);
+  background: var(--bg-selected-unfocused);
 }
 
 .palette-item.selected {
