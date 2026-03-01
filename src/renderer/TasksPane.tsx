@@ -208,7 +208,7 @@ export function TasksPane({
               </span>
               {sourceListName && <span className="task-origin">{sourceListName}</span>}
               {task.duration ? (
-                <span className="task-duration">📏 {formatDurationShort(task.duration)}</span>
+                <span className="task-duration"><svg width="16" height="8" viewBox="0 0 16 8" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="15" height="7" rx="1" stroke="currentColor" strokeWidth="1"/><line x1="4" y1="0.5" x2="4" y2="4" stroke="currentColor" strokeWidth="1"/><line x1="8" y1="0.5" x2="8" y2="5" stroke="currentColor" strokeWidth="1"/><line x1="12" y1="0.5" x2="12" y2="4" stroke="currentColor" strokeWidth="1"/></svg>{formatDurationShort(task.duration)}</span>
               ) : null}
               {task.due_date ? (
                 <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>

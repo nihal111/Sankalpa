@@ -235,15 +235,18 @@ h2 {
 .task-due-date {
   flex-shrink: 0;
   margin-left: auto;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .task-duration {
   flex-shrink: 0;
   margin-left: auto;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .task-due-date.overdue {
@@ -584,10 +587,11 @@ h2 {
 
 /* Task source list label */
 .task-content {
-  display: flex;
-  flex-direction: column;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-source-list {
