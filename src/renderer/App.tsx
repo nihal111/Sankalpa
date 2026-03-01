@@ -70,6 +70,7 @@ export default function App(): ReactNode {
         evaporateIds={state.evaporateIds}
         listNames={state.isCompletedView ? state.listNames : undefined}
         showSourceList={state.isTrashView}
+        isFolder={state.selectedSidebarItem?.type === 'folder'}
         lists={state.lists}
         completedFilter={state.completedFilter}
         onFilterChange={state.onFilterChange}

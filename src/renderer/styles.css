@@ -124,6 +124,9 @@ h2 {
   color: #fff;
   text-transform: none;
   letter-spacing: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .item-list {

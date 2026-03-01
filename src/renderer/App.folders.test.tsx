@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import type { Folder, List } from '../shared/types';
@@ -258,11 +258,12 @@ describe('App folders', () => {
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
     });
     render(<App />);
-    await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
+    const sidebar = () => document.querySelector('.lists-pane')!;
+    await waitFor(() => expect(within(sidebar() as HTMLElement).getByText('Projects')).toBeDefined());
     for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     // Should stay on the folder
-    expect(screen.getByText('Projects').closest('li')?.classList.contains('selected')).toBe(true);
+    expect(within(sidebar() as HTMLElement).getByText('Projects').closest('li')?.classList.contains('selected')).toBe(true);
     expect(window.api.foldersToggleExpanded).not.toHaveBeenCalled();
   });
 

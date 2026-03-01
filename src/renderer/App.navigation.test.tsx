@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import { setupMockApi, navigateToUserList } from './test-utils';
@@ -279,7 +279,8 @@ describe('App navigation', () => {
     });
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     // Should navigate to parent folder
-    await waitFor(() => expect(screen.getByText('Folder').closest('li')?.classList.contains('selected')).toBe(true));
+    const sidebar = document.querySelector('.lists-pane')!;
+    await waitFor(() => expect(within(sidebar as HTMLElement).getByText('Folder').closest('li')?.classList.contains('selected')).toBe(true));
   });
 
   it('left arrow in tasks pane switches to lists pane', async () => {

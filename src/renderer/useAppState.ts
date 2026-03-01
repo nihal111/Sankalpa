@@ -174,7 +174,7 @@ export function useAppState() {
     duplicateList, startMoveList, showListInfo,
   });
 
-  const getSelectedListName = (): string => selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.name : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.name : 'Tasks';
+  const getSelectedListName = (): string => selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.name : selectedSidebarItem?.type === 'smart' ? selectedSidebarItem.smartList.name : selectedSidebarItem?.type === 'folder' ? selectedSidebarItem.folder.name : 'Tasks';
   const getMoveTargetName = (): string => { const item = sidebarItems[moveTargetIndex]; return item?.type === 'list' ? item.list.name : ''; };
 
   return {

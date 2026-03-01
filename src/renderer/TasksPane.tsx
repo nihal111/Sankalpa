@@ -41,6 +41,7 @@ interface TasksPaneProps {
   evaporateIds: Set<string>;
   listNames?: Record<string, string>;
   showSourceList?: boolean;
+  isFolder?: boolean;
   lists?: List[];
   completedFilter?: CompletedFilter;
   onFilterChange?: (filter: CompletedFilter) => void;
@@ -85,6 +86,7 @@ export function TasksPane({
   evaporateIds,
   listNames,
   showSourceList,
+  isFolder,
   lists,
   completedFilter,
   onFilterChange,
@@ -122,7 +124,7 @@ export function TasksPane({
 
   return (
     <div className={`pane tasks-pane ${focusedPane === 'tasks' ? 'focused' : ''}`}>
-      <h2>{headerName}</h2>
+      <h2>{isFolder && <svg className="header-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>}{headerName}</h2>
       {completedFilter && onFilterChange && listsWithCompletedTasks && (
         <CompletedFilterBar
           filter={completedFilter}
@@ -133,7 +135,11 @@ export function TasksPane({
       <ul className="item-list">
         {flatTasks.length === 0 && (
           <li className="empty-list-hint">
-            Press <span className="hotkey-badge">⌘</span> <span className="hotkey-badge">N</span> to create a task
+            {isFolder ? (
+              <>Hit <span className="hotkey-badge">⌘</span> <span className="hotkey-badge">shift</span> <span className="hotkey-badge">N</span> to create a new list</>
+            ) : (
+              <>Press <span className="hotkey-badge">⌘</span> <span className="hotkey-badge">N</span> to create a task</>
+            )}
           </li>
         )}
         {flatTasks.map((flatTask, i) => {
