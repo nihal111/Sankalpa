@@ -29,6 +29,11 @@ export function flattenWithDepth(tasks: Task[]): TaskWithDepth[] {
     childrenMap.get(parentId)!.push(task);
   }
 
+  // Sort children by sort_key within each parent group
+  for (const children of childrenMap.values()) {
+    children.sort((a, b) => a.sort_key - b.sort_key);
+  }
+
   const result: TaskWithDepth[] = [];
   const collapsedIds = new Set(tasks.filter(t => !t.is_expanded).map(t => t.id));
 

@@ -4,7 +4,7 @@ import { calcSortKeyBetween } from '../../shared/sortKey';
 
 export interface ReorderMutation {
   id: string;
-  sortKey?: number;
+  sortKey?: number | null;
   parentId?: string | null;
 }
 

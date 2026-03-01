@@ -1,5 +1,5 @@
 import { Database } from 'sql.js';
-import { migrateTasksTable } from './migrations';
+import { migrateTasksTable, migrateScopedSortKeys } from './migrations';
 
 export { migrateTasksTable } from './migrations';
 
@@ -55,6 +55,8 @@ export function initSchema(db: Database): void {
       value TEXT NOT NULL
     )
   `);
+
+  migrateScopedSortKeys(db);
 }
 
 export function seed(db: Database): void {

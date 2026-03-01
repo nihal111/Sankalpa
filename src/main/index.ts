@@ -10,6 +10,7 @@ import {
   calcSortKeyBetween, getAllSettings, setSetting, getSetting,
   getTrashedTasks, softDeleteTask, restoreFromTrash, getAllTasks,
   setTaskParentId, toggleTaskExpanded, getTaskDescendants, purgeExpiredTrash,
+  normalizeListSortKeys, normalizeTaskSortKeys,
 } from './db';
 import { parseRetentionDays } from '../shared/trashRetention';
 
@@ -120,6 +121,8 @@ app.whenReady().then(async () => {
   ipcMain.handle('lists:restore', (_, id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => { restoreList(db, id, folderId, name, sortKey, createdAt, updatedAt); saveDb(); });
 
   ipcMain.handle('util:calcSortKey', (_, before: number | null, after: number | null) => calcSortKeyBetween(before, after));
+  ipcMain.handle('util:normalizeListSortKeys', () => { normalizeListSortKeys(db); saveDb(); });
+  ipcMain.handle('util:normalizeTaskSortKeys', (_, listId: string | null) => { normalizeTaskSortKeys(db, listId); saveDb(); });
 
   // Settings IPC handlers
   ipcMain.handle('settings:getAll', () => getAllSettings(db));

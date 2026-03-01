@@ -57,7 +57,7 @@ export function useAppState() {
   // For drag/drop: map row index to task info
   const getTaskAtIndex = useCallback((i: number) => {
     if (!isFolder) {
-      const t = tasks[i];
+      const t = flatTasks[i]?.task;
       return t ? { id: t.id, sort_key: t.sort_key, list_id: t.list_id } : undefined;
     }
     const row = folderView.rows[i];
@@ -66,25 +66,39 @@ export function useAppState() {
       return { id: t.id, sort_key: t.sort_key, list_id: t.list_id };
     }
     return undefined;
-  }, [isFolder, tasks, folderView.rows]);
-  // For drag/drop: find adjacent task in same list (for sort key calculation)
-  const getAdjacentTaskInSameList = useCallback((index: number, direction: 'before' | 'after', targetListId: string | null) => {
+  }, [isFolder, flatTasks, folderView.rows]);
+  // For drag/drop: find adjacent sibling (same parent_id) for sort key calculation
+  const getAdjacentSibling = useCallback((index: number, direction: 'before' | 'after') => {
     if (!isFolder) {
-      const adjIdx = direction === 'before' ? index - 1 : index + 1;
-      const t = tasks[adjIdx];
-      return t ? { id: t.id, sort_key: t.sort_key, list_id: t.list_id } : undefined;
+      const current = flatTasks[index];
+      if (!current) return undefined;
+      // Use effective parent: if depth is 0, treat as root (null parent) even if parent_id points elsewhere
+      const effectiveParentId = current.depth === 0 ? null : current.task.parent_id;
+      // Find adjacent task with same effective parent
+      const step = direction === 'before' ? -1 : 1;
+      for (let j = index + step; j >= 0 && j < flatTasks.length; j += step) {
+        const candidate = flatTasks[j];
+        const candidateEffectiveParent = candidate.depth === 0 ? null : candidate.task.parent_id;
+        if (candidateEffectiveParent === effectiveParentId) {
+          return { id: candidate.task.id, sort_key: candidate.task.sort_key, list_id: candidate.task.list_id };
+        }
+        // If we hit a task at same or lower depth with different parent, stop
+        if (candidate.depth <= current.depth && candidateEffectiveParent !== effectiveParentId) break;
+      }
+      return undefined;
     }
     // In folder view, search for adjacent task in the same list
     const step = direction === 'before' ? -1 : 1;
+    const targetListId = folderView.rows[index]?.type === 'task' ? folderView.rows[index].task.list_id : null;
     for (let j = index + step; j >= 0 && j < folderView.rows.length; j += step) {
       const row = folderView.rows[j];
-      if (row.type === 'header') break; // Hit a different section
+      if (row.type === 'header') break;
       if (row.type === 'task' && row.task.list_id === targetListId) {
         return { id: row.task.id, sort_key: row.task.sort_key, list_id: row.task.list_id };
       }
     }
     return undefined;
-  }, [isFolder, tasks, folderView.rows]);
+  }, [isFolder, flatTasks, folderView.rows]);
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
   const trashActions = useTrashActions({ isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
@@ -198,9 +212,9 @@ export function useAppState() {
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
 
   const dragDrop = useDragDrop({
-    hardcoreMode, getTaskAtIndex, getAdjacentTaskInSameList,
+    hardcoreMode, getTaskAtIndex, getAdjacentSibling,
     selectedTaskIndices, sidebarItems,
-    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane,
+    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane, setSelectedTaskIndex, flatTasks,
     flash, moveFlash, undoPush,
     multiSelectClear: multiSelectActions.clear,
   });

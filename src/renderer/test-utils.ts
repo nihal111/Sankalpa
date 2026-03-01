@@ -53,6 +53,8 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     listsRestore: vi.fn().mockResolvedValue(undefined),
     listsDelete: vi.fn().mockResolvedValue(undefined),
     calcSortKey: vi.fn().mockResolvedValue(1.5),
+    normalizeListSortKeys: vi.fn().mockResolvedValue(undefined),
+    normalizeTaskSortKeys: vi.fn().mockResolvedValue(undefined),
     settingsGetAll: vi.fn().mockResolvedValue({}),
     settingsSet: vi.fn().mockResolvedValue(undefined),
     trashPurge: vi.fn().mockResolvedValue(undefined),

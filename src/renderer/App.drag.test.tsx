@@ -181,3 +181,45 @@ describe('Drag-to-move to sidebar list', () => {
     await waitFor(() => expect(window.api.tasksMove).toHaveBeenCalledWith('t1', '2'));
   });
 });
+
+describe('Drag in folder view', () => {
+  it('drag reorder works in folder view', async () => {
+    const folders = [{ id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 }];
+    const lists = [
+      { id: 'l1', folder_id: 'f1', name: 'List 1', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
+    ];
+    const tasks = [
+      { id: 't1', list_id: 'l1', title: 'Task 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 't2', list_id: 'l1', title: 'Task 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, notes: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+    ];
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
+      foldersGetAll: () => Promise.resolve(folders),
+      listsGetAll: () => Promise.resolve(lists),
+      tasksGetByList: () => Promise.resolve(tasks),
+      calcSortKey: () => Promise.resolve(1.5),
+    });
+    render(<App />);
+    // Navigate to folder via keyboard
+    await waitFor(() => expect(screen.getByText('Folder')).toBeDefined());
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(document.querySelector('.tasks-pane.focused')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
+
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems.length).toBeGreaterThanOrEqual(2);
+    
+    // Find task items (skip header)
+    const task1 = Array.from(taskItems).find(el => el.textContent?.includes('Task 1'));
+    const task2 = Array.from(taskItems).find(el => el.textContent?.includes('Task 2'));
+    expect(task1).toBeDefined();
+    expect(task2).toBeDefined();
+
+    fireEvent.dragStart(task1!, { dataTransfer: { setData: () => {}, effectAllowed: 'move' } });
+    fireEvent.dragOver(task2!, { dataTransfer: { dropEffect: '' }, clientY: 100 });
+    fireEvent.drop(task2!, { dataTransfer: { getData: () => '1' }, clientY: 100 });
+
+    await waitFor(() => expect(window.api.tasksReorder).toHaveBeenCalled());
+  });
+});

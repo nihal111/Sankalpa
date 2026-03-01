@@ -81,7 +81,9 @@ export interface Api {
 
   listsRestore: (id: string, folderId: string | null, name: string, sortKey: number, createdAt: number, updatedAt: number) => Promise<void>;
 
-  calcSortKey: (before: number | null, after: number | null) => Promise<number>;
+  calcSortKey: (before: number | null, after: number | null) => Promise<number | null>;
+  normalizeListSortKeys: () => Promise<void>;
+  normalizeTaskSortKeys: (listId: string | null) => Promise<void>;
 
   settingsGetAll: () => Promise<Record<string, string>>;
   settingsSet: (key: string, value: string) => Promise<void>;

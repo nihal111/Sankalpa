@@ -134,6 +134,7 @@ h2 {
 }
 
 .item {
+  position: relative;
   padding: 6px 8px;
   border-radius: 4px;
   cursor: default;
@@ -248,12 +249,23 @@ h2 {
   outline-offset: -2px;
 }
 
-.item.drag-over-before {
-  box-shadow: 0 -2px 0 0 var(--accent-move);
+.item.drag-over-before::before,
+.item.drag-over-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-move);
+  pointer-events: none;
 }
 
-.item.drag-over-after {
-  box-shadow: 0 2px 0 0 var(--accent-move);
+.item.drag-over-before::before {
+  top: -1px;
+}
+
+.item.drag-over-after::after {
+  bottom: -1px;
 }
 
 .item.drag-drop-target {

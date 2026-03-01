@@ -21,4 +21,11 @@ describe('calcSortKeyBetween', () => {
     expect(calcSortKeyBetween(1, 3)).toBe(2);
     expect(calcSortKeyBetween(1.5, 1.75)).toBe(1.625);
   });
+
+  it('returns null when precision exhausted (duplicate sort keys)', () => {
+    expect(calcSortKeyBetween(1, 1)).toBe(null);
+    // Simulate extreme precision exhaustion
+    const tiny = Number.EPSILON;
+    expect(calcSortKeyBetween(1, 1 + tiny)).toBe(null);
+  });
 });

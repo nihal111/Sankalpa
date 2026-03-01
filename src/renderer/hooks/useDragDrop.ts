@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const DRAG_MIME = 'application/x-sankalpa-task';
 
@@ -18,13 +18,15 @@ export interface TaskInfo {
 interface UseDragDropParams {
   hardcoreMode: boolean;
   getTaskAtIndex: (index: number) => TaskInfo | undefined;
-  getAdjacentTaskInSameList: (index: number, direction: 'before' | 'after', targetListId: string | null) => TaskInfo | undefined;
+  getAdjacentSibling: (index: number, direction: 'before' | 'after') => TaskInfo | undefined;
   selectedTaskIndices: Set<number>;
   sidebarItems: { type: string; list?: { id: string } }[];
   reloadTasks: () => Promise<void>;
   reloadData: () => Promise<void>;
   setSelectedSidebarIndex: (i: number) => void;
   setFocusedPane: (pane: 'lists' | 'tasks') => void;
+  setSelectedTaskIndex: (i: number) => void;
+  flatTasks: { task: { id: string } }[];
   flash: (id: string) => void;
   moveFlash: (id: string) => void;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
@@ -55,13 +57,25 @@ interface DragHandlers {
 
 export function useDragDrop(params: UseDragDropParams): DragHandlers {
   const {
-    hardcoreMode, getTaskAtIndex, getAdjacentTaskInSameList, selectedTaskIndices, sidebarItems,
-    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane,
+    hardcoreMode, getTaskAtIndex, getAdjacentSibling, selectedTaskIndices, sidebarItems,
+    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane, setSelectedTaskIndex, flatTasks,
     flash, moveFlash, undoPush, multiSelectClear,
   } = params;
 
   const [dragState, setDragState] = useState<DragState>({ dragOverIndex: null, dropPosition: null, sidebarDropTarget: null, dragOverListId: null });
   const dragSourceIndex = useRef<number | null>(null);
+  const pendingSelectId = useRef<string | null>(null);
+
+  // Effect to select task after flatTasks updates
+  useEffect(() => {
+    if (pendingSelectId.current) {
+      const idx = flatTasks.findIndex(ft => ft.task.id === pendingSelectId.current);
+      if (idx >= 0) {
+        setSelectedTaskIndex(idx);
+        pendingSelectId.current = null;
+      }
+    }
+  }, [flatTasks, setSelectedTaskIndex]);
 
   const reset = useCallback(() => {
     dragSourceIndex.current = null;
@@ -100,15 +114,18 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
     onDrop: async (e: React.DragEvent) => {
       e.preventDefault();
       const indices = getDraggedIndices();
-      if (indices.length === 0 || indices.includes(index)) { reset(); return; }
+      if (indices.length === 0 || indices.includes(index)) { 
+        reset(); 
+        return; 
+      }
 
       const pos = dragState.dropPosition ?? (e.clientY < (e.currentTarget as HTMLElement).getBoundingClientRect().top + (e.currentTarget as HTMLElement).getBoundingClientRect().height / 2 ? 'before' : 'after');
       const targetTask = getTaskAtIndex(index);
       if (!targetTask) { reset(); return; }
 
-      // Get adjacent tasks in the TARGET list for sort key calculation
-      const beforeTask = getAdjacentTaskInSameList(index, 'before', targetTask.list_id);
-      const afterTask = getAdjacentTaskInSameList(index, 'after', targetTask.list_id);
+      // Get adjacent siblings for sort key calculation (scoped to same parent)
+      const beforeTask = getAdjacentSibling(index, 'before');
+      const afterTask = getAdjacentSibling(index, 'after');
       const beforeKey = pos === 'before' ? (beforeTask?.sort_key ?? null) : targetTask.sort_key;
       const afterKey = pos === 'before' ? targetTask.sort_key : (afterTask?.sort_key ?? null);
 
@@ -120,11 +137,33 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
       const needsMove = draggedTasks.some((dt) => dt.origListId !== targetTask.list_id);
 
       // Assign sort keys between before and after
-      const newKeys: number[] = [];
+      let newKeys: number[] = [];
       for (let j = 0; j < draggedTasks.length; j++) {
         const bk = j === 0 ? beforeKey : newKeys[j - 1];
         const ak = afterKey;
-        newKeys.push(await window.api.calcSortKey(bk, ak));
+        let key = await window.api.calcSortKey(bk, ak);
+        if (key === null) {
+          // Precision exhausted - normalize and retry once
+          await window.api.normalizeTaskSortKeys(targetTask.list_id);
+          // After normalization, we need fresh sort keys - reload and recalculate
+          await reloadTasks();
+          // Get fresh target task sort_key after normalization
+          const freshTarget = getTaskAtIndex(index);
+          const freshBefore = getAdjacentSibling(index, 'before');
+          const freshAfter = getAdjacentSibling(index, 'after');
+          const freshBeforeKey = pos === 'before' ? (freshBefore?.sort_key ?? null) : freshTarget!.sort_key;
+          const freshAfterKey = pos === 'before' ? freshTarget!.sort_key : (freshAfter?.sort_key ?? null);
+          // Recalculate all keys from scratch with fresh values
+          newKeys = [];
+          for (let k = 0; k <= j; k++) {
+            const fbk = k === 0 ? freshBeforeKey : newKeys[k - 1];
+            key = await window.api.calcSortKey(fbk, freshAfterKey);
+            if (key === null) { reset(); return; } // Still failing - give up
+            newKeys.push(key);
+          }
+        } else {
+          newKeys.push(key);
+        }
       }
 
       for (let j = 0; j < draggedTasks.length; j++) {
@@ -161,12 +200,13 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
       await reloadData();
       multiSelectClear();
       const firstDragged = draggedTasks[0];
+      pendingSelectId.current = firstDragged.id;
       if (needsMove) moveFlash(firstDragged.id);
       else flash(firstDragged.id);
       reset();
     },
     onDragEnd: reset,
-  }), [hardcoreMode, getTaskAtIndex, getAdjacentTaskInSameList, getDraggedIndices, dragState.dropPosition, reloadTasks, reloadData, flash, moveFlash, undoPush, multiSelectClear, reset]);
+  }), [hardcoreMode, getTaskAtIndex, getAdjacentSibling, getDraggedIndices, dragState.dropPosition, reloadTasks, reloadData, flash, moveFlash, undoPush, multiSelectClear, reset]);
 
   const sidebarDropProps = useCallback((listId: string) => ({
     onDragOver: (e: React.DragEvent) => {

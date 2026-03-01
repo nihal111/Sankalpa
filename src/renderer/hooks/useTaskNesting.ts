@@ -24,11 +24,19 @@ interface TaskNestingActions {
   toggleCollapse: () => Promise<void>;
 }
 
-async function applyMutations(mutations: ReorderMutation[]): Promise<void> {
+async function applyMutations(mutations: ReorderMutation[], listId?: string | null): Promise<boolean> {
   for (const m of mutations) {
-    if (m.sortKey !== undefined) await window.api.tasksReorder(m.id, m.sortKey);
+    if (m.sortKey !== undefined) {
+      if (m.sortKey === null) {
+        // Precision exhausted - normalize and signal caller to retry
+        await window.api.normalizeTaskSortKeys(listId ?? null);
+        return false;
+      }
+      await window.api.tasksReorder(m.id, m.sortKey);
+    }
     if ('parentId' in m) await window.api.tasksSetParentId(m.id, m.parentId!);
   }
+  return true;
 }
 
 function invertMutations(mutations: ReorderMutation[], tasks: Task[]): ReorderMutation[] {
@@ -50,15 +58,21 @@ export function useTaskNesting(params: UseTaskNestingParams): TaskNestingActions
     const result = computeReorder(flatTasks, tasks, selectedTaskIndex, direction);
     if (!result) return;
 
+    const listId = flatTasks[selectedTaskIndex]?.task.list_id;
     const undoMutations = invertMutations(result.mutations, tasks);
-    await applyMutations(result.mutations);
+    const success = await applyMutations(result.mutations, listId);
+    if (!success) {
+      // Normalization happened, just reload
+      await reloadTasks();
+      return;
+    }
     await reloadTasks();
     setSelectedTaskIndex(result.newSelectedIndex);
     onFlash?.(flatTasks[selectedTaskIndex].task.id);
 
     undoPush({
-      undo: async () => { await applyMutations(undoMutations); },
-      redo: async () => { await applyMutations(result.mutations); },
+      undo: async () => { await applyMutations(undoMutations, listId); },
+      redo: async () => { await applyMutations(result.mutations, listId); },
     });
   }, [focusedPane, flatTasks, tasks, selectedTaskIndex, reloadTasks, setSelectedTaskIndex, onFlash, undoPush]);
 

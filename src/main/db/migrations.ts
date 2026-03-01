@@ -1,4 +1,5 @@
 import { Database } from 'sql.js';
+import { normalizeAllTaskSortKeys } from './queries';
 
 export function migrateTasksTable(db: Database): void {
   const taskColumns = db.exec('PRAGMA table_info(tasks)')[0]?.values ?? [];
@@ -41,4 +42,19 @@ export function migrateTasksTable(db: Database): void {
   if (!listColumnNames.includes('notes')) {
     db.run("ALTER TABLE lists ADD COLUMN notes TEXT DEFAULT NULL");
   }
+
+  // Migrate to scoped sort keys (ADR-0011)
+  // Note: This is called from schema.ts after settings table is created
+}
+
+export function migrateScopedSortKeys(db: Database): void {
+  // Check if migration already ran
+  const result = db.exec("SELECT value FROM settings WHERE key = 'scoped_sort_keys_migrated'");
+  if (result.length > 0 && result[0].values.length > 0) return;
+
+  // Normalize all task sort keys to be scoped per parent
+  normalizeAllTaskSortKeys(db);
+
+  // Mark migration as complete
+  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('scoped_sort_keys_migrated', '1')");
 }

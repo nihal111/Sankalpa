@@ -56,6 +56,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Util
   calcSortKey: (before: number | null, after: number | null) => ipcRenderer.invoke('util:calcSortKey', before, after),
+  normalizeListSortKeys: () => ipcRenderer.invoke('util:normalizeListSortKeys'),
+  normalizeTaskSortKeys: (listId: string | null) => ipcRenderer.invoke('util:normalizeTaskSortKeys', listId),
 
   // Settings
   settingsGetAll: () => ipcRenderer.invoke('settings:getAll'),

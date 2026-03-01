@@ -26,6 +26,57 @@ function getNextSortKey(db: Database, table: 'folders' | 'lists' | 'tasks', list
   return (result?.max ?? 0) + 1;
 }
 
+export function normalizeListSortKeys(db: Database): void {
+  const lists = queryAll<{ id: string }>(db, 'SELECT id FROM lists ORDER BY sort_key, id');
+  const now = Date.now();
+  lists.forEach((list, i) => {
+    db.run('UPDATE lists SET sort_key = ?, updated_at = ? WHERE id = ?', [i + 1, now, list.id]);
+  });
+}
+
+export function normalizeTaskSortKeys(db: Database, listId: string | null): void {
+  // Normalize sort_keys per parent group (scoped to siblings)
+  const whereClause = listId === null ? 'list_id IS NULL' : 'list_id = ?';
+  const params = listId === null ? [] : [listId];
+  
+  // Get all distinct parent_ids in this list
+  const parents = queryAll<{ parent_id: string | null }>(
+    db,
+    `SELECT DISTINCT parent_id FROM tasks WHERE ${whereClause} AND deleted_at IS NULL`,
+    params
+  );
+  
+  const now = Date.now();
+  for (const { parent_id } of parents) {
+    // Get tasks with this parent, ordered by current sort_key
+    const parentClause = parent_id === null ? 'parent_id IS NULL' : 'parent_id = ?';
+    const taskParams = listId === null
+      ? (parent_id === null ? [] : [parent_id])
+      : (parent_id === null ? [listId] : [listId, parent_id]);
+    
+    const tasks = queryAll<{ id: string }>(
+      db,
+      `SELECT id FROM tasks WHERE ${whereClause} AND ${parentClause} AND deleted_at IS NULL ORDER BY sort_key, id`,
+      taskParams
+    );
+    
+    tasks.forEach((task, i) => {
+      db.run('UPDATE tasks SET sort_key = ?, updated_at = ? WHERE id = ?', [i + 1, now, task.id]);
+    });
+  }
+}
+
+export function normalizeAllTaskSortKeys(db: Database): void {
+  // Normalize sort_keys for all lists (including inbox where list_id IS NULL)
+  const lists = queryAll<{ id: string | null }>(
+    db,
+    'SELECT DISTINCT list_id as id FROM tasks WHERE deleted_at IS NULL'
+  );
+  for (const { id } of lists) {
+    normalizeTaskSortKeys(db, id);
+  }
+}
+
 // Folders
 
 export function getAllFolders(db: Database): Folder[] {
@@ -180,8 +231,20 @@ export function reorderTask(db: Database, id: string, newSortKey: number): void 
 
 export function moveTask(db: Database, id: string, newListId: string): void {
   const sortKey = getNextSortKey(db, 'tasks', newListId);
+  // Move the task
   db.run('UPDATE tasks SET list_id = ?, sort_key = ?, updated_at = ? WHERE id = ?',
     [newListId, sortKey, Date.now(), id]);
+  // Move all descendants to the new list
+  moveDescendants(db, id, newListId);
+}
+
+function moveDescendants(db: Database, parentId: string, newListId: string): void {
+  const children = queryAll<{ id: string }>(db, 'SELECT id FROM tasks WHERE parent_id = ? AND deleted_at IS NULL', [parentId]);
+  const now = Date.now();
+  for (const child of children) {
+    db.run('UPDATE tasks SET list_id = ?, updated_at = ? WHERE id = ?', [newListId, now, child.id]);
+    moveDescendants(db, child.id, newListId);
+  }
 }
 
 // Undo helpers

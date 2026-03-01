@@ -3,12 +3,13 @@ import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { initSchema } from './schema';
 import {
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
-  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount,
+  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount, updateListNotes,
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   restoreList, setTaskDueDate, setTaskDuration, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
   restoreTask, setTaskListId, softDeleteTask, restoreFromTrash, getTrashedTasks, updateTaskNotes,
-  setTaskParentId, toggleTaskExpanded, getTaskDescendants,
+  setTaskParentId, toggleTaskExpanded, getTaskDescendants, getAllTasks, purgeExpiredTrash,
+  normalizeAllTaskSortKeys,
 } from './queries';
 
 let SQL: Awaited<ReturnType<typeof initSqlJs>>;
@@ -229,6 +230,21 @@ describe('tasks', () => {
     expect(tasks[1].sort_key).toBe(2);
   });
 
+  it('moves task with descendants to another list', () => {
+    createTask(db, 'parent', 'inbox', 'Parent');
+    createTask(db, 'child', 'inbox', 'Child');
+    setTaskParentId(db, 'child', 'parent');
+    createTask(db, 'grandchild', 'inbox', 'Grandchild');
+    setTaskParentId(db, 'grandchild', 'child');
+
+    moveTask(db, 'parent', 'work');
+
+    expect(getTasksByList(db, 'inbox')).toHaveLength(0);
+    const workTasks = getTasksByList(db, 'work');
+    expect(workTasks).toHaveLength(3);
+    expect(workTasks.map(t => t.id).sort()).toEqual(['child', 'grandchild', 'parent']);
+  });
+
   it('creates inbox task with null list_id', () => {
     createTask(db, 't1', null, 'Inbox Task');
     const tasks = getInboxTasks(db);
@@ -373,7 +389,8 @@ describe('settings', () => {
     setSetting(db, 'theme', 'dark');
     setSetting(db, 'hardcore_mode', '1');
     const settings = getAllSettings(db);
-    expect(settings).toEqual({ theme: 'dark', hardcore_mode: '1' });
+    expect(settings.theme).toBe('dark');
+    expect(settings.hardcore_mode).toBe('1');
   });
 
   it('restoreList re-inserts a deleted list', () => {
@@ -451,5 +468,65 @@ describe('settings', () => {
     const descendants = getTaskDescendants(db, 'anc1');
     const ids = descendants.map((t) => t.id).sort();
     expect(ids).toEqual(['desc1', 'desc2']);
+  });
+
+  it('getAllTasks returns all non-deleted tasks', () => {
+    createTask(db, 'all1', null, 'Inbox');
+    createTask(db, 'all2', 'inbox', 'List');
+    createTask(db, 'all3', null, 'Deleted');
+    softDeleteTask(db, 'all3');
+    const all = getAllTasks(db);
+    const ids = all.map(t => t.id);
+    expect(ids).toContain('all1');
+    expect(ids).toContain('all2');
+    expect(ids).not.toContain('all3');
+  });
+
+  it('purgeExpiredTrash deletes old trashed tasks', () => {
+    createTask(db, 'purge1', null, 'Old trash');
+    softDeleteTask(db, 'purge1');
+    // Manually set deleted_at to 10 days ago
+    const tenDaysAgo = Date.now() - 10 * 86400000;
+    db.run('UPDATE tasks SET deleted_at = ? WHERE id = ?', [tenDaysAgo, 'purge1']);
+    
+    expect(getTrashedTasks(db).find(t => t.id === 'purge1')).toBeDefined();
+    purgeExpiredTrash(db, 7); // 7 day retention
+    expect(getTrashedTasks(db).find(t => t.id === 'purge1')).toBeUndefined();
+  });
+
+  it('purgeExpiredTrash does nothing when retentionDays is null', () => {
+    createTask(db, 'purge2', null, 'Keep forever');
+    softDeleteTask(db, 'purge2');
+    const tenDaysAgo = Date.now() - 10 * 86400000;
+    db.run('UPDATE tasks SET deleted_at = ? WHERE id = ?', [tenDaysAgo, 'purge2']);
+    
+    purgeExpiredTrash(db, null);
+    expect(getTrashedTasks(db).find(t => t.id === 'purge2')).toBeDefined();
+  });
+
+  it('updateListNotes sets and clears notes on a list', () => {
+    createList(db, 'ln1', 'List with notes');
+    updateListNotes(db, 'ln1', 'Some notes');
+    expect(getAllLists(db).find(l => l.id === 'ln1')!.notes).toBe('Some notes');
+    updateListNotes(db, 'ln1', null);
+    expect(getAllLists(db).find(l => l.id === 'ln1')!.notes).toBeNull();
+  });
+
+  it('normalizeAllTaskSortKeys normalizes all lists', () => {
+    createTask(db, 'norm1', null, 'Inbox 1');
+    createTask(db, 'norm2', null, 'Inbox 2');
+    createTask(db, 'norm3', 'inbox', 'List 1');
+    // Set non-sequential sort keys
+    db.run('UPDATE tasks SET sort_key = 10 WHERE id = ?', ['norm1']);
+    db.run('UPDATE tasks SET sort_key = 20 WHERE id = ?', ['norm2']);
+    db.run('UPDATE tasks SET sort_key = 30 WHERE id = ?', ['norm3']);
+    
+    normalizeAllTaskSortKeys(db);
+    
+    const inbox = getInboxTasks(db);
+    expect(inbox[0].sort_key).toBe(1);
+    expect(inbox[1].sort_key).toBe(2);
+    const list = getTasksByList(db, 'inbox');
+    expect(list[0].sort_key).toBe(1);
   });
 });
