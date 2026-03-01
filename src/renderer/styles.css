@@ -103,6 +103,8 @@ body {
 
 .tasks-pane {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 h2 {
