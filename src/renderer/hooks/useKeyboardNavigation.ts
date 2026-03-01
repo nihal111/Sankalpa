@@ -35,6 +35,7 @@ export interface KeyboardActions {
   indentTask: Command;
   outdentTask: Command;
   toggleCollapse: Command;
+  toggleFolderCollapse: Command;
   togglePalette: Command;
   duplicateTask: Command;
   cycleSidebarNext: Command;
@@ -161,6 +162,7 @@ export function useKeyboardNavigation(
       e.preventDefault(); focusNextFilter(); return;
     }
     if (matches(e, 'toggleCollapse') && getAction('toggleCollapse').isAvailable(ctx)) { e.preventDefault(); actions.toggleCollapse(); return; }
+    if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && state.focusedPane === 'lists' && !state.editMode && !state.moveMode) { e.preventDefault(); actions.toggleFolderCollapse(); return; }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (matches(e, 'edit') && getAction('edit').isAvailable(ctx)) { e.preventDefault(); actions.startEdit(); return; }

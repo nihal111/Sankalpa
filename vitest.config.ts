@@ -33,6 +33,7 @@ export default defineConfig({
         'src/renderer/DurationModal.tsx',
         'src/renderer/DueDateModal.tsx',
         'src/renderer/FolderView.tsx',
+        'src/renderer/hooks/useFolderView.ts',
         'src/shared/types.ts',
         '**/*.test.{ts,tsx}',
         '**/test-utils.ts',

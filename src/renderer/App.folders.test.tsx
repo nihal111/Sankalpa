@@ -24,15 +24,12 @@ describe('App folders', () => {
     expect(folderItem?.querySelector('.item-icon svg')).toBeDefined();
   });
 
-  it('right arrow expands collapsed folder', async () => {
+  it('right arrow on folder focuses tasks pane', async () => {
     const foldersWithData: Folder[] = [
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 0, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
       foldersGetAll: vi.fn().mockResolvedValue(foldersWithData),
-      foldersToggleExpanded: vi.fn().mockImplementation(async () => {
-        foldersWithData[0].is_expanded = 1;
-      }),
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
@@ -40,10 +37,10 @@ describe('App folders', () => {
       fireEvent.keyDown(window, { key: 'ArrowDown' });
     }
     const folderItem = document.querySelector('.item.folder');
-    expect(folderItem?.querySelector('.item-icon svg')).toBeDefined();
+    expect(folderItem?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => {
-      expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1');
+      expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
     });
   });
 
@@ -137,7 +134,7 @@ describe('App folders', () => {
     await waitFor(() => expect(window.api.foldersUpdate).toHaveBeenCalledWith('f1', 'New Folder Name'));
   });
 
-  it('right arrow on expanded folder moves to first child', async () => {
+  it('C key toggles folder expand/collapse', async () => {
     const foldersWithData: Folder[] = [
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
@@ -156,10 +153,9 @@ describe('App folders', () => {
     }
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.classList.contains('selected')).toBe(true);
-    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    fireEvent.keyDown(window, { key: 'c' });
     await waitFor(() => {
-      const nestedList = document.querySelector('.item.list.nested');
-      expect(nestedList?.classList.contains('selected')).toBe(true);
+      expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1');
     });
   });
 

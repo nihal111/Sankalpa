@@ -162,6 +162,14 @@ export function Sidebar({
                   setEditMode={setEditMode}
                   inputRef={inputRef}
                 />
+                <span className="folder-chevron" onClick={(e) => { e.stopPropagation(); onFolderToggle(item.folder.id); }}>
+                  <svg width="10" height="10" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    {item.folder.is_expanded
+                      ? <path d="M0 2 L4 6 L8 2" />
+                      : <path d="M2 0 L6 4 L2 8" />
+                    }
+                  </svg>
+                </span>
               </li>
             );
           }

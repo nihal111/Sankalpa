@@ -45,9 +45,10 @@ export default function App(): ReactNode {
       {state.selectedSidebarItem?.type === 'folder' ? (
         <FolderView
           folderName={state.getSelectedListName()}
-          folderId={state.selectedSidebarItem.folder.id}
-          lists={state.lists}
+          rows={state.folderViewRows}
           focusedPane={state.focusedPane}
+          selectedIndex={state.selectedTaskIndex}
+          onToggleSection={state.folderViewToggleSection}
         />
       ) : (
         <TasksPane

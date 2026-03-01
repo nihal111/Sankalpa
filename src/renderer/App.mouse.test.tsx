@@ -31,7 +31,7 @@ describe('App mouse interactions', () => {
     expect(document.querySelector('.tasks-pane')?.classList.contains('focused')).toBe(true);
   });
 
-  it('clicking folder icon toggles expand/collapse', async () => {
+  it('clicking folder chevron toggles expand/collapse', async () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({ hardcore_mode: '0' }),
       foldersGetAll: () => Promise.resolve([{ id: 'f1', name: 'Folder', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 }]),
@@ -39,8 +39,8 @@ describe('App mouse interactions', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Folder')).toBeDefined());
-    const folderIcon = screen.getByText('Folder').closest('li')?.querySelector('.item-icon');
-    fireEvent.click(folderIcon!);
+    const folderChevron = screen.getByText('Folder').closest('li')?.querySelector('.folder-chevron');
+    fireEvent.click(folderChevron!);
     await waitFor(() => expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1'));
   });
 

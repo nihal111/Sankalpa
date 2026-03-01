@@ -151,7 +151,7 @@ h2 {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border: 1.5px solid #666;
+  border: 1.5px solid #fff;
   border-radius: 3px;
   background: transparent;
   cursor: default;
@@ -159,7 +159,7 @@ h2 {
 }
 
 .item input[type="checkbox"]:checked {
-  border-color: #999;
+  border-color: #666;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7l3 3 5-6' stroke='%23ccc' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
@@ -194,6 +194,16 @@ h2 {
 .item-badge.overdue {
   color: #fff;
   background: #e55;
+}
+
+.folder-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
 .item.smart-list {
@@ -1298,6 +1308,11 @@ h2 {
   margin-bottom: 2px;
 }
 
+.folder-section-header.selected {
+  background: var(--bg-selected);
+  color: #fff;
+}
+
 .folder-section-chevron {
   flex-shrink: 0;
   transition: transform 0.15s;
@@ -1314,6 +1329,11 @@ h2 {
   padding: 4px 4px;
   color: var(--text-primary);
   font-size: 14px;
+  border-radius: 4px;
+}
+
+.folder-section-task.selected {
+  background: var(--bg-selected);
 }
 
 .folder-task-title.completed {

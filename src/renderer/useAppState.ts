@@ -25,6 +25,7 @@ import { useMoveListState } from './hooks/useMoveListState';
 import { useDragDrop } from './hooks/useDragDrop';
 import { useMetaKey } from './hooks/useMetaKey';
 import { useNotesState } from './hooks/useNotesState';
+import { useFolderView } from './hooks/useFolderView';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -49,6 +50,9 @@ export function useAppState() {
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
   const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
   const selectedTask = useMemo(() => flatTasks[selectedTaskIndex]?.task ?? null, [flatTasks, selectedTaskIndex]);
+  const isFolder = selectedSidebarItem?.type === 'folder';
+  const folderView = useFolderView(selectedSidebarItem, lists);
+  const effectiveTasksLength = isFolder ? folderView.rows.length : flatTasks.length;
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
   const trashActions = useTrashActions({ isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
@@ -97,7 +101,7 @@ export function useAppState() {
   });
 
   const handleArrowNavigation = useArrowNavigation({
-    focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: tasks.length,
+    focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: effectiveTasksLength,
     selectedTaskIndex, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld, selectedTaskIndicesSize: selectedTaskIndices.size,
     setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn), setSelectedTaskIndex, multiSelectActions, handleReorder,
   });
@@ -133,12 +137,19 @@ export function useAppState() {
   const closeListInfo = useCallback(() => setListInfoOpen(false), []);
   const handleListNotesChange = useCallback(async (listId: string, notes: string | null) => { await window.api.listsUpdateNotes(listId, notes); await reloadData(); }, [reloadData]);
 
+  const toggleFolderCollapse = useCallback(async () => {
+    if (selectedSidebarItem?.type === 'folder') {
+      await window.api.foldersToggleExpanded(selectedSidebarItem.folder.id);
+      await reloadData();
+    }
+  }, [selectedSidebarItem, reloadData]);
+
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, deleteList, togglePalette,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,
     duplicateTask, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
@@ -194,5 +205,6 @@ export function useAppState() {
     handleNotesCancelEdit, dragState: dragDrop.state, taskDragProps: dragDrop.taskDragProps, sidebarDropProps: dragDrop.sidebarDropProps,
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,
     moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
+    folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,
   };
 }

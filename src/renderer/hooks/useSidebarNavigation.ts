@@ -27,19 +27,7 @@ export function useSidebarNavigation(params: UseSidebarNavigationParams): Sideba
     }
     const item = selectedSidebarItem;
     if (direction === 'right') {
-      if (item?.type === 'folder') {
-        if (!item.folder.is_expanded) {
-          await window.api.foldersToggleExpanded(item.folder.id);
-          await reloadData();
-        } else {
-          const childIndex = sidebarItems.findIndex(
-            (si, idx) => idx > selectedSidebarIndex && si.type === 'list' && si.list.folder_id === item.folder.id
-          );
-          if (childIndex >= 0) setSelectedSidebarIndex(() => childIndex);
-        }
-      } else {
-        setFocusedPane('tasks');
-      }
+      setFocusedPane('tasks');
     } else {
       if (item?.type === 'folder' && item.folder.is_expanded) {
         await window.api.foldersToggleExpanded(item.folder.id);
