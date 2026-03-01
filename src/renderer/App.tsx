@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useAppState } from './useAppState';
 import { Sidebar } from './Sidebar';
 import { TasksPane } from './TasksPane';
+import { FolderView } from './FolderView';
 import { TaskDetailPane } from './TaskDetailPane';
 import { ContextMenu } from './ContextMenu';
 import { SettingsModal } from './SettingsModal';
@@ -41,44 +42,52 @@ export default function App(): ReactNode {
         moveListMode={state.moveListMode}
         moveListTargetFolderId={state.moveListTargets[state.moveListTargetIndex]?.folderId ?? null}
       />
-      <TasksPane
-        tasks={state.tasks}
-        flatTasks={state.flatTasks}
-        selectedTaskIndex={state.selectedTaskIndex}
-        focusedPane={state.focusedPane}
-        editMode={state.editMode}
-        editValue={state.editValue}
-        setEditValue={state.setEditValue}
-        setEditMode={state.setEditMode}
-        handleInputKeyDown={state.handleInputKeyDown}
-        handleEditBlur={state.handleEditBlur}
-        inputRef={state.inputRef}
-        headerName={state.getSelectedListName()}
-        selectedTaskIndices={state.selectedTaskIndices}
-        shiftHeld={state.shiftHeld}
-        cmdHeld={state.cmdHeld}
-        boundaryCursor={state.boundaryCursor}
-        onTaskClick={state.handleTaskClick}
-        onTaskContextMenu={state.handleTaskContextMenu}
-        onTaskToggle={state.handleTaskToggle}
-        onToggleExpand={state.handleToggleExpand}
-        flashIds={state.flashIds}
-        throbIds={state.throbIds}
-        completeIds={state.completeIds}
-        uncompleteIds={state.uncompleteIds}
-        moveIds={state.moveIds}
-        evaporateIds={state.evaporateIds}
-        listNames={state.isCompletedView ? state.listNames : undefined}
-        showSourceList={state.isTrashView}
-        isFolder={state.selectedSidebarItem?.type === 'folder'}
-        lists={state.lists}
-        completedFilter={state.completedFilter}
-        onFilterChange={state.onFilterChange}
-        listsWithCompletedTasks={state.listsWithCompletedTasks}
-        dragOverIndex={state.dragState.dragOverIndex}
-        dropPosition={state.dragState.dropPosition}
-        taskDragProps={state.taskDragProps}
-      />
+      {state.selectedSidebarItem?.type === 'folder' ? (
+        <FolderView
+          folderName={state.getSelectedListName()}
+          folderId={state.selectedSidebarItem.folder.id}
+          lists={state.lists}
+          focusedPane={state.focusedPane}
+        />
+      ) : (
+        <TasksPane
+          tasks={state.tasks}
+          flatTasks={state.flatTasks}
+          selectedTaskIndex={state.selectedTaskIndex}
+          focusedPane={state.focusedPane}
+          editMode={state.editMode}
+          editValue={state.editValue}
+          setEditValue={state.setEditValue}
+          setEditMode={state.setEditMode}
+          handleInputKeyDown={state.handleInputKeyDown}
+          handleEditBlur={state.handleEditBlur}
+          inputRef={state.inputRef}
+          headerName={state.getSelectedListName()}
+          selectedTaskIndices={state.selectedTaskIndices}
+          shiftHeld={state.shiftHeld}
+          cmdHeld={state.cmdHeld}
+          boundaryCursor={state.boundaryCursor}
+          onTaskClick={state.handleTaskClick}
+          onTaskContextMenu={state.handleTaskContextMenu}
+          onTaskToggle={state.handleTaskToggle}
+          onToggleExpand={state.handleToggleExpand}
+          flashIds={state.flashIds}
+          throbIds={state.throbIds}
+          completeIds={state.completeIds}
+          uncompleteIds={state.uncompleteIds}
+          moveIds={state.moveIds}
+          evaporateIds={state.evaporateIds}
+          listNames={state.isCompletedView ? state.listNames : undefined}
+          showSourceList={state.isTrashView}
+          lists={state.lists}
+          completedFilter={state.completedFilter}
+          onFilterChange={state.onFilterChange}
+          listsWithCompletedTasks={state.listsWithCompletedTasks}
+          dragOverIndex={state.dragState.dragOverIndex}
+          dropPosition={state.dragState.dropPosition}
+          taskDragProps={state.taskDragProps}
+        />
+      )}
       <TaskDetailPane
         task={state.selectedTask}
         focusedPane={state.focusedPane}
