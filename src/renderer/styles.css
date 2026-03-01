@@ -119,16 +119,33 @@ h2 {
 }
 
 .item {
-  padding: 8px 8px;
+  padding: 6px 8px;
   border-radius: 4px;
   cursor: default;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .item.nested {
   padding-left: 20px;
+}
+
+.item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #666;
+  border-radius: 3px;
+  background: transparent;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.item input[type="checkbox"]:checked {
+  border-color: #999;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7l3 3 5-6' stroke='%23ccc' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 .item-icon {
@@ -644,7 +661,10 @@ h2 {
   padding: 8px 16px;
   border: 1px solid var(--border-pane);
   border-radius: 4px;
-
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
 }
 
 .list-info-row {
@@ -658,11 +678,6 @@ h2 {
 .list-info-label {
   font-weight: 600;
   color: var(--text-primary);
-}
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  cursor: pointer;
-  font: inherit;
 }
 
 .confirmation-buttons button:hover {
