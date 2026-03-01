@@ -130,12 +130,13 @@ export function Sidebar({
           const overdueCount = smartId === 'today' ? (taskCounts['today_overdue'] ?? 0) : 0;
           const isOverdueList = smartId === 'overdue';
           const hasItems = count > 0 || overdueCount > 0;
+          const showOverdueBadge = overdueCount > 0 || isOverdueList;
+          const badgeCount = smartId === 'today' && overdueCount > 0 ? count : (count > 0 ? count : 0);
           return (
             <li key={smartId} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} style={isOverdueList && !hasItems ? { display: 'none' } : undefined} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
-              {overdueCount > 0 && <span className="item-badge overdue">{overdueCount}</span>}
-              {count > 0 && <span className={`item-badge${isOverdueList ? ' overdue' : ''}`}>{count}</span>}
+              {badgeCount > 0 && <span className={`item-badge${showOverdueBadge ? ' overdue' : ''}`}>{badgeCount}</span>}
             </li>
           );
         })}

@@ -77,10 +77,11 @@ export function useDataState(
     switch (smartId) {
       case 'inbox': return window.api.tasksGetInbox();
       case 'completed': return window.api.tasksGetCompleted();
-      case 'overdue': return window.api.tasksGetOverdue(start);
+      case 'overdue': return window.api.tasksGetOverdue(Date.now());
       case 'today': {
-        const [overdue, today] = await Promise.all([window.api.tasksGetOverdue(start), window.api.tasksGetDueBetween(start, end)]);
-        return [...overdue, ...today];
+        const [overdue, today] = await Promise.all([window.api.tasksGetOverdue(Date.now()), window.api.tasksGetDueBetween(start, end)]);
+        const overdueIds = new Set(overdue.map((t) => t.id));
+        return [...overdue, ...today.filter((t) => !overdueIds.has(t.id))];
       }
       case 'upcoming': return window.api.tasksGetUpcoming(end);
       case 'trash': {
@@ -122,7 +123,7 @@ export function useDataState(
     const loadCounts = async (): Promise<void> => {
       const [start, end] = todayBounds();
       const counts: Record<string, number> = {};
-      const overdueCount = (await window.api.tasksGetOverdue(start)).length;
+      const overdueCount = (await window.api.tasksGetOverdue(Date.now())).length;
       counts['inbox'] = await window.api.tasksGetInboxCount();
       counts['completed'] = (await window.api.tasksGetCompleted()).length;
       counts['overdue'] = overdueCount;

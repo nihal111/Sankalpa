@@ -213,11 +213,11 @@ export function updateTaskNotes(db: Database, id: string, notes: string | null):
 }
 
 export function getTasksDueBetween(db: Database, start: number, end: number): Task[] {
-  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date >= ? AND due_date < ? AND status = 'PENDING' ORDER BY due_date", [start, end]);
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date >= ? AND due_date < ? AND status = 'PENDING' AND deleted_at IS NULL ORDER BY due_date", [start, end]);
 }
 
 export function getOverdueTasks(db: Database, before: number): Task[] {
-  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date < ? AND status = 'PENDING' ORDER BY due_date", [before]);
+  return queryAll<Task>(db, "SELECT * FROM tasks WHERE due_date < ? AND status = 'PENDING' AND deleted_at IS NULL ORDER BY due_date", [before]);
 }
 
 export function getUpcomingTasks(db: Database, from: number): Task[] {
