@@ -36,6 +36,7 @@ interface PaletteActions {
   clearSelection: () => void;
   duplicateTask: () => void;
   duplicateList: () => void;
+  createFromClipboard: () => void;
 }
 
 interface UsePaletteStateResult {
@@ -90,6 +91,7 @@ export function usePaletteState(
       clearSelection: actions.clearSelection,
       duplicateTask: actions.duplicateTask,
       duplicateList: actions.duplicateList,
+      createFromClipboard: actions.createFromClipboard,
     };
     handlers[actionId]?.();
   }, [actions]);

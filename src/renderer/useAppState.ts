@@ -182,7 +182,7 @@ export function useAppState() {
     deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
     startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
     handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,
-    duplicateTask, duplicateList,
+    duplicateTask, duplicateList, createFromClipboard,
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
