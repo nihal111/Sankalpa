@@ -2,7 +2,7 @@
 
 Configure app behavior.
 
-<!-- GIF: settings.gif -->
+![Settings](../gifs/gif-settings.gif)
 
 ## Keybinding
 

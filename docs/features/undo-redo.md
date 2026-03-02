@@ -2,7 +2,7 @@
 
 Full undo history for all operations.
 
-<!-- GIF: undo-redo.gif -->
+![Undo and redo](../gifs/gif-undo.gif)
 
 ## Keybindings
 

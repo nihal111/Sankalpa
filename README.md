@@ -14,7 +14,7 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 
 ## Features
 
-<!-- GIF: app-overview.gif -->
+![Pane navigation](docs/gifs/gif-pane-navigation.gif)
 
 | Feature | Description | Docs |
 |---------|-------------|------|

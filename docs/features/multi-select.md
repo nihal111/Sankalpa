@@ -2,7 +2,7 @@
 
 Select multiple tasks for batch operations.
 
-<!-- GIF: multi-select.gif -->
+![Multi-select tasks](../gifs/gif-multiselect.gif)
 
 ## Keybindings
 

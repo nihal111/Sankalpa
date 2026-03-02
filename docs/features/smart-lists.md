@@ -2,7 +2,7 @@
 
 Built-in lists that automatically filter tasks based on criteria.
 
-<!-- GIF: smart-lists.gif -->
+![Smart lists](../gifs/gif-pane-navigation.gif)
 
 ## Lists
 

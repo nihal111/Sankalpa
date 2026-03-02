@@ -2,7 +2,7 @@
 
 Add detailed notes to any task.
 
-<!-- GIF: notes.gif -->
+![Edit task notes](../gifs/gif-notes.gif)
 
 ## Keybinding
 
@@ -12,9 +12,15 @@ Add detailed notes to any task.
 
 ## Editor
 
+| Key | Action |
+|-----|--------|
+| `⌘P` | Toggle edit/preview mode |
+| `⌘↵` | Save notes |
+| `Esc` | Cancel and close |
+
 - Full-screen modal for focused writing
-- Markdown support
-- Edit/preview toggle (planned)
+- Markdown support with live preview
+- Edit/preview toggle with `⌘P`
 
 ## Display
 

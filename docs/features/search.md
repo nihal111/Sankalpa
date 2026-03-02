@@ -2,7 +2,7 @@
 
 Find tasks across your workspace.
 
-<!-- GIF: search.gif -->
+![Global search](../gifs/gif-search.gif)
 
 ## Keybindings
 

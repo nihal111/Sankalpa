@@ -2,7 +2,7 @@
 
 Set deadlines on tasks with natural language input.
 
-<!-- GIF: due-dates.gif -->
+![Set due date](../gifs/gif-due-date.gif)
 
 ## Keybinding
 

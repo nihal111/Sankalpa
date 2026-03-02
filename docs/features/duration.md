@@ -2,7 +2,7 @@
 
 Estimate time required for tasks.
 
-<!-- GIF: duration.gif -->
+![Set duration](../gifs/gif-duration.gif)
 
 ## Keybinding
 

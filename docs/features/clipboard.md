@@ -2,7 +2,7 @@
 
 Copy, cut, and paste tasks.
 
-<!-- GIF: clipboard.gif -->
+![Copy and paste tasks](../gifs/gif-copy.gif)
 
 ## Keybindings
 

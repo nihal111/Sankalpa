@@ -2,7 +2,7 @@
 
 Quick access to all available commands.
 
-<!-- GIF: command-palette.gif -->
+![Command palette](../gifs/gif-command-palette.gif)
 
 ## Keybinding
 

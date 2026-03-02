@@ -2,6 +2,8 @@
 
 Hierarchical task organization with Tab/Shift+Tab indentation.
 
+![Subtask nesting](../gifs/gif-nesting.gif)
+
 ## Behavior
 
 ### Nesting

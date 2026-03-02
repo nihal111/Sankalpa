@@ -2,7 +2,7 @@
 
 Create copies of tasks and subtrees.
 
-<!-- GIF: duplicate.gif -->
+![Duplicate task](../gifs/gif-duplicate.gif)
 
 ## Keybinding
 
