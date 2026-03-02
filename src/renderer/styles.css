@@ -1643,3 +1643,22 @@ h2 {
   background: var(--bg-selected);
   border-color: var(--accent-cursor);
 }
+
+/* Quick Add Overlay Window */
+body.quickadd-overlay {
+  background: transparent;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+body.quickadd-overlay .modal-overlay {
+  background: transparent;
+  position: static;
+}
+
+body.quickadd-overlay .quick-add-modal {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}

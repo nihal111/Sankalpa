@@ -137,6 +137,26 @@ export function useAppState() {
     return window.api.onQuickAdd(() => setQuickAddOpen(true));
   }, []);
 
+  useEffect(() => {
+    return window.api.onTaskCreated(async (data) => {
+      await reloadTasks();
+      // Navigate to the list containing the new task
+      const targetIdx = data.listId
+        ? sidebarItems.findIndex(s => s.type === 'list' && s.list.id === data.listId)
+        : sidebarItems.findIndex(s => s.type === 'smart' && s.smartList.id === 'inbox');
+      if (targetIdx >= 0) {
+        setSelectedSidebarIndex(targetIdx);
+        setFocusedPane('tasks');
+        // Find and select the new task after tasks reload
+        const newTasks = data.listId
+          ? await window.api.tasksGetByList(data.listId)
+          : await window.api.tasksGetInbox();
+        const taskIdx = newTasks.findIndex(t => t.id === data.id);
+        if (taskIdx >= 0) setSelectedTaskIndex(taskIdx);
+      }
+    });
+  }, [reloadTasks, sidebarItems, setSelectedSidebarIndex, setFocusedPane, setSelectedTaskIndex]);
+
   const handleQuickAddSubmit = useCallback(async (data: { title: string; listId: string | null; dueDate: number | null; duration: number | null; notes: string }) => {
     const id = crypto.randomUUID();
     await window.api.tasksCreate(id, data.listId, data.title);

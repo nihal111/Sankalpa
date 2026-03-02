@@ -16,6 +16,7 @@ export default defineConfig({
         'src/main/db/index.ts',
         'src/main/index.ts',
         'src/renderer/main.tsx',
+        'src/renderer/quickadd-main.tsx',
         // Hooks with heavy window.api dependencies - tested via App.*.test.tsx integration tests
         'src/renderer/hooks/useTaskNesting.ts',
         'src/renderer/hooks/usePaletteState.ts',

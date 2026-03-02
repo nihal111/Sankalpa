@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('quick-add', handler);
     return () => ipcRenderer.removeListener('quick-add', handler);
   },
+  onTaskCreated: (callback: (data: { id: string; listId: string | null }) => void) => {
+    const handler = (_: unknown, data: { id: string; listId: string | null }) => callback(data);
+    ipcRenderer.on('tasks:created', handler);
+    return () => ipcRenderer.removeListener('tasks:created', handler);
+  },
 
   // Folders
   foldersGetAll: () => ipcRenderer.invoke('folders:getAll'),

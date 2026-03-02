@@ -17,6 +17,7 @@ import { parseRetentionDays } from '../shared/trashRetention';
 app.setName('Sankalpa');
 
 let mainWindow: BrowserWindow | null = null;
+let quickAddWindow: BrowserWindow | null = null;
 const isTestHeadless = process.argv.includes('--test-headless');
 const iconPath = path.join(__dirname, '../../../assets/icon.png');
 
@@ -60,10 +61,54 @@ function toggleWindow(): void {
 }
 
 function showQuickAdd(): void {
-  if (!mainWindow) return;
-  mainWindow.show();
-  mainWindow.focus();
-  mainWindow.webContents.send('quick-add');
+  if (quickAddWindow && !quickAddWindow.isDestroyed()) {
+    quickAddWindow.focus();
+    return;
+  }
+
+  const cursor = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(cursor);
+  const winW = 800;
+  const winH = 600;
+
+  // Center on the display where cursor is
+  const x = Math.round(display.bounds.x + (display.bounds.width - winW) / 2);
+  const y = Math.round(display.bounds.y + (display.bounds.height - winH) / 2);
+
+  quickAddWindow = new BrowserWindow({
+    width: winW,
+    height: winH,
+    x,
+    y,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload-quickadd.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  quickAddWindow.on('blur', () => {
+    // Hide dock to prevent macOS from activating the app when window closes
+    if (!mainWindow?.isVisible()) app.dock?.hide();
+    quickAddWindow?.close();
+  });
+
+  quickAddWindow.on('closed', () => {
+    quickAddWindow = null;
+    // Restore dock icon
+    app.dock?.show();
+  });
+
+  if (process.env.NODE_ENV === 'development') {
+    quickAddWindow.loadURL('http://localhost:5173/quickadd.html');
+  } else {
+    quickAddWindow.loadFile(path.join(__dirname, '../../renderer/quickadd.html'));
+  }
 }
 
 app.whenReady().then(async () => {
@@ -136,6 +181,23 @@ app.whenReady().then(async () => {
 
   // Trash purge
   ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { purgeExpiredTrash(db, retentionDays); saveDb(); });
+
+  // Quick-add overlay handlers
+  ipcMain.on('quickadd:submit', (_, data: { title: string; listId: string | null; dueDate: number | null; duration: number | null; notes: string }) => {
+    const id = crypto.randomUUID();
+    createTask(db, id, data.listId, data.title);
+    if (data.dueDate) setTaskDueDate(db, id, data.dueDate);
+    if (data.duration) setTaskDuration(db, id, data.duration);
+    if (data.notes) updateTaskNotes(db, id, data.notes);
+    saveDb();
+    mainWindow?.webContents.send('tasks:created', { id, listId: data.listId });
+    mainWindow?.show();
+    mainWindow?.focus();
+    quickAddWindow?.close();
+  });
+  ipcMain.on('quickadd:close', () => {
+    quickAddWindow?.close();
+  });
 
   // Global hotkeys
   globalShortcut.register('CommandOrControl+Option+Control+Space', toggleWindow);
