@@ -72,20 +72,33 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const toggleTaskCompleted = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask) return;
 
-    const descendantIds = getDescendantIds(selectedTask.id, tasks);
-    if (descendantIds.length > 0 && selectedTask.status !== 'COMPLETED') {
-      onCascadeComplete?.(selectedTask, descendantIds.length, async () => {
-        await window.api.tasksToggleCompleted(selectedTask.id);
-        for (const id of descendantIds) await window.api.tasksToggleCompleted(id);
-        await reloadTasks();
-      });
-      return;
+    // Get tasks to toggle (multi-select or single)
+    const indicesToToggle = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [selectedTaskIndex];
+    const tasksToToggle = indicesToToggle.map(i => flatTasks[i]?.task).filter(Boolean);
+    if (tasksToToggle.length === 0) return;
+
+    // Single task with descendants - show cascade confirmation
+    if (tasksToToggle.length === 1) {
+      const task = tasksToToggle[0];
+      const descendantIds = getDescendantIds(task.id, tasks);
+      if (descendantIds.length > 0 && task.status !== 'COMPLETED') {
+        onCascadeComplete?.(task, descendantIds.length, async () => {
+          await window.api.tasksToggleCompleted(task.id);
+          for (const id of descendantIds) await window.api.tasksToggleCompleted(id);
+          await reloadTasks();
+        });
+        return;
+      }
     }
 
-    await window.api.tasksToggleCompleted(selectedTask.id);
-    onCompleteFlash?.(selectedTask.id, selectedTask.status === 'COMPLETED');
+    // Toggle all selected tasks
+    for (const task of tasksToToggle) {
+      await window.api.tasksToggleCompleted(task.id);
+      onCompleteFlash?.(task.id, task.status === 'COMPLETED');
+    }
     await reloadTasks();
-  }, [focusedPane, selectedTask, tasks, reloadTasks, onCascadeComplete, onCompleteFlash]);
+    multiSelectClear();
+  }, [focusedPane, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices, reloadTasks, onCascadeComplete, onCompleteFlash, multiSelectClear]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask) return;

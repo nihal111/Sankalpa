@@ -8,8 +8,8 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 
 | Item | Type | Description | Status |
 |------|------|-------------|--------|
-| Hardcore mode default | Fix | Should be OFF by default | |
-| Overdue list nav bug | Fix | Down arrow from Inbox skips hidden Overdue | |
+| ~~Hardcore mode default~~ | Fix | Should be OFF by default | ✅ |
+| ~~Overdue list nav bug~~ | Fix | Down arrow from Inbox skips hidden Overdue | ✅ |
 | Multi-select complete | Fix | Cmd+Enter should mark all selected tasks | |
 | Command palette scroll | Fix | Auto-scroll to follow cursor | |
 | Due date autocomplete | Fix | "tom", "tm", "tomo" → "tomorrow" | |
