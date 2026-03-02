@@ -392,6 +392,49 @@ describe('App undo/redo', () => {
     await waitFor(() => expect(window.api.listsRestore).toHaveBeenCalledWith('new-list', null, '', 3, 100, 100));
   });
 
+  it('undo task completion toggles back, redo re-completes', async () => {
+    setupMockApi();
+    render(<App />);
+    await navigateToTasksPane();
+
+    // Complete task
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('t1'));
+
+    // Undo → toggle back to incomplete
+    undo();
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledTimes(2));
+
+    // Redo → toggle back to complete
+    redo();
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledTimes(3));
+  });
+
+  it('undo cascade completion toggles parent and children back', async () => {
+    const parentChild: Task[] = [
+      { id: 'p1', list_id: '1', title: 'Parent', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 },
+      { id: 'c1', list_id: '1', title: 'Child', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, parent_id: 'p1', is_expanded: 1 },
+    ];
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(parentChild) });
+    render(<App />);
+    await navigateToTasksPane();
+
+    // Complete parent (triggers cascade)
+    fireEvent.keyDown(window, { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(screen.getByText('Complete All')).toBeDefined());
+    fireEvent.click(screen.getByText('Complete All'));
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('p1'));
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledWith('c1'));
+
+    // Undo → toggle both back
+    undo();
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledTimes(4));
+
+    // Redo → toggle both again
+    redo();
+    await waitFor(() => expect(window.api.tasksToggleCompleted).toHaveBeenCalledTimes(6));
+  });
+
   it('undo list deletion restores list and tasks from trash, redo re-deletes', async () => {
     const trashedTasks = mockTasks.map(t => ({ ...t, deleted_at: Date.now() }));
     setupMockApi({

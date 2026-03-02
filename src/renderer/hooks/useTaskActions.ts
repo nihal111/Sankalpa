@@ -85,8 +85,12 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       const descendantIds = getDescendantIds(task.id, tasks);
       if (descendantIds.length > 0 && task.status !== 'COMPLETED') {
         onCascadeComplete?.(task, descendantIds.length, async () => {
-          await window.api.tasksToggleCompleted(task.id);
-          for (const id of descendantIds) await window.api.tasksToggleCompleted(id);
+          const allIds = [task.id, ...descendantIds];
+          for (const id of allIds) await window.api.tasksToggleCompleted(id);
+          undoPush({
+            undo: async () => { for (const id of allIds) await window.api.tasksToggleCompleted(id); },
+            redo: async () => { for (const id of allIds) await window.api.tasksToggleCompleted(id); },
+          });
           await reloadTasks();
         });
         return;
@@ -94,13 +98,16 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
 
     // Toggle all selected tasks
-    for (const task of tasksToToggle) {
-      await window.api.tasksToggleCompleted(task.id);
-      onCompleteFlash?.(task.id, task.status === 'COMPLETED');
-    }
+    const ids = tasksToToggle.map(t => t.id);
+    for (const id of ids) await window.api.tasksToggleCompleted(id);
+    undoPush({
+      undo: async () => { for (const id of ids) await window.api.tasksToggleCompleted(id); },
+      redo: async () => { for (const id of ids) await window.api.tasksToggleCompleted(id); },
+    });
+    for (const task of tasksToToggle) onCompleteFlash?.(task.id, task.status === 'COMPLETED');
     await reloadTasks();
     multiSelectClear();
-  }, [focusedPane, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices, reloadTasks, onCascadeComplete, onCompleteFlash, multiSelectClear]);
+  }, [focusedPane, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices, reloadTasks, onCascadeComplete, onCompleteFlash, multiSelectClear, undoPush]);
 
   const deleteTask = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask) return;
