@@ -18,7 +18,7 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | ~~Smart list task origin~~ | Fix | Today/Overdue/Upcoming show source list name | ✅ |
 | ~~Local search~~ | Feature | Cmd+F searches within current list only | ✅ |
 | ~~Cut/Paste tasks~~ | Feature | Cmd+X / Cmd+V with markdown format | ✅ |
-| Create from clipboard | Feature | Cmd+Shift+V parses markdown list into tasks | |
+| ~~Create from clipboard~~ | Feature | Cmd+Shift+V parses markdown list into tasks | ✅ |
 | Notes editor UX | Fix | Large modal with edit/preview toggle | |
 
 - marking a task(s) as complete / incomplete should register in the undo stack
