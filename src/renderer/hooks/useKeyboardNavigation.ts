@@ -120,10 +120,10 @@ export function useKeyboardNavigation(
       return;
     }
     if (matches(e, 'duplicateTask')) { e.preventDefault(); actions.duplicateTask(); return; }
+    if (state.isSearchOpen || state.isPaletteOpen || state.quickAddOpen) return;
     if (matches(e, 'copyTasks') && getAction('copyTasks').isAvailable(ctx)) { e.preventDefault(); actions.copyTasks(); return; }
     if (matches(e, 'cutTasks') && getAction('cutTasks').isAvailable(ctx)) { e.preventDefault(); actions.cutTasks(); return; }
     if (matches(e, 'createFromClipboard') && getAction('createFromClipboard').isAvailable(ctx)) { e.preventDefault(); actions.createFromClipboard(); return; }
-    if (state.isSearchOpen || state.isPaletteOpen || state.quickAddOpen) return;
     if (state.listInfoOpen) { if (e.key === 'Escape') { e.preventDefault(); actions.closeListInfo(); } return; }
     const active = document.activeElement;
     const isFilterControl = active instanceof HTMLSelectElement || (active instanceof HTMLInputElement && active.type === 'date');
