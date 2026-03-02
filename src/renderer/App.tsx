@@ -12,6 +12,7 @@ import { DueDateModal } from './DueDateModal';
 import { DurationModal } from './DurationModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
+import { Toast } from './Toast';
 
 export default function App(): ReactNode {
   const state = useAppState();
@@ -187,6 +188,7 @@ export default function App(): ReactNode {
         onExecute={state.executePaletteAction}
       />
       <ListInfoModal isOpen={state.listInfoOpen} selectedSidebarItem={state.selectedSidebarItem} onClose={state.closeListInfo} onNotesChange={state.handleListNotesChange} />
+      <Toast message={state.toastMessage} />
     </div>
   );
 }

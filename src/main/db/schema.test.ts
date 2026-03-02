@@ -33,7 +33,7 @@ describe('schema', () => {
     expect(lists[0].values).toHaveLength(2);
 
     const tasks = db.exec('SELECT * FROM tasks');
-    expect(tasks[0].values).toHaveLength(3);
+    expect(tasks[0].values).toHaveLength(15); // 14 tutorial tasks + 1 first project task
     db.close();
   });
 

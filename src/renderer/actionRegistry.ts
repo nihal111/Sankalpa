@@ -41,6 +41,7 @@ export const actions: Action[] = [
   { id: 'clearSelection', name: 'Clear Selection', hotkey: ' ', hotkeyDisplay: 'Space', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelection },
   { id: 'duplicateTask', name: 'Duplicate Task', hotkey: 'ctrl+d', hotkeyDisplay: '⌃ D', isAvailable: (ctx) => ctx.hasSelectedTask && !ctx.isTrashView },
   { id: 'duplicateList', name: 'Duplicate List', hotkey: '', hotkeyDisplay: '', isAvailable: (ctx) => ctx.focusedPane === 'lists' && ctx.canEdit },
+  { id: 'copyTasks', name: 'Copy Tasks', hotkey: 'meta+c', hotkeyDisplay: '⌘ C', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask },
 ];
 
 export function matchesHotkey(e: KeyboardEvent, action: Action): boolean {

@@ -26,6 +26,7 @@ import { useDragDrop } from './hooks/useDragDrop';
 import { useMetaKey } from './hooks/useMetaKey';
 import { useNotesState } from './hooks/useNotesState';
 import { useFolderView } from './hooks/useFolderView';
+import { useToast } from './hooks/useToast';
 
 export function useAppState() {
   const [focusedPane, setFocusedPane] = useState<Pane>('lists');
@@ -41,6 +42,7 @@ export function useAppState() {
   const { flashIds: uncompleteIds, flash: uncompleteFlash } = useFlash(500);
   const { flashIds: moveIds, flash: moveFlash } = useFlash(500);
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
+  const toast = useToast();
   const metaHeld = useMetaKey();
   const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
@@ -132,11 +134,12 @@ export function useAppState() {
     });
   }, [setEditMode, setEditValue, setTasks]);
 
-  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask } = useTaskActions({
+  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
     onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete, multiSelectClear: multiSelectActions.clear,
+    showToast: toast.show,
   });
 
   const { handleReorder, indentTask, outdentTask, toggleCollapse } = useTaskNesting({
@@ -193,7 +196,7 @@ export function useAppState() {
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,
-    duplicateTask, cycleSidebarNext, cycleSidebarPrev,
+    duplicateTask, copyTasks, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
     showListInfo, closeListInfo, selectSidebarByListNumber,
@@ -249,5 +252,6 @@ export function useAppState() {
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,
     moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
     folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,
+    toastMessage: toast.message,
   };
 }

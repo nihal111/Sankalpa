@@ -30,6 +30,7 @@ interface UseTaskActionsParams {
   onCascadeComplete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
   onCascadeDelete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
   multiSelectClear: () => void;
+  showToast: (msg: string) => void;
 }
 
 interface TaskActions {
@@ -37,13 +38,14 @@ interface TaskActions {
   toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
   duplicateTask: () => Promise<void>;
+  copyTasks: () => Promise<void>;
 }
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, onCompleteFlash, undoPush,
-    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear,
+    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear, showToast,
   } = params;
 
   const createTask = useCallback(async () => {
@@ -155,5 +157,20 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     });
   }, [focusedPane, selectedTask, isTrashView, tasks, reloadTasks, onFlash, undoPush]);
 
-  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask };
+  const copyTasks = useCallback(async () => {
+    if (focusedPane !== 'tasks' || !selectedTask) return;
+    const indices = selectedTaskIndices.size > 0 ? [...selectedTaskIndices].sort((a, b) => a - b) : [selectedTaskIndex];
+    const items = indices.map(i => flatTasks[i]).filter(Boolean);
+    if (items.length === 0) return;
+
+    // Find minimum depth to normalize indentation
+    const minDepth = Math.min(...items.map(t => t.depth));
+    const lines = items.map(t => '  '.repeat(t.depth - minDepth) + '- ' + t.task.title);
+    const markdown = lines.join('\n');
+
+    await navigator.clipboard.writeText(markdown);
+    showToast(items.length === 1 ? 'Task copied to clipboard' : `${items.length} tasks copied to clipboard`);
+  }, [focusedPane, selectedTask, selectedTaskIndex, selectedTaskIndices, flatTasks, showToast]);
+
+  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks };
 }

@@ -38,6 +38,7 @@ export interface KeyboardActions {
   toggleFolderCollapse: Command;
   togglePalette: Command;
   duplicateTask: Command;
+  copyTasks: Command;
   cycleSidebarNext: Command;
   cycleSidebarPrev: Command;
   startMoveList: Command;
@@ -114,6 +115,7 @@ export function useKeyboardNavigation(
       return;
     }
     if (matches(e, 'duplicateTask')) { e.preventDefault(); actions.duplicateTask(); return; }
+    if (matches(e, 'copyTasks') && getAction('copyTasks').isAvailable(ctx)) { e.preventDefault(); actions.copyTasks(); return; }
     if (state.isSearchOpen || state.isPaletteOpen) return;
     if (state.listInfoOpen) { if (e.key === 'Escape') { e.preventDefault(); actions.closeListInfo(); } return; }
     const active = document.activeElement;
