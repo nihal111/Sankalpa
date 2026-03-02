@@ -15,6 +15,7 @@ export function CommandPalette({ isOpen, context, onClose, onExecute }: CommandP
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectedRef = useRef<HTMLDivElement>(null);
 
   const availableActions = useMemo(
     () => actions.filter((a) => a.isAvailable(context)),
@@ -41,6 +42,10 @@ export function CommandPalette({ isOpen, context, onClose, onExecute }: CommandP
   useEffect(() => {
     setSelectedIndex(0);
   }, [filteredActions.length]);
+
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selectedIndex]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -84,6 +89,7 @@ export function CommandPalette({ isOpen, context, onClose, onExecute }: CommandP
           {filteredActions.map((action, i) => (
             <div
               key={action.id}
+              ref={i === selectedIndex ? selectedRef : undefined}
               className={`palette-item${i === selectedIndex ? ' selected' : ''}`}
               onClick={() => { onExecute(action.id); onClose(); }}
             >
