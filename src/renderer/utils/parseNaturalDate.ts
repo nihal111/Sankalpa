@@ -67,6 +67,16 @@ export function getSuggestions(input: string): DueDateSuggestion[] {
     return results;
   }
 
+  // Fuzzy match common terms
+  const FUZZY_TERMS = ['today', 'tomorrow', 'next week', 'next monday', 'next tuesday', 'next wednesday', 'next thursday', 'next friday', 'next saturday', 'next sunday'];
+  for (const term of FUZZY_TERMS) {
+    if (term.startsWith(s) && term !== s) {
+      const parsed = chrono.parseDate(term, new Date(), { forwardDate: true });
+      if (parsed) results.push({ label: `${term} — ${formatSuggestionDate(parsed.getTime())}`, timestamp: parsed.getTime() });
+    }
+  }
+  if (results.length > 0) return results;
+
   // Natural language via chrono
   const parsed = chrono.parseDate(s, new Date(), { forwardDate: true });
   if (parsed) {
