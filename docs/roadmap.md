@@ -13,7 +13,7 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | ~~Multi-select complete~~ | Fix | Cmd+Enter should mark all selected tasks | ✅ |
 | ~~Command palette scroll~~ | Fix | Auto-scroll to follow cursor | ✅ |
 | ~~Due date autocomplete~~ | Fix | "tom", "tm", "tomo" → "tomorrow" | ✅ |
-| Due date relative display | Fix | Show Today/Tomorrow/weekday within 7 days | |
+| ~~Due date relative display~~ | Fix | Show Today/Tomorrow/weekday within 7 days | ✅ |
 | Today badge | Fix | Show two badges: red (overdue) + black (today) | |
 | Smart list task origin | Fix | Today/Overdue/Upcoming show source list name | |
 | Local search | Feature | Cmd+F searches within current list only | |
