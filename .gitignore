@@ -4,6 +4,7 @@ dist/
 *.sqlite
 .DS_Store
 coverage/
+release/
 src/**/*.js
 
 .kiro/test-results/
