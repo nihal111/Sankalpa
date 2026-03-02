@@ -8,26 +8,14 @@ beforeEach(() => {
 });
 
 describe('App notes', () => {
-  it('N key opens notes editor and Escape cancels', async () => {
+  it('N key opens notes modal and Escape cancels', async () => {
     render(<App />);
     await navigateToTasksPane();
-    expect(document.querySelector('.notes-textarea')).toBeNull();
+    expect(document.querySelector('.notes-modal')).toBeNull();
     fireEvent.keyDown(window, { key: 'n' });
-    await waitFor(() => expect(document.querySelector('.notes-textarea')).toBeDefined());
-    expect(document.querySelector('.notes-textarea')).not.toBeNull();
-    fireEvent.keyDown(document.querySelector('.notes-textarea')!, { key: 'Escape' });
-    await waitFor(() => expect(document.querySelector('.notes-textarea')).toBeNull());
-  });
-
-  it('notes editor commits on blur', async () => {
-    render(<App />);
-    await navigateToTasksPane();
-    fireEvent.keyDown(window, { key: 'n' });
-    await waitFor(() => expect(document.querySelector('.notes-textarea')).not.toBeNull());
-    const textarea = document.querySelector('.notes-textarea') as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: 'hello world' } });
-    fireEvent.blur(textarea);
-    await waitFor(() => expect(window.api.tasksUpdateNotes).toHaveBeenCalledWith('t1', 'hello world'));
+    await waitFor(() => expect(document.querySelector('.notes-modal')).not.toBeNull());
+    fireEvent.keyDown(document.querySelector('.notes-modal')!, { key: 'Escape' });
+    await waitFor(() => expect(document.querySelector('.notes-modal')).toBeNull());
   });
 
   it('renders markdown when task has notes', async () => {
@@ -39,23 +27,70 @@ describe('App notes', () => {
     expect(document.querySelector('.notes-rendered strong')?.textContent).toBe('bold text');
   });
 
-  it('clicking notes section opens editor', async () => {
+  it('clicking notes section opens modal', async () => {
     render(<App />);
     await navigateToTasksPane();
     const notesSection = document.querySelector('.detail-notes-section');
     fireEvent.click(notesSection!);
-    await waitFor(() => expect(document.querySelector('.notes-textarea')).not.toBeNull());
+    await waitFor(() => expect(document.querySelector('.notes-modal')).not.toBeNull());
   });
 
   it('Cmd+Enter saves notes', async () => {
     render(<App />);
     await navigateToTasksPane();
     fireEvent.keyDown(window, { key: 'n' });
-    await waitFor(() => expect(document.querySelector('.notes-textarea')).not.toBeNull());
-    const textarea = document.querySelector('.notes-textarea') as HTMLTextAreaElement;
+    await waitFor(() => expect(document.querySelector('.notes-modal-textarea')).not.toBeNull());
+    const textarea = document.querySelector('.notes-modal-textarea') as HTMLTextAreaElement;
     fireEvent.change(textarea, { target: { value: 'saved via cmd+enter' } });
-    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true });
+    fireEvent.keyDown(document.querySelector('.notes-modal')!, { key: 'Enter', metaKey: true });
     await waitFor(() => expect(window.api.tasksUpdateNotes).toHaveBeenCalledWith('t1', 'saved via cmd+enter'));
-    expect(document.querySelector('.notes-textarea')).toBeNull();
+    expect(document.querySelector('.notes-modal')).toBeNull();
+  });
+
+  it('edit/preview toggle works', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-modal')).not.toBeNull());
+    const textarea = document.querySelector('.notes-modal-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '**bold**' } });
+    // Click preview tab
+    const previewTab = document.querySelector('.notes-modal-tab:nth-child(2)');
+    fireEvent.click(previewTab!);
+    await waitFor(() => expect(document.querySelector('.notes-modal-preview')).not.toBeNull());
+    expect(document.querySelector('.notes-modal-preview strong')?.textContent).toBe('bold');
+    // Click edit tab to go back
+    const editTab = document.querySelector('.notes-modal-tab:nth-child(1)');
+    fireEvent.click(editTab!);
+    await waitFor(() => expect(document.querySelector('.notes-modal-textarea')).not.toBeNull());
+  });
+
+  it('Cmd+P toggles edit/preview mode', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-modal-textarea')).not.toBeNull());
+    fireEvent.keyDown(document.querySelector('.notes-modal')!, { key: 'p', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.notes-modal-preview')).not.toBeNull());
+    fireEvent.keyDown(document.querySelector('.notes-modal')!, { key: 'p', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.notes-modal-textarea')).not.toBeNull());
+  });
+
+  it('clicking overlay closes modal', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-modal')).not.toBeNull());
+    fireEvent.click(document.querySelector('.modal-overlay')!);
+    await waitFor(() => expect(document.querySelector('.notes-modal')).toBeNull());
+  });
+
+  it('clicking modal content does not close modal', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-modal')).not.toBeNull());
+    fireEvent.click(document.querySelector('.notes-modal')!);
+    expect(document.querySelector('.notes-modal')).not.toBeNull();
   });
 });

@@ -943,6 +943,68 @@ h2 {
 .notes-rendered ul, .notes-rendered ol { padding-left: 20px; margin: 4px 0; }
 .notes-rendered blockquote { border-left: 3px solid var(--border-pane); padding-left: 12px; color: var(--text-secondary); margin: 4px 0; }
 
+/* Notes modal */
+.notes-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-pane);
+  border-radius: 8px;
+  width: 600px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-pane);
+}
+
+.notes-modal-tabs { display: flex; gap: 4px; }
+
+.notes-modal-tab {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.notes-modal-tab:hover { color: var(--text-primary); }
+.notes-modal-tab.active { background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-pane); }
+
+.notes-modal-hints {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.notes-modal-hints .hotkey-badge { margin-right: 2px; }
+
+.notes-modal-textarea {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: none;
+  font: inherit;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+
+.notes-modal-preview {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
 /* Search modal */
 .search-modal {
   background: var(--bg-primary);

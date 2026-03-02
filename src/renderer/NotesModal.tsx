@@ -1,0 +1,65 @@
+import { useState, useRef, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { marked } from 'marked';
+
+interface NotesModalProps {
+  isOpen: boolean;
+  initialValue: string;
+  onCommit: (value: string) => void;
+  onClose: () => void;
+}
+
+export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesModalProps): ReactNode {
+  const [value, setValue] = useState('');
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setValue(initialValue);
+      setMode('edit');
+      setTimeout(() => textareaRef.current?.focus(), 0);
+    }
+  }, [isOpen, initialValue]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    else if (e.key === 'Enter' && e.metaKey) { e.preventDefault(); onCommit(value); }
+    else if (e.key === 'p' && e.metaKey) { e.preventDefault(); setMode(m => m === 'edit' ? 'preview' : 'edit'); }
+  }, [onClose, onCommit, value]);
+
+  const renderedNotes = useMemo(() => {
+    if (!value) return '';
+    return marked.parse(value, { async: false }) as string;
+  }, [value]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="notes-modal" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
+        <div className="notes-modal-header">
+          <div className="notes-modal-tabs">
+            <button className={`notes-modal-tab${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>Edit</button>
+            <button className={`notes-modal-tab${mode === 'preview' ? ' active' : ''}`} onClick={() => setMode('preview')}>Preview</button>
+          </div>
+          <div className="notes-modal-hints">
+            <span><span className="hotkey-badge">⌘</span><span className="hotkey-badge">P</span> toggle</span>
+            <span><span className="hotkey-badge">⌘</span><span className="hotkey-badge">↵</span> save</span>
+            <span><span className="hotkey-badge">esc</span> cancel</span>
+          </div>
+        </div>
+        {mode === 'edit' ? (
+          <textarea
+            ref={textareaRef}
+            className="notes-modal-textarea"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            placeholder="Write notes in markdown..."
+          />
+        ) : (
+          <div className="notes-modal-preview notes-rendered" dangerouslySetInnerHTML={{ __html: renderedNotes }} />
+        )}
+      </div>
+    </div>
+  );
+}

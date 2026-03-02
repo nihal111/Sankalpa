@@ -13,6 +13,7 @@ import { DueDateModal } from './DueDateModal';
 import { DurationModal } from './DurationModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
+import { NotesModal } from './NotesModal';
 import { Toast } from './Toast';
 
 export default function App(): ReactNode {
@@ -123,10 +124,7 @@ export default function App(): ReactNode {
         onEditTitle={state.handleDetailEditTitle}
         onEditDueDate={state.handleDetailEditDueDate}
         onEditDuration={state.handleDetailEditDuration}
-        notesEditing={state.notesEditing}
         onStartNotesEdit={state.handleStartNotesEdit}
-        onNotesCommit={state.handleNotesCommit}
-        onNotesCancelEdit={state.handleNotesCancelEdit}
       />
       {state.moveMode && (
         <div className="move-overlay">
@@ -196,6 +194,12 @@ export default function App(): ReactNode {
         onExecute={state.executePaletteAction}
       />
       <ListInfoModal isOpen={state.listInfoOpen} selectedSidebarItem={state.selectedSidebarItem} onClose={state.closeListInfo} onNotesChange={state.handleListNotesChange} />
+      <NotesModal
+        isOpen={state.notesEditing}
+        initialValue={state.selectedTask?.notes ?? ''}
+        onCommit={state.handleNotesCommit}
+        onClose={state.handleNotesCancelEdit}
+      />
       <Toast message={state.toastMessage} />
     </div>
   );
