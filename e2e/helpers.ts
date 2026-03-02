@@ -125,6 +125,19 @@ async function injectKeystrokeOverlay(page: Page): Promise<void> {
   });
 }
 
+export async function showOverlay(page: Page, label: string): Promise<void> {
+  if (process.env.RECORD !== '1') return;
+  await page.evaluate((text) => {
+    const el = document.getElementById('keystroke-overlay');
+    if (el) { el.textContent = text; el.style.opacity = '1'; }
+  }, label);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    const el = document.getElementById('keystroke-overlay');
+    if (el) el.style.opacity = '0';
+  });
+}
+
 export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean } = {}): Promise<void> {
   if (process.env.RECORD === '1') {
     const label = formatKeystroke(key, opts);
