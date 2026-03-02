@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import type { Folder, List } from '../shared/types';
-import { setupMockApi, navigateToUserList, navigateToTasksPane, mockTasks } from './test-utils';
+import { setupMockApi, navigateToUserList, navigateToTasksPane, navigateToItem, mockTasks } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -190,9 +190,7 @@ describe('App move mode', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
-    for (let i = 0; i < 6; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Work');
     await waitFor(() => expect(screen.getByText('Task 1', { selector: '.task-content' })).toBeDefined());
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'm' });

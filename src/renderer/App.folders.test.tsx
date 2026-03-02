@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent, within } from '@testing-library/rea
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 import type { Folder, List } from '../shared/types';
-import { setupMockApi } from './test-utils';
+import { setupMockApi, navigateToItem } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -33,9 +33,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowRight' });
@@ -56,9 +54,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.querySelector('.item-icon svg')).toBeDefined();
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
@@ -103,9 +99,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => {
       const input = document.querySelector('.lists-pane input');
@@ -123,9 +117,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
@@ -148,9 +140,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'c' });
@@ -164,7 +154,7 @@ describe('App folders', () => {
       { id: 'f1', name: 'Projects', sort_key: 1, is_expanded: 1, created_at: 0, updated_at: 0 },
     ];
     const listsWithFolder: List[] = [
-      { id: '1', folder_id: 'f1', name: 'Inbox', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
+      { id: '1', folder_id: 'f1', name: 'Nested', notes: null, sort_key: 1, created_at: 0, updated_at: 0 },
       { id: '2', folder_id: null, name: 'Work', notes: null, sort_key: 2, created_at: 0, updated_at: 0 },
     ];
     setupMockApi({
@@ -173,9 +163,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 6; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Nested');
     const nestedList = document.querySelector('.item.list.nested');
     expect(nestedList?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
@@ -195,9 +183,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'n', metaKey: true, shiftKey: true });
@@ -216,9 +202,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     const folderItem = document.querySelector('.item.folder');
     expect(folderItem?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'n', metaKey: true, shiftKey: true });
@@ -236,9 +220,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Projects');
     fireEvent.keyDown(window, { key: 'e' });
     await waitFor(() => expect(document.querySelector('.lists-pane input')).toBeDefined());
     const input = document.querySelector('.lists-pane input') as HTMLInputElement;
@@ -256,7 +238,7 @@ describe('App folders', () => {
     render(<App />);
     const sidebar = () => document.querySelector('.lists-pane')!;
     await waitFor(() => expect(within(sidebar() as HTMLElement).getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Projects');
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     // Should stay on the folder
     expect(within(sidebar() as HTMLElement).getByText('Projects').closest('li')?.classList.contains('selected')).toBe(true);
@@ -272,7 +254,7 @@ describe('App folders', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Projects')).toBeDefined());
-    for (let i = 0; i < 5; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Projects');
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     await waitFor(() => expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1'));
   });

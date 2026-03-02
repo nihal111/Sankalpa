@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
-import { setupMockApi, navigateToUserList } from './test-utils';
+import { setupMockApi, navigateToUserList, navigateToItem } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();
@@ -53,7 +53,8 @@ describe('App navigation', () => {
     expect(items[0]?.classList.contains('selected')).toBe(true);
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     expect(items[0]?.classList.contains('selected')).toBe(false);
-    expect(items[1]?.classList.contains('selected')).toBe(true);
+    // Skips hidden Overdue (index 1) to Today (index 2)
+    expect(items[2]?.classList.contains('selected')).toBe(true);
   });
 
   it('navigates tasks with arrow keys when tasks pane focused', async () => {
@@ -199,10 +200,7 @@ describe('App navigation', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
-    // Completed is at index 4 in SMART_LISTS
-    for (let i = 0; i < 4; i++) {
-      fireEvent.keyDown(window, { key: 'ArrowDown' });
-    }
+    await navigateToItem('Completed');
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     expect(window.api.tasksGetCompleted).toHaveBeenCalled();
@@ -270,8 +268,7 @@ describe('App navigation', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Nested')).toBeDefined());
-    // 5 smart lists (0-4), folder (5), nested list (6) — press down 6 times
-    for (let i = 0; i < 6; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Nested');
     // Verify we're on the nested list by checking tasks header
     await waitFor(() => {
       const header = document.querySelector('.tasks-pane h2');
@@ -312,7 +309,7 @@ describe('App navigation', () => {
     });
     render(<App />);
     await waitFor(() => expect(screen.getByText('Completed')).toBeDefined());
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByText('Done Task', { selector: '.task-content' })).toBeDefined());
     const callsBefore = getCompletedMock.mock.calls.length;
@@ -329,7 +326,7 @@ describe('App navigation', () => {
     const getCompletedMock = vi.fn().mockResolvedValue(completedTasks);
     setupMockApi({ tasksGetCompleted: getCompletedMock });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
     const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: '1' } });
@@ -343,7 +340,7 @@ describe('App navigation', () => {
     ];
     setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
     // Both tasks visible initially
     await waitFor(() => expect(screen.getByText('Inbox Done', { selector: '.task-content' })).toBeDefined());
@@ -361,7 +358,7 @@ describe('App navigation', () => {
     ];
     setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
     const select = screen.getByLabelText('Filter by project') as HTMLSelectElement;
     // Filter to specific list, then back to all
@@ -377,7 +374,7 @@ describe('App navigation', () => {
     ];
     setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByLabelText('Filter by date range')).toBeDefined());
     const select = screen.getByLabelText('Filter by date range') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'today' } });
@@ -390,7 +387,7 @@ describe('App navigation', () => {
     ];
     setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByLabelText('Filter by date range')).toBeDefined());
     const select = screen.getByLabelText('Filter by date range') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'custom' } });
@@ -416,7 +413,7 @@ describe('App navigation', () => {
     ];
     setupMockApi({ tasksGetCompleted: vi.fn().mockResolvedValue(completedTasks) });
     render(<App />);
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     await waitFor(() => expect(screen.getByLabelText('Filter by project')).toBeDefined());
     // F focuses first filter

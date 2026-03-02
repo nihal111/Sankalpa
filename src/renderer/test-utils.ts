@@ -73,10 +73,22 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
 
 export async function navigateToUserList(): Promise<void> {
   await waitFor(() => expect(document.querySelectorAll('.lists-pane .item.list').length).toBeGreaterThan(0));
-  for (let i = 0; i < 5; i++) {
+  // Navigate down until we reach a user list (not a smart list)
+  for (let i = 0; i < 10; i++) {
+    const selected = document.querySelector('.lists-pane .item.selected');
+    if (selected?.classList.contains('list')) break;
     fireEvent.keyDown(window, { key: 'ArrowDown' });
   }
   await waitFor(() => expect(document.querySelector('.tasks-pane .task-content')).toBeDefined());
+}
+
+export async function navigateToItem(name: string): Promise<void> {
+  await waitFor(() => expect(document.querySelector('.lists-pane .item')).toBeDefined());
+  for (let i = 0; i < 20; i++) {
+    const selected = document.querySelector('.lists-pane .item.selected');
+    if (selected?.textContent?.includes(name)) break;
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+  }
 }
 
 export async function navigateToTasksPane(): Promise<void> {

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import App from './App';
-import { setupMockApi } from './test-utils';
+import { setupMockApi, navigateToItem } from './test-utils';
 
 describe('App mouse interactions', () => {
   beforeEach(() => {
@@ -171,8 +171,7 @@ describe('Checkbox interactions', () => {
       ]),
     });
     render(<App />);
-    // Navigate to Completed (index 4) using keyboard
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await navigateToItem('Completed');
     await waitFor(() => expect(screen.getByText('Done task', { selector: '.task-content' })).toBeDefined());
     const origins = document.querySelectorAll('.task-origin');
     expect(origins.length).toBe(2);

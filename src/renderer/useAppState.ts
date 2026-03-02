@@ -147,7 +147,7 @@ export function useAppState() {
   });
 
   const handleArrowNavigation = useArrowNavigation({
-    focusedPane, sidebarItemsLength: sidebarItems.length, tasksLength: effectiveTasksLength,
+    focusedPane, sidebarItems, taskCounts, tasksLength: effectiveTasksLength,
     selectedTaskIndex, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld, selectedTaskIndicesSize: selectedTaskIndices.size,
     setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn), setSelectedTaskIndex, multiSelectActions, handleReorder,
   });
