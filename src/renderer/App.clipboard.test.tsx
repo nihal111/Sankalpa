@@ -119,4 +119,19 @@ describe('App clipboard', () => {
       expect(mockReadText).toHaveBeenCalled();
     });
   });
+
+  it('Cmd+V calls tasksCreate with correct parameters', async () => {
+    const mockReadText = vi.fn().mockResolvedValue('- Test task\n- Another task');
+    const mockCreate = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+    window.api.tasksCreate = mockCreate;
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true });
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(expect.any(String), '1', 'Test task');
+      expect(mockCreate).toHaveBeenCalledWith(expect.any(String), '1', 'Another task');
+    });
+  });
 });

@@ -70,6 +70,12 @@ describe('getTaskDepth', () => {
     ]);
     expect(getTaskDepth(t4, taskMap)).toBe(3);
   });
+
+  it('stops at missing parent', () => {
+    const child = makeTask('2', 'missing');
+    const taskMap = new Map([[child.id, child]]);
+    expect(getTaskDepth(child, taskMap)).toBe(0);
+  });
 });
 
 describe('flattenWithDepth', () => {

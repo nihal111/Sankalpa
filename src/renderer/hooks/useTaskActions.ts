@@ -203,7 +203,8 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
         const match = line.match(/^(\s*)-\s+(.+)$/);
         if (match) {
           const title = match[2];
-          await window.api.tasksCreate(selectedListId, title);
+          const id = crypto.randomUUID();
+          await window.api.tasksCreate(id, selectedListId, title);
         }
       }
       await reloadTasks();

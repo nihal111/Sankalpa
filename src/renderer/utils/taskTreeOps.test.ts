@@ -246,4 +246,16 @@ describe('computeReorder', () => {
     const result = computeReorder(flat, tasks, 99, 1);
     expect(result).toBeNull();
   });
+
+  it('moves child task down past collapsed root sibling', () => {
+    const parent = makeTask('1', null, 1, 1);
+    const child = makeTask('2', '1', 1, 2);
+    const sibling = makeTask('3', null, 0, 3); // collapsed root task
+    const tasks = [parent, child, sibling];
+    const flat = flattenWithDepth(tasks);
+    // Move child (index 1) down past sibling (index 2)
+    const result = computeReorder(flat, tasks, 1, 1);
+    expect(result).not.toBeNull();
+    expect(result!.mutations[0].parentId).toBeNull(); // becomes root
+  });
 });

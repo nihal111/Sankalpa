@@ -1,5 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getSuggestions } from './parseNaturalDate';
+import { getSuggestions, parseNaturalDate } from './parseNaturalDate';
+
+describe('parseNaturalDate', () => {
+  it('returns null for empty input', () => {
+    expect(parseNaturalDate('')).toBeNull();
+  });
+
+  it('parses shorthand like "3h"', () => {
+    const result = parseNaturalDate('3h');
+    expect(result).toBeGreaterThan(Date.now());
+  });
+
+  it('parses natural language like "tomorrow"', () => {
+    const result = parseNaturalDate('tomorrow');
+    expect(result).toBeGreaterThan(Date.now());
+  });
+
+  it('returns null for unparseable input', () => {
+    expect(parseNaturalDate('xyzabc123')).toBeNull();
+  });
+});
 
 describe('getSuggestions', () => {
   beforeEach(() => {
@@ -34,6 +54,12 @@ describe('getSuggestions', () => {
     const suggestions = getSuggestions('3h');
     expect(suggestions.length).toBeGreaterThan(0);
     expect(suggestions[0].label).toContain('hour');
+  });
+
+  it('handles singular shorthand like "1h"', () => {
+    const suggestions = getSuggestions('1h');
+    expect(suggestions.length).toBeGreaterThan(0);
+    expect(suggestions[0].label).toContain('in 1 hour');
   });
 
   it('handles numeric input like "30"', () => {
