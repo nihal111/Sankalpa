@@ -101,9 +101,10 @@ const KEY_LABELS: Record<string, string> = {
   Backspace: '⌫', Delete: '⌫',
 };
 
-function formatKeystroke(key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean }): string {
+function formatKeystroke(key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean; alt?: boolean }): string {
   const parts: string[] = [];
   if (opts.ctrl) parts.push('⌃');
+  if (opts.alt) parts.push('⌥');
   if (opts.meta) parts.push('⌘');
   if (opts.shift) parts.push('⇧');
   parts.push(KEY_LABELS[key] ?? key.toUpperCase());
@@ -138,7 +139,7 @@ export async function showOverlay(page: Page, label: string): Promise<void> {
   });
 }
 
-export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean } = {}): Promise<void> {
+export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean; alt?: boolean } = {}): Promise<void> {
   if (process.env.RECORD === '1') {
     const label = formatKeystroke(key, opts);
     await page.evaluate((text) => {
@@ -153,38 +154,52 @@ export async function press(page: Page, key: string, opts: { meta?: boolean; shi
     });
     await page.waitForTimeout(20);
   }
-  if (opts.meta) {
+  if (opts.alt) {
     await page.evaluate(({ ctrl }) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, ctrlKey: ctrl, bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt', altKey: true, ctrlKey: ctrl, bubbles: true }));
     }, { ctrl: opts.ctrl });
     await page.waitForTimeout(20);
   }
+  if (opts.meta) {
+    await page.evaluate(({ ctrl, alt }) => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+    }, { ctrl: opts.ctrl, alt: opts.alt });
+    await page.waitForTimeout(20);
+  }
   if (opts.shift) {
-    await page.evaluate(({ meta, ctrl }) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true, metaKey: meta, ctrlKey: ctrl, bubbles: true }));
-    }, { meta: opts.meta, ctrl: opts.ctrl });
+    await page.evaluate(({ meta, ctrl, alt }) => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true, metaKey: meta, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+    }, { meta: opts.meta, ctrl: opts.ctrl, alt: opts.alt });
     await page.waitForTimeout(20);
   }
   
-  await page.evaluate(({ key, meta, shift, ctrl }) => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, bubbles: true }));
-  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl });
+  await page.evaluate(({ key, meta, shift, ctrl, alt }) => {
+    const code = key.length === 1 ? `Key${key.toUpperCase()}` : key;
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, code, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl, alt: opts.alt });
   await page.waitForTimeout(20);
   
-  await page.evaluate(({ key, meta, shift, ctrl }) => {
-    window.dispatchEvent(new KeyboardEvent('keyup', { key, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, bubbles: true }));
-  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl });
+  await page.evaluate(({ key, meta, shift, ctrl, alt }) => {
+    const code = key.length === 1 ? `Key${key.toUpperCase()}` : key;
+    window.dispatchEvent(new KeyboardEvent('keyup', { key, code, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl, alt: opts.alt });
   await page.waitForTimeout(20);
   
   if (opts.shift) {
-    await page.evaluate(({ meta, ctrl }) => {
-      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', shiftKey: false, metaKey: meta, ctrlKey: ctrl, bubbles: true }));
-    }, { meta: opts.meta, ctrl: opts.ctrl });
+    await page.evaluate(({ meta, ctrl, alt }) => {
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', shiftKey: false, metaKey: meta, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+    }, { meta: opts.meta, ctrl: opts.ctrl, alt: opts.alt });
     await page.waitForTimeout(20);
   }
   if (opts.meta) {
+    await page.evaluate(({ ctrl, alt }) => {
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, ctrlKey: ctrl, altKey: alt, bubbles: true }));
+    }, { ctrl: opts.ctrl, alt: opts.alt });
+    await page.waitForTimeout(20);
+  }
+  if (opts.alt) {
     await page.evaluate(({ ctrl }) => {
-      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, ctrlKey: ctrl, bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt', altKey: false, ctrlKey: ctrl, bubbles: true }));
     }, { ctrl: opts.ctrl });
     await page.waitForTimeout(20);
   }
