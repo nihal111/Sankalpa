@@ -2,12 +2,29 @@
 
 Feature tracker for Sankalpa — what's next after the POC.
 
+## Critical
+
+Bugs and improvements that need immediate attention.
+
+| Item | Type | Description | Status |
+|------|------|-------------|--------|
+| Hardcore mode default | Fix | Should be OFF by default | |
+| Due date relative display | Fix | Show Today/Tomorrow/weekday within 7 days | |
+| Due date autocomplete | Fix | "tom", "tm", "tomo" → "tomorrow" | |
+| Notes editor UX | Fix | Large modal with edit/preview toggle | |
+| Multi-select complete | Fix | Cmd+Enter should mark all selected tasks | |
+| Overdue list nav bug | Fix | Down arrow from Inbox skips hidden Overdue | |
+| Today badge | Fix | Show two badges: red (overdue) + black (today) | |
+| Smart list task origin | Fix | Today/Overdue/Upcoming show source list name | |
+| Command palette scroll | Fix | Auto-scroll to follow cursor | |
+| Cut/Paste tasks | Feature | Cmd+X / Cmd+V with markdown format | |
+| Create from clipboard | Feature | Cmd+Shift+V parses markdown list into tasks | |
+| Local search | Feature | Cmd+F searches within current list only | |
+
 ## High
 
 | Feature | Description | Theme | Complexity | Status |
 |---------|-------------|-------|------------|--------|
-| Subtask-aware reorder | Change reorder hotkey from Cmd+Shift+↑/↓ to Opt+↑/↓. Moving among siblings retains depth; moving past parent pops out to parent's depth; moving past last sibling adopts depth of the task below. If expanded, move only the single task; if collapsed, move the entire subtree. | Subtasks | High | |
-| Subtask-aware duplicate | Cmd+D preserves parent_id so duplicate stays at same nesting level, inserted right after original. If expanded, duplicate only the single task; if collapsed, deep-duplicate the entire subtree. | Subtasks | Medium | |
 | Labels | Tag tasks with labels (hotkey Cmd+L) | Task Properties | High | |
 | Priorities | Assign priority levels to tasks; exact scheme TBD | Task Properties | Medium | |
 | Web app + mobile | Web version for phone access; includes mobile quick capture | Platform | Very High | |

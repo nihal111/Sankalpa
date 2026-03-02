@@ -12,11 +12,26 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 
 ## Features
 
-- 100% keyboard driven — your hands never leave the keys
-- Global hotkeys (works even when app is not focused)
-- Two-pane layout (Lists | Tasks)
-- SQLite persistence
-- Hardcore mode (mouse disabled)
+<!-- GIF: app-overview.gif -->
+
+| Feature | Description | Docs |
+|---------|-------------|------|
+| Keyboard-first | 100% keyboard driven — your hands never leave the keys | [Keybindings](#keybindings) |
+| Two-pane layout | Lists on the left, tasks on the right | |
+| Smart Lists | Inbox, Today, Overdue, Upcoming, Completed, Trash | [Smart Lists](docs/features/smart-lists.md) |
+| Subtask nesting | Hierarchical tasks with Tab/Shift+Tab | [Subtask Nesting](docs/features/subtask-nesting.md) |
+| Multi-select | Contiguous and discontiguous task selection | [Multi-select](docs/features/multi-select.md) |
+| Due dates | Natural language input with relative display | [Due Dates](docs/features/due-dates.md) |
+| Duration | Time estimates with presets | [Duration](docs/features/duration.md) |
+| Task notes | Markdown notes per task | [Notes](docs/features/notes.md) |
+| Command palette | Quick access to all commands (Cmd+K) | [Command Palette](docs/features/command-palette.md) |
+| Global search | Search across all tasks (Cmd+Shift+F) | [Search](docs/features/search.md) |
+| Undo/Redo | Full undo history (Cmd+Z / Cmd+Shift+Z) | [Undo/Redo](docs/features/undo-redo.md) |
+| Copy tasks | Copy as markdown (Cmd+C) | [Clipboard](docs/features/clipboard.md) |
+| Duplicate | Deep copy tasks and subtrees (Ctrl+D) | [Duplicate](docs/features/duplicate.md) |
+| Global hotkeys | System-wide shortcuts even when unfocused | |
+| Hardcore mode | Disable mouse for pure keyboard flow | [Settings](docs/features/settings.md) |
+| SQLite persistence | Local-first, fast, reliable | |
 
 ## Stack
 
