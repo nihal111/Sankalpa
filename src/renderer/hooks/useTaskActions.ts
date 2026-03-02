@@ -207,7 +207,7 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       const lines = text.split('\n').filter(l => l.trim());
       if (lines.length === 0) return;
 
-      const createdIds: string[] = [];
+      const created: { id: string; title: string; parentId: string | null }[] = [];
       const parentStack: { indent: number; id: string }[] = [];
 
       for (const line of lines) {
@@ -224,18 +224,29 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
 
         await window.api.tasksCreate(id, targetListId, title);
         if (parentId) await window.api.tasksSetParentId(id, parentId);
-        createdIds.push(id);
+        created.push({ id, title, parentId });
         parentStack.push({ indent, id });
       }
 
-      if (createdIds.length > 0) {
+      if (created.length > 0) {
+        undoPush({
+          undo: async () => {
+            for (const { id } of created) await window.api.tasksDelete(id);
+          },
+          redo: async () => {
+            for (const { id, title, parentId } of created) {
+              await window.api.tasksCreate(id, targetListId, title);
+              if (parentId) await window.api.tasksSetParentId(id, parentId);
+            }
+          },
+        });
         await reloadTasks();
-        showToast(`Created ${createdIds.length} task${createdIds.length === 1 ? '' : 's'} from clipboard`);
+        showToast(`Created ${created.length} task${created.length === 1 ? '' : 's'} from clipboard`);
       }
     } catch {
       showToast('Failed to create from clipboard');
     }
-  }, [isTrashView, selectedSidebarItem, reloadTasks, showToast]);
+  }, [isTrashView, selectedSidebarItem, reloadTasks, showToast, undoPush]);
 
   return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
 }

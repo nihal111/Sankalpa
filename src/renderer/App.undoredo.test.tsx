@@ -460,4 +460,30 @@ describe('App undo/redo', () => {
     redo();
     await waitFor(() => expect(window.api.listsDelete).toHaveBeenCalledTimes(2));
   });
+
+  it('undo paste deletes created tasks, redo recreates them', async () => {
+    vi.spyOn(navigator.clipboard, 'readText').mockResolvedValue('- Task A\n  - Task B');
+    setupMockApi();
+    render(<App />);
+    await navigateToTasksPane();
+
+    // Paste from clipboard
+    fireEvent.keyDown(window, { key: 'v', metaKey: true });
+    await waitFor(() => expect(window.api.tasksCreate).toHaveBeenCalledTimes(2));
+    const createCalls = (window.api.tasksCreate as ReturnType<typeof vi.fn>).mock.calls;
+    const idA = createCalls[0][0];
+    const idB = createCalls[1][0];
+
+    // Undo → delete both tasks
+    undo();
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith(idA));
+    await waitFor(() => expect(window.api.tasksDelete).toHaveBeenCalledWith(idB));
+
+    // Redo → recreate both tasks with same IDs
+    redo();
+    await waitFor(() => expect(window.api.tasksCreate).toHaveBeenCalledTimes(4));
+    const redoCalls = (window.api.tasksCreate as ReturnType<typeof vi.fn>).mock.calls;
+    expect(redoCalls[2][0]).toBe(idA);
+    expect(redoCalls[3][0]).toBe(idB);
+  });
 });
