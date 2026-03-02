@@ -104,7 +104,7 @@ export default function App(): ReactNode {
           moveIds={state.moveIds}
           evaporateIds={state.evaporateIds}
           listNames={state.isCompletedView ? state.listNames : undefined}
-          showSourceList={state.isTrashView}
+          showSourceList={state.showSourceList}
           lists={state.lists}
           completedFilter={state.completedFilter}
           onFilterChange={state.onFilterChange}
