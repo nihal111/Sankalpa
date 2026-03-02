@@ -16,32 +16,32 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 
 ## Features
 
-| Feature | Description | Docs | Demo |
-|---------|-------------|:----:|:----:|
-| **Keyboard-first** | 100% keyboard driven — your hands never leave the keys | [Keybindings](#keybindings) | <details><summary>▶️</summary><br>![](docs/gifs/gif-pane-navigation.gif)</details> |
-| **Three-pane layout** | Lists, tasks, and detail pane for notes and metadata | | |
-| **Smart Lists** | Inbox, Today, Overdue, Upcoming, Completed, Trash — auto-filtered views | [Docs](docs/features/smart-lists.md) | |
-| **Create task** | Instantly add tasks with `⌘N`, inline editing | [Docs](docs/features/create-task.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-create-task.gif)</details> |
-| **Edit task** | Rename tasks in place with `E` | [Docs](docs/features/edit-task.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-edit-task.gif)</details> |
-| **Complete task** | Mark done with `⌘↵`, with satisfying animation | [Docs](docs/features/complete-task.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-complete-task.gif)</details> |
-| **Create list** | Organize tasks into projects with `⌘⇧N` | [Docs](docs/features/create-list.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-create-list.gif)</details> |
-| **Edit list** | Rename lists with `E` | [Docs](docs/features/edit-list.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-edit-list.gif)</details> |
-| **Subtask nesting** | Unlimited hierarchy with `Tab` / `⇧Tab` | [Docs](docs/features/subtask-nesting.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-nesting.gif)</details> |
-| **Collapse/Expand** | Focus on what matters — toggle subtrees with `C` | [Docs](docs/features/collapse.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-collapse.gif)</details> |
-| **Multi-select** | Batch operations on multiple tasks with `⇧↑↓` and `⌃↵` | [Docs](docs/features/multi-select.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-multiselect.gif)</details> |
-| **Move task** | Reorganize tasks between lists with `M` | [Docs](docs/features/move-task.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-move.gif)</details> |
-| **Reorder** | Drag-free reordering with `⌥↑↓` | [Docs](docs/features/reorder.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-reorder.gif)</details> |
-| **Due dates** | Natural language input — "tomorrow", "next friday", "dec 25" | [Docs](docs/features/due-dates.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-due-date.gif)</details> |
-| **Duration** | Time estimates with quick presets (15m, 30m, 1h, 2h) | [Docs](docs/features/duration.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-duration.gif)</details> |
-| **Task notes** | Rich markdown notes with live preview | [Docs](docs/features/notes.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-notes.gif)</details> |
-| **Command palette** | Fuzzy search all commands with `⌘K` | [Docs](docs/features/command-palette.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-command-palette.gif)</details> |
-| **Global search** | Find any task instantly with `⌘⇧F` | [Docs](docs/features/search.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-search.gif)</details> |
-| **Undo/Redo** | Full operation history with `⌘Z` / `⌘⇧Z` | [Docs](docs/features/undo-redo.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-undo.gif)</details> |
-| **Clipboard** | Copy tasks as markdown, paste to create | [Docs](docs/features/clipboard.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-copy.gif)</details> |
-| **Duplicate** | Deep copy tasks and entire subtrees with `⌃D` | [Docs](docs/features/duplicate.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-duplicate.gif)</details> |
-| **Global hotkeys** | System-wide shortcuts — capture thoughts from any app | | |
-| **Hardcore mode** | Disable mouse completely for pure keyboard flow | [Docs](docs/features/settings.md) | <details><summary>▶️</summary><br>![](docs/gifs/gif-settings.gif)</details> |
-| **Local-first** | SQLite database — your data stays on your machine | | |
+| Feature | Description | Docs |
+|---------|-------------|:----:|
+| **Keyboard-first** | 100% keyboard driven — your hands never leave the keys | [Keybindings](#keybindings) |
+| **Three-pane layout** | Lists, tasks, and detail pane for notes and metadata <details><summary>▶️</summary><br>![](docs/gifs/gif-pane-navigation.gif)</details> | |
+| **Smart Lists** | Inbox, Today, Overdue, Upcoming, Completed, Trash — auto-filtered views | [Docs](docs/features/smart-lists.md) |
+| **Create task** | Instantly add tasks with `⌘N`, inline editing <details><summary>▶️</summary><br>![](docs/gifs/gif-create-task.gif)</details> | [Docs](docs/features/create-task.md) |
+| **Edit task** | Rename tasks in place with `E` <details><summary>▶️</summary><br>![](docs/gifs/gif-edit-task.gif)</details> | [Docs](docs/features/edit-task.md) |
+| **Complete task** | Mark done with `⌘↵`, with satisfying animation <details><summary>▶️</summary><br>![](docs/gifs/gif-complete-task.gif)</details> | [Docs](docs/features/complete-task.md) |
+| **Create list** | Organize tasks into projects with `⌘⇧N` <details><summary>▶️</summary><br>![](docs/gifs/gif-create-list.gif)</details> | [Docs](docs/features/create-list.md) |
+| **Edit list** | Rename lists with `E` <details><summary>▶️</summary><br>![](docs/gifs/gif-edit-list.gif)</details> | [Docs](docs/features/edit-list.md) |
+| **Subtask nesting** | Unlimited hierarchy with `Tab` / `⇧Tab` <details><summary>▶️</summary><br>![](docs/gifs/gif-nesting.gif)</details> | [Docs](docs/features/subtask-nesting.md) |
+| **Collapse/Expand** | Focus on what matters — toggle subtrees with `C` <details><summary>▶️</summary><br>![](docs/gifs/gif-collapse.gif)</details> | [Docs](docs/features/collapse.md) |
+| **Multi-select** | Batch operations on multiple tasks with `⇧↑↓` and `⌃↵` <details><summary>▶️</summary><br>![](docs/gifs/gif-multiselect.gif)</details> | [Docs](docs/features/multi-select.md) |
+| **Move task** | Reorganize tasks between lists with `M` <details><summary>▶️</summary><br>![](docs/gifs/gif-move.gif)</details> | [Docs](docs/features/move-task.md) |
+| **Reorder** | Drag-free reordering with `⌥↑↓` <details><summary>▶️</summary><br>![](docs/gifs/gif-reorder.gif)</details> | [Docs](docs/features/reorder.md) |
+| **Due dates** | Natural language input — "tomorrow", "next friday", "dec 25" <details><summary>▶️</summary><br>![](docs/gifs/gif-due-date.gif)</details> | [Docs](docs/features/due-dates.md) |
+| **Duration** | Time estimates with quick presets (15m, 30m, 1h, 2h) <details><summary>▶️</summary><br>![](docs/gifs/gif-duration.gif)</details> | [Docs](docs/features/duration.md) |
+| **Task notes** | Rich markdown notes with live preview <details><summary>▶️</summary><br>![](docs/gifs/gif-notes.gif)</details> | [Docs](docs/features/notes.md) |
+| **Command palette** | Fuzzy search all commands with `⌘K` <details><summary>▶️</summary><br>![](docs/gifs/gif-command-palette.gif)</details> | [Docs](docs/features/command-palette.md) |
+| **Global search** | Find any task instantly with `⌘⇧F` <details><summary>▶️</summary><br>![](docs/gifs/gif-search.gif)</details> | [Docs](docs/features/search.md) |
+| **Undo/Redo** | Full operation history with `⌘Z` / `⌘⇧Z` <details><summary>▶️</summary><br>![](docs/gifs/gif-undo.gif)</details> | [Docs](docs/features/undo-redo.md) |
+| **Clipboard** | Copy tasks as markdown, paste to create <details><summary>▶️</summary><br>![](docs/gifs/gif-copy.gif)</details> | [Docs](docs/features/clipboard.md) |
+| **Duplicate** | Deep copy tasks and entire subtrees with `⌃D` <details><summary>▶️</summary><br>![](docs/gifs/gif-duplicate.gif)</details> | [Docs](docs/features/duplicate.md) |
+| **Global hotkeys** | System-wide shortcuts — capture thoughts from any app | |
+| **Hardcore mode** | Disable mouse completely for pure keyboard flow <details><summary>▶️</summary><br>![](docs/gifs/gif-settings.gif)</details> | [Docs](docs/features/settings.md) |
+| **Local-first** | SQLite database — your data stays on your machine | |
 
 ## Stack
 
