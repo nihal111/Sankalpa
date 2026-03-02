@@ -46,6 +46,14 @@ describe('QuickAddModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('Tab from title opens list dropdown', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const titleInput = document.querySelector('.quick-add-title') as HTMLInputElement;
+    fireEvent.keyDown(titleInput, { key: 'Tab' });
+    const dropdownInput = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    expect(dropdownInput?.placeholder).toBe('Search lists...');
+  });
+
   it('submits with Cmd+Enter when title is filled', () => {
     render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
     const input = document.querySelector('.quick-add-title') as HTMLInputElement;
@@ -251,7 +259,7 @@ describe('QuickAddModal', () => {
     });
   });
 
-  it('selects due date with Enter key', async () => {
+  it('selects due date with Enter key and advances to duration', async () => {
     render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
     const dueBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Due date'));
     fireEvent.click(dueBtn!);
@@ -259,7 +267,11 @@ describe('QuickAddModal', () => {
     fireEvent.change(input, { target: { value: 'tomorrow' } });
     await waitFor(() => expect(document.querySelector('.quick-add-dropdown-item')).not.toBeNull());
     fireEvent.keyDown(input, { key: 'Enter' });
-    await waitFor(() => expect(document.querySelector('.quick-add-dropdown')).toBeNull());
+    // Should advance to duration dropdown
+    await waitFor(() => {
+      const placeholder = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+      expect(placeholder?.placeholder).toBe('Set duration');
+    });
   });
 
   it('toggles dropdown off when clicking same button', () => {
@@ -269,5 +281,130 @@ describe('QuickAddModal', () => {
     expect(document.querySelector('.quick-add-dropdown')).not.toBeNull();
     fireEvent.click(durBtn!);
     expect(document.querySelector('.quick-add-dropdown')).toBeNull();
+  });
+
+  it('Backspace clears due date when dropdown is open', async () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    // Set a due date first
+    const dueBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Due date'));
+    fireEvent.click(dueBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'tomorrow' } });
+    await waitFor(() => expect(document.querySelector('.quick-add-dropdown-item')).not.toBeNull());
+    fireEvent.keyDown(input, { key: 'Enter' });
+    // Re-open due date dropdown
+    fireEvent.click(dueBtn!);
+    await waitFor(() => expect(document.querySelector('.quick-add-dropdown-current')).not.toBeNull());
+    // Backspace to clear
+    const input2 = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input2, { key: 'Backspace' });
+    await waitFor(() => expect(document.querySelector('.quick-add-dropdown-current')).toBeNull());
+  });
+
+  it('Backspace clears duration when dropdown is open', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    // Set duration first
+    const durBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Duration'));
+    fireEvent.click(durBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Enter' }); // Select 15 min
+    // Re-open
+    fireEvent.click(durBtn!);
+    expect(document.querySelector('.quick-add-dropdown-current')).not.toBeNull();
+    // Backspace to clear
+    const input2 = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input2, { key: 'Backspace' });
+    expect(document.querySelector('.quick-add-dropdown-current')).toBeNull();
+  });
+
+  it('Backspace clears list selection when dropdown is open', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    // Select a list first
+    const listBtn = document.querySelector('.quick-add-btn-list');
+    fireEvent.click(listBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // Move to Work
+    fireEvent.keyDown(input, { key: 'Enter' });
+    // Re-open
+    fireEvent.click(listBtn!);
+    expect(document.querySelector('.quick-add-dropdown-current')).not.toBeNull();
+    // Backspace to clear
+    const input2 = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input2, { key: 'Backspace' });
+    expect(document.querySelector('.quick-add-dropdown-current')).toBeNull();
+  });
+
+  it('Shift+Tab goes back from duration to due date', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const durBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Duration'));
+    fireEvent.click(durBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Tab', shiftKey: true });
+    const newInput = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    expect(newInput?.placeholder).toBe('Set due date');
+  });
+
+  it('Shift+Tab goes back from due date to list', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const dueBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Due date'));
+    fireEvent.click(dueBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Tab', shiftKey: true });
+    const newInput = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    expect(newInput?.placeholder).toBe('Search lists...');
+  });
+
+  it('Shift+Tab goes back from list to title', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const listBtn = document.querySelector('.quick-add-btn-list');
+    fireEvent.click(listBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Tab', shiftKey: true });
+    expect(document.querySelector('.quick-add-dropdown')).toBeNull();
+  });
+
+  it('Tab in duration with no selection closes dropdown and focuses title', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const durBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Duration'));
+    fireEvent.click(durBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'xyz' } }); // no matches
+    fireEvent.keyDown(input, { key: 'Tab' });
+    expect(document.querySelector('.quick-add-dropdown')).toBeNull();
+  });
+
+  it('Escape on modal closes it when no dropdown open', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const modal = document.querySelector('.quick-add-modal');
+    fireEvent.keyDown(modal!, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('Escape on title input closes modal', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const titleInput = document.querySelector('.quick-add-title');
+    fireEvent.keyDown(titleInput!, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('Tab in due date with no selection advances to duration', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const dueBtn = Array.from(document.querySelectorAll('.quick-add-btn')).find(b => b.textContent?.includes('Due date'));
+    fireEvent.click(dueBtn!);
+    const input = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'xyz' } }); // no matches
+    fireEvent.keyDown(input, { key: 'Tab' });
+    const newInput = document.querySelector('.quick-add-dropdown-input') as HTMLInputElement;
+    expect(newInput?.placeholder).toBe('Set duration');
+  });
+
+  it('Escape on modal with dropdown open closes dropdown', () => {
+    render(<QuickAddModal isOpen={true} lists={mockLists} onSubmit={onSubmit} onClose={onClose} />);
+    const listBtn = document.querySelector('.quick-add-btn-list');
+    fireEvent.click(listBtn!);
+    const modal = document.querySelector('.quick-add-modal');
+    fireEvent.keyDown(modal!, { key: 'Escape' });
+    expect(document.querySelector('.quick-add-dropdown')).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

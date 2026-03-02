@@ -1451,7 +1451,7 @@ h2 {
   background: var(--bg-secondary);
   border-radius: 8px;
   padding: 16px;
-  width: 500px;
+  width: 560px;
   max-width: 90vw;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
@@ -1466,6 +1466,10 @@ h2 {
   color: var(--text-primary);
   outline: none;
   margin-bottom: 12px;
+}
+
+.quick-add-title.unfocused {
+  border-color: var(--border-pane);
 }
 
 .quick-add-title::placeholder {
@@ -1496,8 +1500,10 @@ h2 {
   background: var(--bg-selected-unfocused);
 }
 
-.quick-add-btn.active {
+.quick-add-btn.focused {
   border-color: var(--accent-cursor);
+  border-width: 2px;
+  padding: 5px 11px;
 }
 
 .quick-add-btn.disabled {
@@ -1505,8 +1511,21 @@ h2 {
   cursor: not-allowed;
 }
 
+.quick-add-btn-list {
+  max-width: 140px;
+}
+
+.quick-add-btn-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .quick-add-btn-icon {
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .quick-add-dropdown {
@@ -1515,6 +1534,17 @@ h2 {
   border-radius: 6px;
   margin-bottom: 12px;
   overflow: hidden;
+}
+
+.quick-add-dropdown-current {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-selected-unfocused);
+  border-bottom: 1px solid var(--border-pane);
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .quick-add-dropdown-input {
