@@ -135,8 +135,8 @@ export function Sidebar({
             <li key={smartId} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} style={isOverdueList && !hasItems ? { display: 'none' } : undefined} onClick={() => onItemClick(i)}>
               <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
-              {overdueCount > 0 && <span className="item-badge overdue">{overdueCount}</span>}
-              {(isOverdueList ? false : todayOnlyCount > 0 || (count > 0 && overdueCount === 0)) && <span className="item-badge">{smartId === 'today' ? todayOnlyCount : count}</span>}
+              {(smartId === 'today' && overdueCount > 0) && <span className="item-badge overdue">{overdueCount}</span>}
+              {(isOverdueList ? count > 0 : todayOnlyCount > 0 || (count > 0 && overdueCount === 0)) && <span className={`item-badge ${isOverdueList ? 'overdue' : ''}`}>{smartId === 'today' ? todayOnlyCount : count}</span>}
             </li>
           );
         })}
