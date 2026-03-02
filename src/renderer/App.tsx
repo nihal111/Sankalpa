@@ -14,6 +14,7 @@ import { DurationModal } from './DurationModal';
 import { CommandPalette } from './CommandPalette';
 import { ListInfoModal } from './ListInfoModal';
 import { NotesModal } from './NotesModal';
+import { QuickAddModal } from './QuickAddModal';
 import { Toast } from './Toast';
 
 export default function App(): ReactNode {
@@ -199,6 +200,12 @@ export default function App(): ReactNode {
         initialValue={state.selectedTask?.notes ?? ''}
         onCommit={state.handleNotesCommit}
         onClose={state.handleNotesCancelEdit}
+      />
+      <QuickAddModal
+        isOpen={state.quickAddOpen}
+        lists={state.lists}
+        onSubmit={state.handleQuickAddSubmit}
+        onClose={state.closeQuickAdd}
       />
       <Toast message={state.toastMessage} />
     </div>

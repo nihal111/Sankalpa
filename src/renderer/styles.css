@@ -1445,3 +1445,171 @@ h2 {
   80% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Quick Add Modal */
+.quick-add-modal {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 16px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.quick-add-title {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  background: var(--bg-primary);
+  border: 2px solid var(--accent-cursor);
+  border-radius: 6px;
+  color: var(--text-primary);
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.quick-add-title::placeholder {
+  color: var(--text-secondary);
+}
+
+.quick-add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.quick-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-pane);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quick-add-btn:hover:not(.disabled) {
+  background: var(--bg-selected-unfocused);
+}
+
+.quick-add-btn.active {
+  border-color: var(--accent-cursor);
+}
+
+.quick-add-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quick-add-btn-icon {
+  font-size: 12px;
+}
+
+.quick-add-dropdown {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-pane);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.quick-add-dropdown-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-pane);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.quick-add-dropdown-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.quick-add-dropdown-items {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.quick-add-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.quick-add-dropdown-item:hover {
+  background: var(--bg-selected-unfocused);
+}
+
+.quick-add-dropdown-item.selected {
+  background: var(--bg-selected);
+}
+
+.quick-add-dropdown-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.quick-add-notes-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.quick-add-notes {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-pane);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 16px;
+}
+
+.quick-add-notes:focus {
+  border-color: var(--accent-cursor);
+}
+
+.quick-add-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-pane);
+}
+
+.quick-add-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-pane);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quick-add-footer-btn:hover {
+  background: var(--bg-selected-unfocused);
+}
+
+.quick-add-footer-btn.primary {
+  background: var(--bg-selected);
+  border-color: var(--accent-cursor);
+}

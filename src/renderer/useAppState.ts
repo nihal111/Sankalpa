@@ -131,20 +131,23 @@ export function useAppState() {
   const searchState = useSearchState({ sidebarItems, setTasks, setSelectedSidebarIndex, setSelectedTaskIndex, setFocusedPane, flash });
   const { isSearchOpen, lastSearchQuery, setLastSearchQuery, openSearch, closeSearch, handleSearchSelect } = searchState;
 
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
   useEffect(() => {
-    return window.api.onQuickAdd(async () => {
-      setSelectedSidebarIndex(0);
-      const id = crypto.randomUUID();
-      const newTask = await window.api.tasksCreate(id, null, '');
-      const newTasks = await window.api.tasksGetInbox();
-      const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
-      setTasks(newTasks);
-      setSelectedTaskIndex(newIndex);
-      setFocusedPane('tasks');
-      setEditMode({ type: 'task', index: newIndex });
-      setEditValue('');
-    });
-  }, [setEditMode, setEditValue, setTasks]);
+    return window.api.onQuickAdd(() => setQuickAddOpen(true));
+  }, []);
+
+  const handleQuickAddSubmit = useCallback(async (data: { title: string; listId: string | null; dueDate: number | null; duration: number | null; notes: string }) => {
+    const id = crypto.randomUUID();
+    await window.api.tasksCreate(id, data.listId, data.title);
+    if (data.dueDate) await window.api.tasksSetDueDate(id, data.dueDate);
+    if (data.duration) await window.api.tasksSetDuration(id, data.duration);
+    if (data.notes) await window.api.tasksUpdateNotes(id, data.notes);
+    setQuickAddOpen(false);
+    await reloadTasks();
+  }, [reloadTasks]);
+
+  const closeQuickAdd = useCallback(() => setQuickAddOpen(false), []);
 
   const { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
@@ -219,7 +222,7 @@ export function useAppState() {
     editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld,
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
     confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
-    moveListMode, listInfoOpen,
+    moveListMode, listInfoOpen, quickAddOpen,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -266,5 +269,6 @@ export function useAppState() {
     moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
     folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,
     toastMessage: toast.message, localSearchOpen, setLocalSearchOpen, localSearchQuery, setLocalSearchQuery,
+    quickAddOpen, handleQuickAddSubmit, closeQuickAdd,
   };
 }

@@ -74,15 +74,13 @@ describe('App create and reorder', () => {
     });
   });
 
-  it('quick-add creates task in inbox (list_id = null)', async () => {
+  it('quick-add opens quick add modal', async () => {
     let quickAddCallback: (() => void) | null = null;
     setupMockApi({
       onQuickAdd: vi.fn().mockImplementation((cb: () => void) => {
         quickAddCallback = cb;
         return () => {};
       }),
-      tasksCreate: vi.fn().mockResolvedValue({ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }),
-      tasksGetInbox: vi.fn().mockResolvedValue([{ id: 'new', list_id: null, title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 }]),
     });
     render(<App />);
     await waitFor(() => expect(window.api.listsGetAll).toHaveBeenCalled());
@@ -90,7 +88,7 @@ describe('App create and reorder', () => {
     expect(quickAddCallback).not.toBeNull();
     quickAddCallback!();
     await waitFor(() => {
-      expect(window.api.tasksCreate).toHaveBeenCalledWith(expect.any(String), null, '');
+      expect(document.querySelector('.quick-add-modal')).not.toBeNull();
     });
   });
 
