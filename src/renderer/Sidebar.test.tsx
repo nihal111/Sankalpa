@@ -1,21 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Sidebar } from './Sidebar';
+import type { SmartListId } from './types';
 
 describe('Sidebar badges', () => {
   const mockProps = {
     sidebarItems: [
       {
         type: 'smart' as const,
-        smartList: { id: 'inbox', name: 'Inbox', icon: '<svg></svg>' },
+        smartList: { id: 'inbox' as SmartListId, name: 'Inbox', icon: '<svg></svg>' },
       },
       {
         type: 'smart' as const,
-        smartList: { id: 'today', name: 'Today', icon: '<svg></svg>' },
+        smartList: { id: 'today' as SmartListId, name: 'Today', icon: '<svg></svg>' },
       },
       {
         type: 'smart' as const,
-        smartList: { id: 'overdue', name: 'Overdue', icon: '<svg></svg>' },
+        smartList: { id: 'overdue' as SmartListId, name: 'Overdue', icon: '<svg></svg>' },
       },
     ],
     selectedSidebarIndex: 0,
@@ -26,10 +27,15 @@ describe('Sidebar badges', () => {
     setEditValue: vi.fn(),
     setEditMode: vi.fn(),
     onItemClick: vi.fn(),
+    onItemContextMenu: vi.fn(),
     onFolderToggle: vi.fn(),
+    handleInputKeyDown: vi.fn(),
+    inputRef: { current: null },
+    flashIds: new Set<string>(),
+    trashIndex: 3,
     metaHeld: false,
     moveMode: false,
-    moveTargetIndex: null,
+    moveTargetIndex: 0,
     moveListMode: false,
     moveListTargetFolderId: null,
   };

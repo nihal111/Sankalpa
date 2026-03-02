@@ -18,7 +18,7 @@ interface SidebarNavigationActions {
 }
 
 export function useSidebarNavigation(params: UseSidebarNavigationParams): SidebarNavigationActions {
-  const { focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection } = params;
+  const { focusedPane, selectedSidebarItem, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection } = params;
 
   const handleHorizontalArrow = useCallback(async (direction: 'left' | 'right') => {
     if (focusedPane === 'tasks') {
@@ -39,7 +39,7 @@ export function useSidebarNavigation(params: UseSidebarNavigationParams): Sideba
         if (parentIndex >= 0) setSelectedSidebarIndex(() => parentIndex);
       }
     }
-  }, [focusedPane, selectedSidebarItem, selectedSidebarIndex, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection]);
+  }, [focusedPane, selectedSidebarItem, sidebarItems, setSelectedSidebarIndex, setFocusedPane, reloadData, clearSelection]);
 
   return { handleHorizontalArrow };
 }

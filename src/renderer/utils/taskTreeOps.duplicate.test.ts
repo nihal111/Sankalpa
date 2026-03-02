@@ -6,20 +6,23 @@ const baseTask: Task = {
   id: 'task-1',
   list_id: '1',
   title: 'Task 1',
-  status: 'ACTIVE',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  status: 'PENDING',
+  created_at: 1704067200,
+  updated_at: 1704067200,
+  created_timestamp: 1704067200,
+  completed_timestamp: null,
+  deleted_at: null,
   sort_key: 1,
   parent_id: null,
-  is_expanded: true,
+  is_expanded: 1,
   due_date: null,
   notes: '',
-  duration_minutes: null,
+  duration: null,
 };
 
 describe('computeDuplicate', () => {
   it('duplicates single expanded task', () => {
-    const task: Task = { ...baseTask, is_expanded: true };
+    const task: Task = { ...baseTask, is_expanded: 1 };
     const specs = computeDuplicate(task, []);
     
     expect(specs).toHaveLength(1);
@@ -29,7 +32,7 @@ describe('computeDuplicate', () => {
   });
 
   it('duplicates collapsed task with children', () => {
-    const parent: Task = { ...baseTask, id: 'p', is_expanded: false };
+    const parent: Task = { ...baseTask, id: 'p', is_expanded: 0 };
     const child1: Task = { ...baseTask, id: 'c1', parent_id: 'p' };
     const child2: Task = { ...baseTask, id: 'c2', parent_id: 'p' };
     const allTasks = [parent, child1, child2];
@@ -45,7 +48,7 @@ describe('computeDuplicate', () => {
   });
 
   it('duplicates collapsed task with nested descendants', () => {
-    const root: Task = { ...baseTask, id: 'r', is_expanded: false };
+    const root: Task = { ...baseTask, id: 'r', is_expanded: 0 };
     const child: Task = { ...baseTask, id: 'c', parent_id: 'r' };
     const grandchild: Task = { ...baseTask, id: 'gc', parent_id: 'c' };
     const allTasks = [root, child, grandchild];
@@ -61,14 +64,14 @@ describe('computeDuplicate', () => {
   });
 
   it('preserves parent_id for root task', () => {
-    const task: Task = { ...baseTask, parent_id: 'parent-x', is_expanded: false };
+    const task: Task = { ...baseTask, parent_id: 'parent-x', is_expanded: 0 };
     const specs = computeDuplicate(task, []);
     
     expect(specs[0].newParentId).toBe('parent-x');
   });
 
   it('generates unique IDs for all duplicated tasks', () => {
-    const parent: Task = { ...baseTask, id: 'p', is_expanded: false };
+    const parent: Task = { ...baseTask, id: 'p', is_expanded: 0 };
     const child1: Task = { ...baseTask, id: 'c1', parent_id: 'p' };
     const child2: Task = { ...baseTask, id: 'c2', parent_id: 'p' };
     const allTasks = [parent, child1, child2];
@@ -81,7 +84,7 @@ describe('computeDuplicate', () => {
   });
 
   it('does not duplicate siblings of collapsed task', () => {
-    const parent: Task = { ...baseTask, id: 'p', is_expanded: false };
+    const parent: Task = { ...baseTask, id: 'p', is_expanded: 0 };
     const child: Task = { ...baseTask, id: 'c', parent_id: 'p' };
     const sibling: Task = { ...baseTask, id: 's', parent_id: null };
     const allTasks = [parent, child, sibling];
@@ -93,7 +96,7 @@ describe('computeDuplicate', () => {
   });
 
   it('remaps parent IDs correctly for P->C->G hierarchy', () => {
-    const p: Task = { ...baseTask, id: 'P', is_expanded: false, parent_id: null };
+    const p: Task = { ...baseTask, id: 'P', is_expanded: 0, parent_id: null };
     const c: Task = { ...baseTask, id: 'C', parent_id: 'P' };
     const g: Task = { ...baseTask, id: 'G', parent_id: 'C' };
     const allTasks = [p, c, g];

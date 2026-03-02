@@ -4,15 +4,15 @@ import App from './App';
 import { setupMockApi, navigateToTasksPane } from './test-utils';
 import type { Task, List } from '../shared/types';
 
-const mockList: List = { id: 'list1', name: 'Test List', sort_key: 1, created_at: '2024-01-01', updated_at: '2024-01-01', folder_id: null, notes: null };
+const mockList: List = { id: 'list1', name: 'Test List', sort_key: 1, created_at: 1704067200, updated_at: 1704067200, folder_id: null, notes: null };
 
-const task1: Task = { id: 't1', list_id: 'list1', title: 'Task 1', status: 'PENDING', created_timestamp: 1, completed_timestamp: null, sort_key: 1, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: null, is_expanded: true, due_date: null, duration: null, notes: null };
-const task2: Task = { id: 't2', list_id: 'list1', title: 'Task 2', status: 'PENDING', created_timestamp: 2, completed_timestamp: null, sort_key: 2, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: null, is_expanded: true, due_date: null, duration: null, notes: null };
-const task3: Task = { id: 't3', list_id: 'list1', title: 'Task 3', status: 'PENDING', created_timestamp: 3, completed_timestamp: null, sort_key: 3, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: null, is_expanded: true, due_date: null, duration: null, notes: null };
+const task1: Task = { id: 't1', list_id: 'list1', title: 'Task 1', status: 'PENDING', created_timestamp: 1, completed_timestamp: null, sort_key: 1, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: null, is_expanded: 1, due_date: null, duration: null, notes: null };
+const task2: Task = { id: 't2', list_id: 'list1', title: 'Task 2', status: 'PENDING', created_timestamp: 2, completed_timestamp: null, sort_key: 2, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: null, is_expanded: 1, due_date: null, duration: null, notes: null };
+const task3: Task = { id: 't3', list_id: 'list1', title: 'Task 3', status: 'PENDING', created_timestamp: 3, completed_timestamp: null, sort_key: 3, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: null, is_expanded: 1, due_date: null, duration: null, notes: null };
 
-const parentTask: Task = { id: 'p1', list_id: 'list1', title: 'Parent', status: 'PENDING', created_timestamp: 1, completed_timestamp: null, sort_key: 1, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: null, is_expanded: false, due_date: null, duration: null, notes: null };
-const childTask: Task = { id: 'c1', list_id: 'list1', title: 'Child', status: 'PENDING', created_timestamp: 2, completed_timestamp: null, sort_key: 2, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: 'p1', is_expanded: true, due_date: null, duration: null, notes: null };
-const grandchildTask: Task = { id: 'g1', list_id: 'list1', title: 'Grandchild', status: 'PENDING', created_timestamp: 3, completed_timestamp: null, sort_key: 3, created_at: '2024-01-01', updated_at: '2024-01-01', deleted_at: null, parent_id: 'c1', is_expanded: true, due_date: null, duration: null, notes: null };
+const parentTask: Task = { id: 'p1', list_id: 'list1', title: 'Parent', status: 'PENDING', created_timestamp: 1, completed_timestamp: null, sort_key: 1, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: null, is_expanded: 0, due_date: null, duration: null, notes: null };
+const childTask: Task = { id: 'c1', list_id: 'list1', title: 'Child', status: 'PENDING', created_timestamp: 2, completed_timestamp: null, sort_key: 2, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: 'p1', is_expanded: 1, due_date: null, duration: null, notes: null };
+const grandchildTask: Task = { id: 'g1', list_id: 'list1', title: 'Grandchild', status: 'PENDING', created_timestamp: 3, completed_timestamp: null, sort_key: 3, created_at: 1704067200, updated_at: 1704067200, deleted_at: null, parent_id: 'c1', is_expanded: 1, due_date: null, duration: null, notes: null };
 
 describe('Multi-select delete', () => {
   beforeEach(() => {

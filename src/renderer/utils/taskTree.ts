@@ -73,7 +73,7 @@ export function getDescendantIds(taskId: string, tasks: Task[]): string[] {
   return result;
 }
 
-export function findValidParent(taskAbove: Task | undefined, taskMap: Map<string, Task>): string | null {
+export function findValidParent(taskAbove: Task | undefined, _taskMap: Map<string, Task>): string | null {
   if (!taskAbove) return null;
   return taskAbove.id;
 }

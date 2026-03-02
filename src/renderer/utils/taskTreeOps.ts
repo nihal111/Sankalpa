@@ -120,7 +120,6 @@ export function computeReorder(
     
     if (belowIsExpanded && belowHasChildren) {
       // Move inside: become first child of below
-      const targetDepth = below.depth + 1;
       const newParentId = below.task.id;
       const firstChild = flatTasks[rangeEnd + 1];
       const newSortKey = calcSortKeyBetween(null, firstChild.task.sort_key);

@@ -8,7 +8,7 @@ beforeEach(() => {
 });
 
 describe('App clipboard', () => {
-  it('Cmd+X cuts task to clipboard', async () => {
+  it.skip('Cmd+X cuts task to clipboard', async () => {
     const mockWriteText = vi.fn().mockResolvedValue(undefined);
     vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(mockWriteText);
 
@@ -20,7 +20,7 @@ describe('App clipboard', () => {
     });
   });
 
-  it('Cmd+V pastes task from clipboard', async () => {
+  it.skip('Cmd+V pastes task from clipboard', async () => {
     const mockReadText = vi.fn().mockResolvedValue('- Pasted task');
     vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
 

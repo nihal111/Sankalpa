@@ -277,7 +277,8 @@ export function useDragDrop(params: UseDragDropParams): DragHandlers {
       const newKeys: number[] = [];
       for (let j = 0; j < draggedTasks.length; j++) {
         const bk = j === 0 ? null : newKeys[j - 1];
-        newKeys.push(await window.api.calcSortKey(bk, null));
+        const sortKey = await window.api.calcSortKey(bk, null);
+        newKeys.push(sortKey ?? 1);
         if (draggedTasks[j].origListId !== listId) {
           await window.api.tasksMove(draggedTasks[j].id, listId);
         }
