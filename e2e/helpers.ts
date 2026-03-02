@@ -5,8 +5,8 @@ import fs from 'fs';
 export type Recorder = { timer: ReturnType<typeof setInterval>; frames: Buffer[] } | null;
 
 const RECORDING_DIR = path.join(__dirname, '..', 'test-recordings');
-const FRAME_INTERVAL_MS = 100;
-const GIF_SLOWDOWN = 10;
+const FRAME_INTERVAL_MS = 200;
+const GIF_SLOWDOWN = 1;
 
 export async function launchApp(testDbName: string): Promise<{ app: ElectronApplication; page: Page; dbPath: string; recorder: Recorder }> {
   const { _electron: electron } = await import('@playwright/test');
@@ -17,6 +17,9 @@ export async function launchApp(testDbName: string): Promise<{ app: ElectronAppl
   const headless = process.env.HEADLESS === '1';
   
   const launchArgs = headless ? ['.', '--test-headless'] : ['.'];
+  if (process.env.RECORD === '1') {
+    launchArgs.push('--force-device-scale-factor=1');
+  }
   if (typeof process.getuid === 'function' && process.getuid() === 0) {
     launchArgs.push('--no-sandbox');
   }
@@ -36,6 +39,11 @@ export async function launchApp(testDbName: string): Promise<{ app: ElectronAppl
   let recorder: Recorder = null;
   if (process.env.RECORD === '1') {
     if (!fs.existsSync(RECORDING_DIR)) fs.mkdirSync(RECORDING_DIR, { recursive: true });
+    // Resize window for smaller GIFs
+    const win = await app.browserWindow(page);
+    await win.evaluate((w) => w.setSize(1200, 675));
+    // Set dark mode for GIF recordings
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
     await injectKeystrokeOverlay(page);
     const frames: Buffer[] = [];
     const timer = setInterval(async () => {
@@ -69,10 +77,14 @@ async function encodeGif(pngBuffers: Buffer[], outPath: string): Promise<void> {
   const { GIFEncoder, quantize, applyPalette } = ('default' in gifenc ? gifenc.default as typeof gifenc : gifenc);
   const { PNG } = await import('pngjs');
 
-  const first = PNG.sync.read(pngBuffers[0]);
   const gif = GIFEncoder();
+  let prevBuf: Buffer | null = null;
 
   for (const buf of pngBuffers) {
+    // Skip duplicate frames
+    if (prevBuf && buf.equals(prevBuf)) continue;
+    prevBuf = buf;
+    
     const { data, width, height } = PNG.sync.read(buf);
     const palette = quantize(data, 256);
     const index = applyPalette(data, palette);
@@ -89,8 +101,9 @@ const KEY_LABELS: Record<string, string> = {
   Backspace: '⌫', Delete: '⌫',
 };
 
-function formatKeystroke(key: string, opts: { meta?: boolean; shift?: boolean }): string {
+function formatKeystroke(key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean }): string {
   const parts: string[] = [];
+  if (opts.ctrl) parts.push('⌃');
   if (opts.meta) parts.push('⌘');
   if (opts.shift) parts.push('⇧');
   parts.push(KEY_LABELS[key] ?? key.toUpperCase());
@@ -102,9 +115,9 @@ async function injectKeystrokeOverlay(page: Page): Promise<void> {
     const el = document.createElement('div');
     el.id = 'keystroke-overlay';
     Object.assign(el.style, {
-      position: 'fixed', bottom: '12px', right: '12px', zIndex: '99999',
-      background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '6px 14px',
-      borderRadius: '6px', fontSize: '18px', fontFamily: 'system-ui, sans-serif',
+      position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: '99999',
+      background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '18px 42px',
+      borderRadius: '12px', fontSize: '54px', fontFamily: 'system-ui, sans-serif',
       fontWeight: '600', opacity: '0', transition: 'opacity 0.15s',
       pointerEvents: 'none',
     });
@@ -112,7 +125,7 @@ async function injectKeystrokeOverlay(page: Page): Promise<void> {
   });
 }
 
-export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean } = {}): Promise<void> {
+export async function press(page: Page, key: string, opts: { meta?: boolean; shift?: boolean; ctrl?: boolean } = {}): Promise<void> {
   if (process.env.RECORD === '1') {
     const label = formatKeystroke(key, opts);
     await page.evaluate((text) => {
@@ -121,43 +134,56 @@ export async function press(page: Page, key: string, opts: { meta?: boolean; shi
     }, label);
   }
 
-  if (opts.meta) {
+  if (opts.ctrl) {
     await page.evaluate(() => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true }));
     });
     await page.waitForTimeout(20);
   }
+  if (opts.meta) {
+    await page.evaluate(({ ctrl }) => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Meta', metaKey: true, ctrlKey: ctrl, bubbles: true }));
+    }, { ctrl: opts.ctrl });
+    await page.waitForTimeout(20);
+  }
   if (opts.shift) {
-    await page.evaluate(({ meta }) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true, metaKey: meta, bubbles: true }));
-    }, { meta: opts.meta });
+    await page.evaluate(({ meta, ctrl }) => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true, metaKey: meta, ctrlKey: ctrl, bubbles: true }));
+    }, { meta: opts.meta, ctrl: opts.ctrl });
     await page.waitForTimeout(20);
   }
   
-  await page.evaluate(({ key, meta, shift }) => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key, metaKey: meta, shiftKey: shift, bubbles: true }));
-  }, { key, meta: opts.meta, shift: opts.shift });
+  await page.evaluate(({ key, meta, shift, ctrl }) => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, bubbles: true }));
+  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl });
   await page.waitForTimeout(20);
   
-  await page.evaluate(({ key, meta, shift }) => {
-    window.dispatchEvent(new KeyboardEvent('keyup', { key, metaKey: meta, shiftKey: shift, bubbles: true }));
-  }, { key, meta: opts.meta, shift: opts.shift });
+  await page.evaluate(({ key, meta, shift, ctrl }) => {
+    window.dispatchEvent(new KeyboardEvent('keyup', { key, metaKey: meta, shiftKey: shift, ctrlKey: ctrl, bubbles: true }));
+  }, { key, meta: opts.meta, shift: opts.shift, ctrl: opts.ctrl });
   await page.waitForTimeout(20);
   
   if (opts.shift) {
-    await page.evaluate(({ meta }) => {
-      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', shiftKey: false, metaKey: meta, bubbles: true }));
-    }, { meta: opts.meta });
+    await page.evaluate(({ meta, ctrl }) => {
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', shiftKey: false, metaKey: meta, ctrlKey: ctrl, bubbles: true }));
+    }, { meta: opts.meta, ctrl: opts.ctrl });
     await page.waitForTimeout(20);
   }
   if (opts.meta) {
+    await page.evaluate(({ ctrl }) => {
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, ctrlKey: ctrl, bubbles: true }));
+    }, { ctrl: opts.ctrl });
+    await page.waitForTimeout(20);
+  }
+  if (opts.ctrl) {
     await page.evaluate(() => {
-      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Meta', metaKey: false, bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control', ctrlKey: false, bubbles: true }));
     });
     await page.waitForTimeout(20);
   }
 
   if (process.env.RECORD === '1') {
+    await page.waitForTimeout(400); // Keep overlay visible longer
     await page.evaluate(() => {
       const el = document.getElementById('keystroke-overlay');
       if (el) el.style.opacity = '0';
