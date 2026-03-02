@@ -27,6 +27,11 @@ test('copy task with Cmd+C', async () => {
   await press(page, 'c', { meta: true });
   await page.waitForTimeout(500);
 
+  // Read clipboard via Electron main process
+  const clipboardText = await app.evaluate(async ({ clipboard }) => {
+    return clipboard.readText();
+  });
+
   // Go to First Project
   await press(page, '1', { meta: true });
   await page.waitForTimeout(400);
@@ -35,7 +40,22 @@ test('copy task with Cmd+C', async () => {
   await press(page, 'ArrowRight');
   await page.waitForTimeout(300);
 
+  // Override clipboard.readText before paste
+  await page.evaluate((text) => {
+    Object.defineProperty(navigator.clipboard, 'readText', {
+      value: async () => {
+        console.log('readText called, returning:', text);
+        return text;
+      },
+      writable: true,
+      configurable: true
+    });
+  }, clipboardText);
+
   // Paste with Cmd+V
   await press(page, 'v', { meta: true });
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(800);
+
+  // Verify Welcome to Sankalpa appears in First Project
+  await expect(page.locator('.tasks-pane .task-item', { hasText: 'Welcome to Sankalpa' })).toBeVisible();
 });
