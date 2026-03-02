@@ -21,6 +21,8 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | Create from clipboard | Feature | Cmd+Shift+V parses markdown list into tasks | |
 | Notes editor UX | Fix | Large modal with edit/preview toggle | |
 
+- marking a task(s) as complete / incomplete should register in the undo stack
+
 ## High
 
 | Feature | Description | Theme | Complexity | Status |
