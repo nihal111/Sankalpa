@@ -40,7 +40,6 @@ export interface KeyboardActions {
   duplicateTask: Command;
   copyTasks: Command;
   cutTasks: Command;
-  pasteTasks: Command;
   createFromClipboard: Command;
   cycleSidebarNext: Command;
   cycleSidebarPrev: Command;
@@ -123,7 +122,6 @@ export function useKeyboardNavigation(
     if (matches(e, 'copyTasks') && getAction('copyTasks').isAvailable(ctx)) { e.preventDefault(); actions.copyTasks(); return; }
     if (matches(e, 'cutTasks') && getAction('cutTasks').isAvailable(ctx)) { e.preventDefault(); actions.cutTasks(); return; }
     if (matches(e, 'createFromClipboard') && getAction('createFromClipboard').isAvailable(ctx)) { e.preventDefault(); actions.createFromClipboard(); return; }
-    if (matches(e, 'pasteTasks') && getAction('pasteTasks').isAvailable(ctx)) { e.preventDefault(); actions.pasteTasks(); return; }
     if (state.isSearchOpen || state.isPaletteOpen) return;
     if (state.listInfoOpen) { if (e.key === 'Escape') { e.preventDefault(); actions.closeListInfo(); } return; }
     const active = document.activeElement;

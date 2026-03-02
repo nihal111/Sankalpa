@@ -40,7 +40,6 @@ interface TaskActions {
   duplicateTask: () => Promise<void>;
   copyTasks: () => Promise<void>;
   cutTasks: () => Promise<void>;
-  pasteTasks: () => Promise<void>;
   createFromClipboard: () => Promise<void>;
 }
 
@@ -193,28 +192,6 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     await deleteTask();
   }, [copyTasks, deleteTask]);
 
-  const pasteTasks = useCallback(async () => {
-    if (focusedPane !== 'tasks' || !selectedListId) return;
-    try {
-      const text = await navigator.clipboard.readText();
-      const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length === 0) return;
-
-      for (const line of lines) {
-        const match = line.match(/^(\s*)-\s+(.+)$/);
-        if (match) {
-          const title = match[2];
-          const id = crypto.randomUUID();
-          await window.api.tasksCreate(id, selectedListId, title);
-        }
-      }
-      await reloadTasks();
-      showToast(`Pasted ${lines.length} task${lines.length === 1 ? '' : 's'}`);
-    } catch {
-      showToast('Failed to paste from clipboard');
-    }
-  }, [focusedPane, selectedListId, reloadTasks, showToast]);
-
   const createFromClipboard = useCallback(async () => {
     if (isTrashView) return;
     const targetListId = selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id : null;
@@ -253,5 +230,5 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
   }, [isTrashView, selectedSidebarItem, reloadTasks, showToast]);
 
-  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard };
+  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
 }

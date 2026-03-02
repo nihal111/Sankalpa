@@ -146,7 +146,7 @@ export function useAppState() {
     });
   }, [setEditMode, setEditValue, setTasks]);
 
-  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard } = useTaskActions({
+  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
@@ -208,7 +208,7 @@ export function useAppState() {
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,
-    duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard, cycleSidebarNext, cycleSidebarPrev,
+    duplicateTask, copyTasks, cutTasks, createFromClipboard, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
     showListInfo, closeListInfo, selectSidebarByListNumber,

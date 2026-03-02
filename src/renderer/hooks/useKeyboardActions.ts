@@ -39,7 +39,6 @@ interface UseKeyboardActionsParams {
   duplicateTask: () => void;
   copyTasks: () => void;
   cutTasks: () => void;
-  pasteTasks: () => void;
   createFromClipboard: () => void;
   cycleSidebarNext: () => void;
   cycleSidebarPrev: () => void;
@@ -59,7 +58,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
@@ -105,7 +104,6 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     duplicateTask,
     copyTasks,
     cutTasks,
-    pasteTasks,
     createFromClipboard,
     cycleSidebarNext,
     cycleSidebarPrev,
@@ -122,7 +120,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
     indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
   ]);
