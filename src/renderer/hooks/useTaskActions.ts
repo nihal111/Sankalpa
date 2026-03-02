@@ -39,6 +39,8 @@ interface TaskActions {
   deleteTask: () => Promise<void>;
   duplicateTask: () => Promise<void>;
   copyTasks: () => Promise<void>;
+  cutTasks: () => Promise<void>;
+  pasteTasks: () => Promise<void>;
 }
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
@@ -185,5 +187,31 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     showToast(items.length === 1 ? 'Task copied to clipboard' : `${items.length} tasks copied to clipboard`);
   }, [focusedPane, selectedTask, selectedTaskIndex, selectedTaskIndices, flatTasks, showToast]);
 
-  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks };
+  const cutTasks = useCallback(async () => {
+    await copyTasks();
+    await deleteTask();
+  }, [copyTasks, deleteTask]);
+
+  const pasteTasks = useCallback(async () => {
+    if (focusedPane !== 'tasks' || !selectedListId) return;
+    try {
+      const text = await navigator.clipboard.readText();
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length === 0) return;
+
+      for (const line of lines) {
+        const match = line.match(/^(\s*)-\s+(.+)$/);
+        if (match) {
+          const title = match[2];
+          await window.api.tasksCreate(selectedListId, title);
+        }
+      }
+      await reloadTasks();
+      showToast(`Pasted ${lines.length} task${lines.length === 1 ? '' : 's'}`);
+    } catch {
+      showToast('Failed to paste from clipboard');
+    }
+  }, [focusedPane, selectedListId, reloadTasks, showToast]);
+
+  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, pasteTasks };
 }

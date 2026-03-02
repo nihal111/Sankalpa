@@ -38,6 +38,8 @@ interface UseKeyboardActionsParams {
   togglePalette: () => void;
   duplicateTask: () => void;
   copyTasks: () => void;
+  cutTasks: () => void;
+  pasteTasks: () => void;
   cycleSidebarNext: () => void;
   cycleSidebarPrev: () => void;
   startMoveList: () => void;
@@ -56,7 +58,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks,
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
@@ -101,6 +103,8 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     togglePalette,
     duplicateTask,
     copyTasks,
+    cutTasks,
+    pasteTasks,
     cycleSidebarNext,
     cycleSidebarPrev,
     startMoveList,
@@ -116,7 +120,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
     indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
   ]);

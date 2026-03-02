@@ -42,6 +42,8 @@ export const actions: Action[] = [
   { id: 'duplicateTask', name: 'Duplicate Task', hotkey: 'ctrl+d', hotkeyDisplay: '⌃ D', isAvailable: (ctx) => ctx.hasSelectedTask && !ctx.isTrashView },
   { id: 'duplicateList', name: 'Duplicate List', hotkey: '', hotkeyDisplay: '', isAvailable: (ctx) => ctx.focusedPane === 'lists' && ctx.canEdit },
   { id: 'copyTasks', name: 'Copy Tasks', hotkey: 'meta+c', hotkeyDisplay: '⌘ C', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask },
+  { id: 'cutTasks', name: 'Cut Tasks', hotkey: 'meta+x', hotkeyDisplay: '⌘ X', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && !ctx.isTrashView },
+  { id: 'pasteTasks', name: 'Paste Tasks', hotkey: 'meta+v', hotkeyDisplay: '⌘ V', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
 ];
 
 export function matchesHotkey(e: KeyboardEvent, action: Action): boolean {
