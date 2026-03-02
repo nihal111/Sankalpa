@@ -6,11 +6,7 @@ import { CompletedFilterBar } from './CompletedFilterBar';
 import { hasChildren } from './utils/taskTree';
 import { formatDurationShort } from './DurationModal';
 
-function formatDueDate(ms: number): string {
-  const d = new Date(ms);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
-    d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
+import { formatDueDate } from './utils/formatDueDate';
 
 interface TasksPaneProps {
   tasks: Task[];

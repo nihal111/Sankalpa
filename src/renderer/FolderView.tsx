@@ -2,12 +2,7 @@ import type { ReactNode, RefObject } from 'react';
 import type { FolderViewRow } from './hooks/useFolderView';
 import type { EditMode } from './types';
 import { formatDurationShort } from './DurationModal';
-
-function formatDueDate(ms: number): string {
-  const d = new Date(ms);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
-    d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
+import { formatDueDate } from './utils/formatDueDate';
 
 interface FolderViewProps {
   folderName: string;
