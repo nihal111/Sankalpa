@@ -1,6 +1,8 @@
-# Sankalpa
+<p align="center">
+  <img src="assets/sankalpa_text_logo.png" alt="Sankalpa" width="400">
+</p>
 
-*Sankalpa* (Sanskrit): intention — a conscious decision to act.
+<p align="center"><em>Sankalpa</em> (Sanskrit): intention — a conscious decision to act.</p>
 
 A keyboard-first todo app for macOS. Fast, local, focused.
 

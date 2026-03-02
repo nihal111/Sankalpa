@@ -1,5 +1,6 @@
 {
   "name": "sankalpa",
+  "productName": "Sankalpa",
   "version": "1.0.0",
   "description": "Keyboard-first todo app",
   "main": "dist/main/main/index.js",
@@ -24,6 +25,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "build": {
+    "appId": "com.sankalpa.app",
+    "mac": {
+      "icon": "assets/icon.icns"
+    }
+  },
   "dependencies": {
     "@leeoniya/ufuzzy": "^1.0.19",
     "chrono-node": "^2.9.0",

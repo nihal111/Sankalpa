@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen } from 'electron';
 import path from 'path';
 import {
   getDb, closeDb, saveDb,
@@ -14,8 +14,11 @@ import {
 } from './db';
 import { parseRetentionDays } from '../shared/trashRetention';
 
+app.setName('Sankalpa');
+
 let mainWindow: BrowserWindow | null = null;
 const isTestHeadless = process.argv.includes('--test-headless');
+const iconPath = path.join(__dirname, '../../../assets/icon.png');
 
 function createWindow(): void {
   const cursor = screen.getCursorScreenPoint();
@@ -31,6 +34,7 @@ function createWindow(): void {
     x: Math.round(bounds.x + (bounds.width - winW) / 2),
     y: Math.round(bounds.y + (bounds.height - winH) / 2),
     show: !isTestHeadless,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -63,6 +67,8 @@ function showQuickAdd(): void {
 }
 
 app.whenReady().then(async () => {
+  app.dock?.setIcon(nativeImage.createFromPath(iconPath));
+
   const db = await getDb();
 
   // Purge expired trash on startup
