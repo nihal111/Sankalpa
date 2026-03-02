@@ -41,6 +41,7 @@ interface TaskActions {
   copyTasks: () => Promise<void>;
   cutTasks: () => Promise<void>;
   pasteTasks: () => Promise<void>;
+  createFromClipboard: () => Promise<void>;
 }
 
 export function useTaskActions(params: UseTaskActionsParams): TaskActions {
@@ -214,5 +215,43 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
   }, [focusedPane, selectedListId, reloadTasks, showToast]);
 
-  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, pasteTasks };
+  const createFromClipboard = useCallback(async () => {
+    if (isTrashView) return;
+    const targetListId = selectedSidebarItem?.type === 'list' ? selectedSidebarItem.list.id : null;
+    try {
+      const text = await navigator.clipboard.readText();
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length === 0) return;
+
+      const createdIds: string[] = [];
+      const parentStack: { indent: number; id: string }[] = [];
+
+      for (const line of lines) {
+        const match = line.match(/^(\s*)-\s+(.+)$/);
+        if (!match) continue;
+        const indent = match[1].length;
+        const title = match[2];
+        const id = crypto.randomUUID();
+
+        while (parentStack.length > 0 && parentStack[parentStack.length - 1].indent >= indent) {
+          parentStack.pop();
+        }
+        const parentId = parentStack.length > 0 ? parentStack[parentStack.length - 1].id : null;
+
+        await window.api.tasksCreate(id, targetListId, title);
+        if (parentId) await window.api.tasksSetParentId(id, parentId);
+        createdIds.push(id);
+        parentStack.push({ indent, id });
+      }
+
+      if (createdIds.length > 0) {
+        await reloadTasks();
+        showToast(`Created ${createdIds.length} task${createdIds.length === 1 ? '' : 's'} from clipboard`);
+      }
+    } catch {
+      showToast('Failed to create from clipboard');
+    }
+  }, [isTrashView, selectedSidebarItem, reloadTasks, showToast]);
+
+  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard };
 }

@@ -17,7 +17,7 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | ~~Today badge~~ | Fix | Show two badges: red (overdue) + black (today) | ✅ |
 | ~~Smart list task origin~~ | Fix | Today/Overdue/Upcoming show source list name | ✅ |
 | ~~Local search~~ | Feature | Cmd+F searches within current list only | ✅ |
-| Cut/Paste tasks | Feature | Cmd+X / Cmd+V with markdown format | |
+| ~~Cut/Paste tasks~~ | Feature | Cmd+X / Cmd+V with markdown format | ✅ |
 | Create from clipboard | Feature | Cmd+Shift+V parses markdown list into tasks | |
 | Notes editor UX | Fix | Large modal with edit/preview toggle | |
 

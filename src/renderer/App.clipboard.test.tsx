@@ -134,4 +134,79 @@ describe('App clipboard', () => {
       expect(mockCreate).toHaveBeenCalledWith(expect.any(String), '1', 'Another task');
     });
   });
+
+  it('Cmd+Shift+V creates tasks from clipboard with nesting', async () => {
+    const mockReadText = vi.fn().mockResolvedValue('- Parent task\n  - Child task');
+    const mockCreate = vi.fn().mockResolvedValue(undefined);
+    const mockSetParentId = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+    window.api.tasksCreate = mockCreate;
+    window.api.tasksSetParentId = mockSetParentId;
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true, shiftKey: true });
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledTimes(2);
+      expect(mockSetParentId).toHaveBeenCalled();
+    });
+  });
+
+  it('Cmd+Shift+V does nothing with empty clipboard', async () => {
+    const mockReadText = vi.fn().mockResolvedValue('');
+    const mockCreate = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+    window.api.tasksCreate = mockCreate;
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true, shiftKey: true });
+    await waitFor(() => {
+      expect(mockReadText).toHaveBeenCalled();
+    });
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('Cmd+Shift+V skips non-markdown lines', async () => {
+    const mockReadText = vi.fn().mockResolvedValue('plain text\n- Valid task');
+    const mockCreate = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+    window.api.tasksCreate = mockCreate;
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true, shiftKey: true });
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('Cmd+Shift+V handles clipboard error', async () => {
+    const mockReadText = vi.fn().mockRejectedValue(new Error('Clipboard error'));
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true, shiftKey: true });
+    await waitFor(() => {
+      expect(mockReadText).toHaveBeenCalled();
+    });
+  });
+
+  it('Cmd+Shift+V handles outdent in nested tasks', async () => {
+    const mockReadText = vi.fn().mockResolvedValue('- Parent\n  - Child\n- Sibling');
+    const mockCreate = vi.fn().mockResolvedValue(undefined);
+    const mockSetParentId = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementation(mockReadText);
+    window.api.tasksCreate = mockCreate;
+    window.api.tasksSetParentId = mockSetParentId;
+
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'v', metaKey: true, shiftKey: true });
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledTimes(3);
+      expect(mockSetParentId).toHaveBeenCalledTimes(1);
+    });
+  });
 });

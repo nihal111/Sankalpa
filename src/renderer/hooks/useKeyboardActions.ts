@@ -40,6 +40,7 @@ interface UseKeyboardActionsParams {
   copyTasks: () => void;
   cutTasks: () => void;
   pasteTasks: () => void;
+  createFromClipboard: () => void;
   cycleSidebarNext: () => void;
   cycleSidebarPrev: () => void;
   startMoveList: () => void;
@@ -58,7 +59,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
@@ -105,6 +106,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     copyTasks,
     cutTasks,
     pasteTasks,
+    createFromClipboard,
     cycleSidebarNext,
     cycleSidebarPrev,
     startMoveList,
@@ -120,7 +122,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
-    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks,
+    indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, pasteTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
     indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
   ]);
