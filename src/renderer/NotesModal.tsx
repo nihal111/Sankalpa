@@ -12,6 +12,7 @@ export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesMod
   const [value, setValue] = useState('');
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -20,6 +21,11 @@ export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesMod
       setTimeout(() => textareaRef.current?.focus(), 0);
     }
   }, [isOpen, initialValue]);
+
+  useEffect(() => {
+    if (isOpen && mode === 'preview') modalRef.current?.focus();
+    else if (isOpen && mode === 'edit') textareaRef.current?.focus();
+  }, [isOpen, mode]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { e.preventDefault(); onClose(); }
@@ -36,7 +42,7 @@ export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesMod
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="notes-modal" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
+      <div ref={modalRef} className="notes-modal" tabIndex={-1} onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
         <div className="notes-modal-header">
           <div className="notes-modal-tabs">
             <button className={`notes-modal-tab${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>Edit</button>
