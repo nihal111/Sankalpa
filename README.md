@@ -21,8 +21,16 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 | Keyboard-first | 100% keyboard driven — your hands never leave the keys | [Keybindings](#keybindings) |
 | Two-pane layout | Lists on the left, tasks on the right | |
 | Smart Lists | Inbox, Today, Overdue, Upcoming, Completed, Trash | [Smart Lists](docs/features/smart-lists.md) |
+| Create task | Add tasks with Cmd+N | [Create Task](docs/features/create-task.md) |
+| Edit task | Modify task titles with E | [Edit Task](docs/features/edit-task.md) |
+| Complete task | Mark done with Cmd+Enter | [Complete Task](docs/features/complete-task.md) |
+| Create list | Add lists with Cmd+Shift+N | [Create List](docs/features/create-list.md) |
+| Edit list | Rename lists with E | [Edit List](docs/features/edit-list.md) |
 | Subtask nesting | Hierarchical tasks with Tab/Shift+Tab | [Subtask Nesting](docs/features/subtask-nesting.md) |
+| Collapse/Expand | Toggle subtask visibility with C | [Collapse](docs/features/collapse.md) |
 | Multi-select | Contiguous and discontiguous task selection | [Multi-select](docs/features/multi-select.md) |
+| Move task | Move tasks between lists with M | [Move Task](docs/features/move-task.md) |
+| Reorder | Change task order with Alt+arrows | [Reorder](docs/features/reorder.md) |
 | Due dates | Natural language input with relative display | [Due Dates](docs/features/due-dates.md) |
 | Duration | Time estimates with presets | [Duration](docs/features/duration.md) |
 | Task notes | Markdown notes per task | [Notes](docs/features/notes.md) |
