@@ -4,22 +4,22 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 ## Critical
 
-Bugs and improvements that need immediate attention.
+Bugs and improvements that need immediate attention. Sorted by complexity (smallest first).
 
 | Item | Type | Description | Status |
 |------|------|-------------|--------|
 | Hardcore mode default | Fix | Should be OFF by default | |
-| Due date relative display | Fix | Show Today/Tomorrow/weekday within 7 days | |
-| Due date autocomplete | Fix | "tom", "tm", "tomo" → "tomorrow" | |
-| Notes editor UX | Fix | Large modal with edit/preview toggle | |
-| Multi-select complete | Fix | Cmd+Enter should mark all selected tasks | |
 | Overdue list nav bug | Fix | Down arrow from Inbox skips hidden Overdue | |
+| Multi-select complete | Fix | Cmd+Enter should mark all selected tasks | |
+| Command palette scroll | Fix | Auto-scroll to follow cursor | |
+| Due date autocomplete | Fix | "tom", "tm", "tomo" → "tomorrow" | |
+| Due date relative display | Fix | Show Today/Tomorrow/weekday within 7 days | |
 | Today badge | Fix | Show two badges: red (overdue) + black (today) | |
 | Smart list task origin | Fix | Today/Overdue/Upcoming show source list name | |
-| Command palette scroll | Fix | Auto-scroll to follow cursor | |
+| Local search | Feature | Cmd+F searches within current list only | |
 | Cut/Paste tasks | Feature | Cmd+X / Cmd+V with markdown format | |
 | Create from clipboard | Feature | Cmd+Shift+V parses markdown list into tasks | |
-| Local search | Feature | Cmd+F searches within current list only | |
+| Notes editor UX | Fix | Large modal with edit/preview toggle | |
 
 ## High
 

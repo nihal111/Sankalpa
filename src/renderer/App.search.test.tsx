@@ -184,7 +184,7 @@ describe('App search', () => {
     await waitFor(() => expect(screen.getAllByText('Inbox').length).toBeGreaterThan(0));
     const trashLi = screen.getByText('Trash').closest('li')!;
     fireEvent.click(trashLi);
-    // Verify the trash view loaded (header changes)
-    await waitFor(() => expect(screen.getByText('Trash')).toBeDefined());
+    // Verify the trash view loaded (header changes to Trash)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Trash' })).toBeDefined());
   });
 });

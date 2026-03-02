@@ -26,7 +26,7 @@ export function useSettingsState(): [
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsCategory, setSettingsCategory] = useState<SettingsCategory>('Theme');
   const [theme, setTheme] = useState<Theme>('system');
-  const [hardcoreMode, setHardcoreMode] = useState(true);
+  const [hardcoreMode, setHardcoreMode] = useState(false);
   const [settingsThemeIndex, setSettingsThemeIndex] = useState(0);
   const [trashRetentionIndex, setTrashRetentionIndex] = useState(0);
 
