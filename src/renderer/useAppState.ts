@@ -44,6 +44,8 @@ export function useAppState() {
   const { flashIds: evaporateIds, flash: evaporateFlash } = useFlash();
   const toast = useToast();
   const metaHeld = useMetaKey();
+  const [localSearchOpen, setLocalSearchOpen] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
   const { reloadData, reloadTasks: reloadTasksBase, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
@@ -56,6 +58,11 @@ export function useAppState() {
     return id === 'trash' || id === 'today' || id === 'overdue' || id === 'upcoming';
   }, [selectedSidebarItem]);
   const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
+  const filteredFlatTasks = useMemo(() => {
+    if (!localSearchOpen || !localSearchQuery.trim()) return flatTasks;
+    const q = localSearchQuery.toLowerCase();
+    return flatTasks.filter(ft => ft.task.title.toLowerCase().includes(q) || (ft.task.notes?.toLowerCase().includes(q) ?? false));
+  }, [flatTasks, localSearchOpen, localSearchQuery]);
   const selectedTask = useMemo(() => flatTasks[selectedTaskIndex]?.task ?? null, [flatTasks, selectedTaskIndex]);
   const isFolder = selectedSidebarItem?.type === 'folder';
   const folderView = useFolderView(selectedSidebarItem, lists);
@@ -205,6 +212,7 @@ export function useAppState() {
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
     showListInfo, closeListInfo, selectSidebarByListNumber,
+    toggleLocalSearch: () => setLocalSearchOpen(!localSearchOpen),
   });
 
   const keyboardState = useKeyboardState({
@@ -246,7 +254,7 @@ export function useAppState() {
     trashRetentionIndex, retentionOptions, getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
     handleFolderToggle, handleToggleExpand, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu, flashIds, throbIds, completeIds, uncompleteIds, moveIds,
-    evaporateIds, flatTasks, listNames, isCompletedView, showSourceList, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
+    evaporateIds, flatTasks: filteredFlatTasks, listNames, isCompletedView, showSourceList, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,
     durationIndex, commitDuration: durationActions.commit, cancelDuration: durationActions.cancel, trashIndex, isTrashView, lists,
     confirmationDialog: trashActions.confirmationDialog || listConfirmationDialog,
     closeConfirmationDialog: trashActions.confirmationDialog ? trashActions.closeConfirmationDialog : closeListConfirmation,
@@ -257,6 +265,6 @@ export function useAppState() {
     isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction, moveListMode, getMoveListTargetName, moveListTargets,
     moveListTargetIndex, closeListInfo, listInfoOpen, handleListNotesChange, selectedSidebarItem, metaHeld,
     folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,
-    toastMessage: toast.message,
+    toastMessage: toast.message, localSearchOpen, setLocalSearchOpen, localSearchQuery, setLocalSearchQuery,
   };
 }

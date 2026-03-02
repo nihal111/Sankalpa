@@ -48,6 +48,7 @@ export interface KeyboardActions {
   showListInfo: Command;
   closeListInfo: Command;
   selectSidebarByListNumber: (n: number) => void;
+  toggleLocalSearch: Command;
 }
 
 export interface KeyboardState {
@@ -108,6 +109,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'openSettings')) { e.preventDefault(); actions.openSettings(); return; }
     if (matches(e, 'openSearch')) { e.preventDefault(); actions.openSearch(); return; }
     if (e.metaKey && e.key === 'k') { e.preventDefault(); actions.togglePalette(); return; }
+    if (e.metaKey && e.key === 'f') { e.preventDefault(); actions.toggleLocalSearch(); return; }
     const metaActions: Record<string, Command> = { i: actions.showListInfo };
     if (e.metaKey && (metaActions[e.key] || (e.key >= '1' && e.key <= '9'))) {
       e.preventDefault();

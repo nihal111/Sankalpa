@@ -8,6 +8,7 @@ import { ContextMenu } from './ContextMenu';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SearchModal } from './SearchModal';
+import { LocalSearchBar } from './LocalSearchBar';
 import { DueDateModal } from './DueDateModal';
 import { DurationModal } from './DurationModal';
 import { CommandPalette } from './CommandPalette';
@@ -160,6 +161,13 @@ export default function App(): ReactNode {
         onClose={state.closeSearch}
         onSelectTask={state.handleSearchSelect}
         onQueryChange={state.setLastSearchQuery}
+      />
+      <LocalSearchBar
+        isOpen={state.localSearchOpen}
+        query={state.localSearchQuery}
+        onQueryChange={state.setLocalSearchQuery}
+        onClose={() => state.setLocalSearchOpen(false)}
+        matchCount={state.flatTasks.length}
       />
       <DueDateModal
         isOpen={state.dueDateIndex !== null}

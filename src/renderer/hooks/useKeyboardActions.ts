@@ -47,6 +47,7 @@ interface UseKeyboardActionsParams {
   showListInfo: () => void;
   closeListInfo: () => void;
   selectSidebarByListNumber: (n: number) => void;
+  toggleLocalSearch: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -59,7 +60,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
-    showListInfo, closeListInfo, selectSidebarByListNumber,
+    showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
   } = params;
 
   const startMove = useCallback(() => {
@@ -109,6 +110,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     showListInfo,
     closeListInfo,
     selectSidebarByListNumber,
+    toggleLocalSearch,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
@@ -116,7 +118,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
-    indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber,
+    indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
   ]);
 }
 
