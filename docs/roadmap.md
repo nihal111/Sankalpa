@@ -19,7 +19,7 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | ~~Local search~~ | Feature | Cmd+F searches within current list only | ✅ |
 | ~~Cut/Paste tasks~~ | Feature | Cmd+X / Cmd+V with markdown format | ✅ |
 | ~~Create from clipboard~~ | Feature | Cmd+Shift+V parses markdown list into tasks | ✅ |
-| Notes editor UX | Fix | Large modal with edit/preview toggle | |
+| Notes editor UX | Fix | Large modal with edit/preview toggle | ✅ |
 
 - marking a task(s) as complete / incomplete should register in the undo stack
 
