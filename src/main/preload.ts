@@ -71,4 +71,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Trash purge
   trashPurge: (retentionDays: number | null) => ipcRenderer.invoke('trash:purge', retentionDays),
+
+  // Shell
+  openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
 });

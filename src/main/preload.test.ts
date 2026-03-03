@@ -204,4 +204,17 @@ describe('preload', () => {
     api.listsRestore('l1', null, 'My List', 5, 100, 200);
     expect(mockInvoke).toHaveBeenCalledWith('lists:restore', 'l1', null, 'My List', 5, 100, 200);
   });
+
+  it('onTaskCreated registers and unregisters listener', async () => {
+    await import('./preload');
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    const callback = vi.fn();
+    const unsubscribe = api.onTaskCreated(callback);
+    expect(mockOn).toHaveBeenCalledWith('tasks:created', expect.any(Function));
+    const handler = mockOn.mock.calls.find((c: unknown[]) => c[0] === 'tasks:created')![1];
+    handler(null, { id: 't1', listId: 'l1' });
+    expect(callback).toHaveBeenCalledWith({ id: 't1', listId: 'l1' });
+    unsubscribe();
+    expect(mockRemoveListener).toHaveBeenCalledWith('tasks:created', handler);
+  });
 });

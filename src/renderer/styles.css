@@ -943,6 +943,8 @@ h2 {
 .notes-rendered pre code { padding: 0; }
 .notes-rendered ul, .notes-rendered ol { padding-left: 20px; margin: 4px 0; }
 .notes-rendered blockquote { border-left: 3px solid var(--border-pane); padding-left: 12px; color: var(--text-secondary); margin: 4px 0; }
+.notes-rendered a { color: #6cb6ff; text-decoration: underline; cursor: pointer; }
+.notes-rendered a:hover { color: #8fcaff; }
 
 /* Notes modal */
 .notes-modal {

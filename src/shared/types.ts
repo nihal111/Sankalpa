@@ -90,6 +90,8 @@ export interface Api {
   settingsSet: (key: string, value: string) => Promise<void>;
 
   trashPurge: (retentionDays: number | null) => Promise<void>;
+
+  openExternal: (url: string) => Promise<void>;
 }
 
 declare global {

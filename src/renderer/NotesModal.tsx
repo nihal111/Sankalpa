@@ -33,6 +33,15 @@ export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesMod
     else if (e.key === 'p' && e.metaKey) { e.preventDefault(); setMode(m => m === 'edit' ? 'preview' : 'edit'); }
   }, [onClose, onCommit, value]);
 
+  const handlePreviewClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'A') {
+      e.preventDefault();
+      const href = (target as HTMLAnchorElement).href;
+      if (href) window.api.openExternal(href);
+    }
+  }, []);
+
   const renderedNotes = useMemo(() => {
     if (!value) return '';
     return marked.parse(value, { async: false }) as string;
@@ -63,7 +72,7 @@ export function NotesModal({ isOpen, initialValue, onCommit, onClose }: NotesMod
             placeholder="Write notes in markdown..."
           />
         ) : (
-          <div className="notes-modal-preview notes-rendered" dangerouslySetInnerHTML={{ __html: renderedNotes }} />
+          <div className="notes-modal-preview notes-rendered" onClick={handlePreviewClick} dangerouslySetInnerHTML={{ __html: renderedNotes }} />
         )}
       </div>
     </div>

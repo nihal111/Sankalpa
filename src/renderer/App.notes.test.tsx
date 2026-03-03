@@ -93,4 +93,29 @@ describe('App notes', () => {
     fireEvent.click(document.querySelector('.notes-modal')!);
     expect(document.querySelector('.notes-modal')).not.toBeNull();
   });
+
+  it('clicking link in preview opens external browser', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'n' });
+    await waitFor(() => expect(document.querySelector('.notes-modal-textarea')).not.toBeNull());
+    const textarea = document.querySelector('.notes-modal-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '[link](https://example.com)' } });
+    fireEvent.keyDown(document.querySelector('.notes-modal')!, { key: 'p', metaKey: true });
+    await waitFor(() => expect(document.querySelector('.notes-modal-preview')).not.toBeNull());
+    const link = document.querySelector('.notes-modal-preview a') as HTMLAnchorElement;
+    fireEvent.click(link);
+    expect(window.api.openExternal).toHaveBeenCalledWith('https://example.com/');
+  });
+
+  it('clicking link in detail pane opens external browser', async () => {
+    const tasksWithNotes = mockTasks.map((t, i) => i === 0 ? { ...t, notes: '[link](https://example.com)' } : t);
+    setupMockApi({ tasksGetByList: vi.fn().mockResolvedValue(tasksWithNotes) });
+    render(<App />);
+    await navigateToTasksPane();
+    await waitFor(() => expect(document.querySelector('.detail-pane .notes-rendered a')).not.toBeNull());
+    const link = document.querySelector('.detail-pane .notes-rendered a') as HTMLAnchorElement;
+    fireEvent.click(link);
+    expect(window.api.openExternal).toHaveBeenCalledWith('https://example.com/');
+  });
 });

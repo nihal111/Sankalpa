@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Task } from '../shared/types';
 import type { Pane } from './types';
@@ -55,6 +55,18 @@ export function TaskDetailPane({
     return marked.parse(task.notes, { async: false }) as string;
   }, [task?.notes]);
 
+  const handleNotesClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'A') {
+      e.preventDefault();
+      e.stopPropagation();
+      const href = (target as HTMLAnchorElement).href;
+      if (href) window.api.openExternal(href);
+    } else {
+      onStartNotesEdit();
+    }
+  }, [onStartNotesEdit]);
+
   const emptyMessage = useMemo((): string | null => {
     if (selectedCount > 1) return `${selectedCount} tasks selected`;
     if (tasksLength === 0) return 'No tasks in section';
@@ -110,7 +122,7 @@ export function TaskDetailPane({
         <span className="hotkey-badge">⌘</span><span className="hotkey-badge">L</span>
       </div>
       <div className="detail-separator" />
-      <div className="detail-section detail-notes-section" onClick={onStartNotesEdit}>
+      <div className="detail-section detail-notes-section" onClick={handleNotesClick}>
         <div className="detail-notes-header">
           <span className="detail-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 1.5h7l4 4V14a.5.5 0 01-.5.5H3a.5.5 0 01-.5-.5V2a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M10 1.5v4h4" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" strokeWidth="1"/><line x1="5" y1="10.5" x2="9" y2="10.5" stroke="currentColor" strokeWidth="1"/></svg></span>
           <span className="detail-label">Notes</span>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen, shell } from 'electron';
 import path from 'path';
 import {
   getDb, closeDb, saveDb,
@@ -182,6 +182,9 @@ app.whenReady().then(async () => {
 
   // Trash purge
   ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { purgeExpiredTrash(db, retentionDays); saveDb(); });
+
+  // Shell
+  ipcMain.handle('shell:openExternal', (_, url: string) => shell.openExternal(url));
 
   // Quick-add overlay handlers
   ipcMain.on('quickadd:submit', (_, data: { title: string; listId: string | null; dueDate: number | null; duration: number | null; notes: string }) => {
