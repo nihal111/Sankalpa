@@ -17,6 +17,7 @@ export interface MultiSelectActions {
   toggleAtCursor: (currentIndex: number) => void;
   extendSelection: (anchorIndex: number, newIndex: number) => void;
   moveBoundaryCursor: (newIndex: number) => void;
+  selectAll: (count: number) => void;
 }
 
 export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
@@ -87,6 +88,14 @@ export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
     setBoundaryCursor(newIndex);
   }, []);
 
+  const selectAll = useCallback((count: number) => {
+    if (count === 0) return;
+    const all = new Set<number>();
+    for (let i = 0; i < count; i++) all.add(i);
+    setSelectedIndices(all);
+    setSelectionAnchor(0);
+  }, []);
+
   // Clear selection when releasing Shift/Cmd with only one item
   useEffect(() => {
     if (!shiftHeld && !cmdHeld && selectedIndices.size === 1) {
@@ -112,6 +121,7 @@ export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
     toggleAtCursor,
     extendSelection,
     moveBoundaryCursor,
+    selectAll,
   };
 
   return [state, actions];

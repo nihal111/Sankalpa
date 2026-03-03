@@ -209,8 +209,8 @@ export function useAppState() {
   });
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
-  const { moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
-    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, taskCounts, setSelectedSidebarIndex, reloadData, undoPush,
+  const { moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber, reorderListUp, reorderListDown } = useMoveListState({
+    folders, lists, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, taskCounts, setSelectedSidebarIndex, reloadData, undoPush,
   });
 
   const [listInfoOpen, setListInfoOpen] = useState(false);
@@ -225,6 +225,8 @@ export function useAppState() {
     }
   }, [selectedSidebarItem, reloadData]);
 
+  const selectAllTasks = useCallback(() => multiSelectActions.selectAll(effectiveTasksLength), [multiSelectActions, effectiveTasksLength]);
+
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
@@ -236,6 +238,7 @@ export function useAppState() {
     indentList, outdentList,
     showListInfo, closeListInfo, selectSidebarByListNumber,
     toggleLocalSearch: () => setLocalSearchOpen(!localSearchOpen),
+    selectAllTasks, reorderListUp, reorderListDown,
   });
 
   const keyboardState = useKeyboardState({

@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
   foldersUpdate: (id: string, name: string) => ipcRenderer.invoke('folders:update', id, name),
   foldersDelete: (id: string) => ipcRenderer.invoke('folders:delete', id),
   foldersToggleExpanded: (id: string) => ipcRenderer.invoke('folders:toggleExpanded', id),
+  foldersReorder: (id: string, sortKey: number) => ipcRenderer.invoke('folders:reorder', id, sortKey),
 
   // Lists
   listsGetAll: () => ipcRenderer.invoke('lists:getAll'),

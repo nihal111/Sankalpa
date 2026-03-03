@@ -51,6 +51,9 @@ export interface KeyboardActions {
   closeListInfo: Command;
   selectSidebarByListNumber: (n: number) => void;
   toggleLocalSearch: Command;
+  selectAllTasks: Command;
+  reorderListUp: Command;
+  reorderListDown: Command;
 }
 
 export interface KeyboardState {
@@ -120,6 +123,7 @@ export function useKeyboardNavigation(
       return;
     }
     if (matches(e, 'duplicateTask')) { e.preventDefault(); actions.duplicateTask(); return; }
+    if (e.metaKey && e.key === 'a' && state.focusedPane === 'tasks' && !state.editMode && !state.moveMode) { e.preventDefault(); actions.selectAllTasks(); return; }
     if (state.isSearchOpen || state.isPaletteOpen || state.quickAddOpen) return;
     if (matches(e, 'copyTasks') && getAction('copyTasks').isAvailable(ctx)) { e.preventDefault(); actions.copyTasks(); return; }
     if (matches(e, 'cutTasks') && getAction('cutTasks').isAvailable(ctx)) { e.preventDefault(); actions.cutTasks(); return; }
@@ -172,6 +176,11 @@ export function useKeyboardNavigation(
     }
     if (matches(e, 'toggleCollapse') && getAction('toggleCollapse').isAvailable(ctx)) { e.preventDefault(); actions.toggleCollapse(); return; }
     if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && state.focusedPane === 'lists' && !state.editMode && !state.moveMode) { e.preventDefault(); actions.toggleFolderCollapse(); return; }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.altKey && !e.metaKey && !e.shiftKey && state.focusedPane === 'lists' && !state.editMode && !state.moveListMode) {
+      e.preventDefault();
+      if (e.key === 'ArrowUp') actions.reorderListUp(); else actions.reorderListDown();
+      return;
+    }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); actions.handleArrowNavigation(e); return; }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); actions.handleHorizontalArrow(e.key === 'ArrowLeft' ? 'left' : 'right'); return; }
     if (matches(e, 'edit') && getAction('edit').isAvailable(ctx)) { e.preventDefault(); actions.startEdit(); return; }

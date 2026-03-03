@@ -105,6 +105,10 @@ export function toggleFolderExpanded(db: Database, id: string): void {
   db.run('UPDATE folders SET is_expanded = NOT is_expanded, updated_at = ? WHERE id = ?', [Date.now(), id]);
 }
 
+export function reorderFolder(db: Database, id: string, newSortKey: number): void {
+  db.run('UPDATE folders SET sort_key = ?, updated_at = ? WHERE id = ?', [newSortKey, Date.now(), id]);
+}
+
 // Lists
 
 export function getAllLists(db: Database): List[] {

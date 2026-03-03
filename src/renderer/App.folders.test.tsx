@@ -258,4 +258,19 @@ describe('App folders', () => {
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     await waitFor(() => expect(window.api.foldersToggleExpanded).toHaveBeenCalledWith('f1'));
   });
+
+  it('Opt+Up on list calls reorder APIs', async () => {
+    const listsData: List[] = [
+      { id: 'l1', name: 'List1', folder_id: null, sort_key: 1, notes: '', created_at: 0, updated_at: 0 },
+      { id: 'l2', name: 'List2', folder_id: null, sort_key: 2, notes: '', created_at: 0, updated_at: 0 },
+    ];
+    setupMockApi({
+      listsGetAll: vi.fn().mockResolvedValue(listsData),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('List2')).toBeDefined());
+    await navigateToItem('List2');
+    fireEvent.keyDown(window, { key: 'ArrowUp', altKey: true });
+    await waitFor(() => expect(window.api.listsReorder).toHaveBeenCalled());
+  });
 });

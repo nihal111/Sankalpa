@@ -2,8 +2,8 @@ import initSqlJs, { Database } from 'sql.js';
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { initSchema } from './schema';
 import {
-  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
-  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount, updateListNotes,
+  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded, reorderFolder,
+  getAllLists, createList, updateList, deleteList, reorderList, moveList, getTaskCount, updateListNotes, normalizeListSortKeys,
   getInboxTasks, getInboxTaskCount, getCompletedTasks, getTasksByList, createTask, updateTask, toggleTaskCompleted, deleteTask, reorderTask, moveTask,
   restoreList, setTaskDueDate, setTaskDuration, getTasksDueBetween, getOverdueTasks, getUpcomingTasks,
   getSetting, setSetting, getAllSettings,
@@ -61,6 +61,14 @@ describe('folders', () => {
     expect(folders[0].is_expanded).toBe(1);
   });
 
+  it('reorders folder', () => {
+    createFolder(db, 'f1', 'Folder');
+    reorderFolder(db, 'f1', 99);
+
+    const folders = getAllFolders(db);
+    expect(folders[0].sort_key).toBe(99);
+  });
+
   it('deletes folder and moves lists to top level', () => {
     createFolder(db, 'f1', 'Folder');
     createList(db, 'l1', 'List', 'f1');
@@ -100,6 +108,17 @@ describe('lists', () => {
   it('assigns incrementing sort_keys', () => {
     createList(db, 'l1', 'A');
     createList(db, 'l2', 'B');
+
+    const lists = getAllLists(db);
+    expect(lists[0].sort_key).toBe(1);
+    expect(lists[1].sort_key).toBe(2);
+  });
+
+  it('normalizes list sort keys', () => {
+    createList(db, 'l1', 'A');
+    createList(db, 'l2', 'B');
+    reorderList(db, 'l1', 100);
+    normalizeListSortKeys(db);
 
     const lists = getAllLists(db);
     expect(lists[0].sort_key).toBe(1);

@@ -85,11 +85,20 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | Key | Action |
 |-----|--------|
 | `⇧↑` `⇧↓` | Extend selection |
+| `⌘A` | Select all tasks |
 | `⌘↑` `⌘↓` | Jump to top/bottom |
 | `⌘⇧↑` `⌘⇧↓` | Select to top/bottom |
 | `⌃↑` `⌃↓` | Move cursor |
 | `⌃↵` | Toggle at cursor |
 | `Space` | Clear selection |
+
+### List Management
+
+| Key | Action |
+|-----|--------|
+| `⌥↑` `⌥↓` | Reorder list/folder |
+| `Tab` | Move list into folder |
+| `⇧Tab` | Move list out of folder |
 
 ### Global Hotkeys
 

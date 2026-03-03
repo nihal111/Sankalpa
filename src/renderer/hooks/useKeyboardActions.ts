@@ -50,6 +50,9 @@ interface UseKeyboardActionsParams {
   closeListInfo: () => void;
   selectSidebarByListNumber: (n: number) => void;
   toggleLocalSearch: () => void;
+  selectAllTasks: () => void;
+  reorderListUp: () => void;
+  reorderListDown: () => void;
 }
 
 export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardActions {
@@ -63,6 +66,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     startMoveList, handleMoveListKeyDown,
     indentList, outdentList,
     showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
+    selectAllTasks, reorderListUp, reorderListDown,
   } = params;
 
   const startMove = useCallback(() => {
@@ -115,6 +119,9 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     closeListInfo,
     selectSidebarByListNumber,
     toggleLocalSearch,
+    selectAllTasks,
+    reorderListUp,
+    reorderListDown,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
@@ -123,6 +130,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
     indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
+    selectAllTasks, reorderListUp, reorderListDown,
   ]);
 }
 

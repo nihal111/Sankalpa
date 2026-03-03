@@ -341,4 +341,14 @@ describe('App multi-select', () => {
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
     expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
   });
+
+  it('Cmd+A selects all tasks', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'a', metaKey: true });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    for (let i = 0; i < taskItems.length; i++) {
+      expect(taskItems[i]?.classList.contains('multi-selected')).toBe(true);
+    }
+  });
 });

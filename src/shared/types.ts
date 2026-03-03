@@ -43,6 +43,7 @@ export interface Api {
   foldersUpdate: (id: string, name: string) => Promise<void>;
   foldersDelete: (id: string) => Promise<void>;
   foldersToggleExpanded: (id: string) => Promise<void>;
+  foldersReorder: (id: string, sortKey: number) => Promise<void>;
 
   listsGetAll: () => Promise<List[]>;
   listsCreate: (id: string, name: string, folderId?: string) => Promise<List>;

@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen } from
 import path from 'path';
 import {
   getDb, closeDb, saveDb,
-  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded,
+  getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded, reorderFolder,
   getAllLists, createList, updateList, updateListNotes, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, reorderTask, moveTask, deleteTask,
   restoreTask, restoreList, setTaskListId, setTaskDueDate, setTaskDuration, updateTaskNotes,
@@ -130,6 +130,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('folders:update', (_, id: string, name: string) => { updateFolder(db, id, name); saveDb(); });
   ipcMain.handle('folders:delete', (_, id: string) => { deleteFolder(db, id); saveDb(); });
   ipcMain.handle('folders:toggleExpanded', (_, id: string) => { toggleFolderExpanded(db, id); saveDb(); });
+  ipcMain.handle('folders:reorder', (_, id: string, sortKey: number) => { reorderFolder(db, id, sortKey); saveDb(); });
 
   // List IPC handlers
   ipcMain.handle('lists:getAll', () => getAllLists(db));
