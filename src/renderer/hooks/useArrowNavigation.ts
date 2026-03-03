@@ -51,6 +51,20 @@ export function useArrowNavigation(params: UseArrowNavigationParams): (e: Keyboa
       });
       return;
     }
+    // Cmd+Shift+Arrow: select from cursor to top/bottom
+    if (e.metaKey && e.shiftKey) {
+      const targetIndex = delta === -1 ? 0 : tasksLength - 1;
+      const anchor = selectionAnchor ?? selectedTaskIndex;
+      setSelectedTaskIndex(targetIndex);
+      multiSelectActions.extendSelection(anchor, targetIndex);
+      return;
+    }
+    // Cmd+Arrow: jump to top/bottom
+    if (e.metaKey) {
+      if (selectedTaskIndicesSize > 0) multiSelectActions.clear();
+      setSelectedTaskIndex(delta === -1 ? 0 : tasksLength - 1);
+      return;
+    }
     if (cmdHeld) {
       multiSelectActions.moveBoundaryCursor(Math.max(0, Math.min(tasksLength - 1, (boundaryCursor ?? selectedTaskIndex) + delta)));
       return;

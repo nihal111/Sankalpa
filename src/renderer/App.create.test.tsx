@@ -67,7 +67,7 @@ describe('App create and reorder', () => {
     fireEvent.keyUp(window, { key: 'Shift' });
     let taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
-    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true, shiftKey: true });
+    fireEvent.keyDown(window, { key: 'ArrowDown', altKey: true });
     await waitFor(() => {
       taskItems = document.querySelectorAll('.tasks-pane .item');
       expect(taskItems[0]?.classList.contains('multi-selected')).toBe(false);

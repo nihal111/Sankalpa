@@ -73,6 +73,7 @@ export function useMultiSelect(): [MultiSelectState, MultiSelectActions] {
   }, [boundaryCursor]);
 
   const extendSelection = useCallback((anchorIndex: number, newIndex: number) => {
+    setSelectionAnchor((prev) => prev ?? anchorIndex);
     const minIdx = Math.min(anchorIndex, newIndex);
     const maxIdx = Math.max(anchorIndex, newIndex);
     const newSelection = new Set<number>();

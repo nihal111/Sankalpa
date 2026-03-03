@@ -85,6 +85,8 @@ Electron · React · TypeScript · Vite · sql.js (SQLite via WASM)
 | Key | Action |
 |-----|--------|
 | `⇧↑` `⇧↓` | Extend selection |
+| `⌘↑` `⌘↓` | Jump to top/bottom |
+| `⌘⇧↑` `⌘⇧↓` | Select to top/bottom |
 | `⌃↑` `⌃↓` | Move cursor |
 | `⌃↵` | Toggle at cursor |
 | `Space` | Clear selection |

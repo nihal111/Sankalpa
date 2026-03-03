@@ -304,4 +304,41 @@ describe('App multi-select', () => {
     const taskItems = document.querySelectorAll('.tasks-pane .item');
     expect(taskItems[0]?.classList.contains('selected')).toBe(true);
   });
+
+  it('Cmd+Down jumps to last task', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[taskItems.length - 1]?.classList.contains('selected')).toBe(true);
+  });
+
+  it('Cmd+Up jumps to first task', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowUp', metaKey: true });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[0]?.classList.contains('selected')).toBe(true);
+  });
+
+  it('Cmd+Shift+Down selects from cursor to bottom', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'ArrowDown', metaKey: true, shiftKey: true });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    for (let i = 0; i < taskItems.length; i++) {
+      expect(taskItems[i]?.classList.contains('multi-selected')).toBe(true);
+    }
+  });
+
+  it('Cmd+Shift+Up selects from cursor to top', async () => {
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowUp', metaKey: true, shiftKey: true });
+    const taskItems = document.querySelectorAll('.tasks-pane .item');
+    expect(taskItems[0]?.classList.contains('multi-selected')).toBe(true);
+    expect(taskItems[1]?.classList.contains('multi-selected')).toBe(true);
+  });
 });
