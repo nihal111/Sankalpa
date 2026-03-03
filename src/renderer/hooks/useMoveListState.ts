@@ -13,6 +13,7 @@ interface UseMoveListStateParams {
   sidebarItems: SidebarItem[];
   selectedSidebarIndex: number;
   sidebarItemsLength: number;
+  taskCounts: Record<string, number>;
   setSelectedSidebarIndex: (fn: (i: number) => number) => void;
   reloadData: () => Promise<void>;
   undoPush: (entry: { undo: () => Promise<void>; redo: () => Promise<void> }) => void;
@@ -32,7 +33,7 @@ interface MoveListState {
   selectSidebarByListNumber: (n: number) => void;
 }
 
-export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength, setSelectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
+export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength, taskCounts, setSelectedSidebarIndex, reloadData, undoPush }: UseMoveListStateParams): MoveListState {
   const [moveListMode, setMoveListMode] = useState(false);
   const [targetIdx, setTargetIdx] = useState(0);
 
@@ -107,12 +108,24 @@ export function useMoveListState({ folders, selectedSidebarItem, sidebarItems, s
     });
   }, [selectedSidebarItem, reloadData, undoPush]);
 
+  const isHidden = useCallback((item: SidebarItem): boolean => {
+    return item.type === 'smart' && item.smartList.id === 'overdue' && (taskCounts['overdue'] ?? 0) === 0;
+  }, [taskCounts]);
+
   const cycleSidebarNext = useCallback(() => {
-    setSelectedSidebarIndex((i: number) => (i + 1) % sidebarItemsLength);
-  }, [sidebarItemsLength, setSelectedSidebarIndex]);
+    setSelectedSidebarIndex((i: number) => {
+      let next = (i + 1) % sidebarItemsLength;
+      while (isHidden(sidebarItems[next]) && next !== i) next = (next + 1) % sidebarItemsLength;
+      return next;
+    });
+  }, [sidebarItemsLength, sidebarItems, isHidden, setSelectedSidebarIndex]);
   const cycleSidebarPrev = useCallback(() => {
-    setSelectedSidebarIndex((i: number) => (i - 1 + sidebarItemsLength) % sidebarItemsLength);
-  }, [sidebarItemsLength, setSelectedSidebarIndex]);
+    setSelectedSidebarIndex((i: number) => {
+      let next = (i - 1 + sidebarItemsLength) % sidebarItemsLength;
+      while (isHidden(sidebarItems[next]) && next !== i) next = (next - 1 + sidebarItemsLength) % sidebarItemsLength;
+      return next;
+    });
+  }, [sidebarItemsLength, sidebarItems, isHidden, setSelectedSidebarIndex]);
 
   const selectSidebarByListNumber = useCallback((n: number) => {
     let count = 0;

@@ -210,7 +210,7 @@ export function useAppState() {
   const { isPaletteOpen, togglePalette, closePalette, paletteContext, executePaletteAction } = paletteState;
 
   const { moveListMode, getMoveListTargetName, moveListTargets, moveListTargetIndex, startMoveList, handleMoveListKeyDown, indentList, outdentList, cycleSidebarNext, cycleSidebarPrev, selectSidebarByListNumber } = useMoveListState({
-    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, setSelectedSidebarIndex, reloadData, undoPush,
+    folders, selectedSidebarItem, sidebarItems, selectedSidebarIndex, sidebarItemsLength: sidebarItems.length, taskCounts, setSelectedSidebarIndex, reloadData, undoPush,
   });
 
   const [listInfoOpen, setListInfoOpen] = useState(false);
