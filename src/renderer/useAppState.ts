@@ -259,7 +259,16 @@ export function useAppState() {
   });
 
   const handleSidebarClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedSidebarIndex(index); setFocusedPane('lists'); }, [hardcoreMode]);
-  const handleTaskClick = useCallback((index: number) => { if (hardcoreMode) return; setSelectedTaskIndex(index); setFocusedPane('tasks'); multiSelectActions.clear(); }, [hardcoreMode, multiSelectActions]);
+  const handleTaskClick = useCallback((index: number) => {
+    if (hardcoreMode) return;
+    if (index === selectedTaskIndex && focusedPane === 'tasks') {
+      editActions.start();
+    } else {
+      setSelectedTaskIndex(index);
+      setFocusedPane('tasks');
+      multiSelectActions.clear();
+    }
+  }, [hardcoreMode, selectedTaskIndex, focusedPane, editActions, multiSelectActions]);
   const handleTaskToggle = useCallback(async (taskId: string) => { await window.api.tasksToggleCompleted(taskId); await reloadTasks(); }, [reloadTasks]);
   const handleToggleExpand = useCallback(async (taskId: string) => { if (hardcoreMode) return; await window.api.tasksToggleExpanded(taskId); await reloadTasks(); }, [hardcoreMode, reloadTasks]);
   const handleFolderToggle = useCallback(async (folderId: string) => { if (hardcoreMode) return; await window.api.foldersToggleExpanded(folderId); await reloadData(); }, [hardcoreMode, reloadData]);

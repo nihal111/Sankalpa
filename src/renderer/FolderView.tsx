@@ -103,7 +103,7 @@ export function FolderView({
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`mark ${task.title || 'untitled task'} as complete`}
                 />
-                <span className={`task-content ${task.status === 'COMPLETED' ? 'completed' : ''}`}>
+                <span className={`task-content ${task.status === 'COMPLETED' ? 'completed' : ''}${editMode?.type === 'task' && editMode.index === i ? ' editing' : ''}`}>
                   {editMode?.type === 'task' && editMode.index === i ? (
                     <input
                       ref={inputRef}
@@ -118,6 +118,9 @@ export function FolderView({
                     task.title || '\u00A0'
                   )}
                 </span>
+                {editMode?.type === 'task' && editMode.index === i && (
+                  <span className="edit-hint"><kbd>Return</kbd> to save</span>
+                )}
                 {task.duration ? (
                   <span className="task-duration"><svg width="16" height="8" viewBox="0 0 16 8" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="15" height="7" rx="1" stroke="currentColor" strokeWidth="1"/><line x1="4" y1="0.5" x2="4" y2="4" stroke="currentColor" strokeWidth="1"/><line x1="8" y1="0.5" x2="8" y2="5" stroke="currentColor" strokeWidth="1"/><line x1="12" y1="0.5" x2="12" y2="4" stroke="currentColor" strokeWidth="1"/></svg>{formatDurationShort(task.duration)}</span>
                 ) : null}

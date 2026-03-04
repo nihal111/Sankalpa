@@ -151,7 +151,7 @@ export function TasksPane({
           return (
             <li
               key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${uncompleteIds.has(task.id) ? 'uncompleting' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''}`}
+              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${uncompleteIds.has(task.id) ? 'uncompleting' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''} ${editMode?.type === 'task' && editMode.index === i ? 'editing' : ''}`}
               onClick={() => onTaskClick(i)}
               onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(i, e.clientX, e.clientY); }}
               {...drag}
@@ -184,7 +184,7 @@ export function TasksPane({
                 onClick={(e) => e.stopPropagation()}
                 aria-label={`mark ${task.title || 'untitled task'} as complete`}
               />
-              <span className="task-content">
+              <span className={`task-content${editMode?.type === 'task' && editMode.index === i ? ' editing' : ''}`}>
                 {editMode?.type === 'task' && editMode.index === i ? (
                   <input
                     ref={inputRef}
@@ -202,6 +202,9 @@ export function TasksPane({
                   </>
                 )}
               </span>
+              {editMode?.type === 'task' && editMode.index === i && (
+                <span className="edit-hint"><kbd>Return</kbd> to save</span>
+              )}
               {sourceListName && <span className="task-origin">{sourceListName}</span>}
               {task.duration ? (
                 <span className="task-duration"><svg width="16" height="8" viewBox="0 0 16 8" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="15" height="7" rx="1" stroke="currentColor" strokeWidth="1"/><line x1="4" y1="0.5" x2="4" y2="4" stroke="currentColor" strokeWidth="1"/><line x1="8" y1="0.5" x2="8" y2="5" stroke="currentColor" strokeWidth="1"/><line x1="12" y1="0.5" x2="12" y2="4" stroke="currentColor" strokeWidth="1"/></svg>{formatDurationShort(task.duration)}</span>

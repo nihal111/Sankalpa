@@ -324,12 +324,42 @@ h2 {
 
 
 .edit-input {
+  flex: 1;
   width: 100%;
   background: transparent;
   border: none;
+  outline: 1px solid var(--text-secondary);
+  outline-offset: 2px;
+  border-radius: 3px;
+  padding: 0 4px;
   color: inherit;
   font: inherit;
-  outline: none;
+}
+
+.item.editing {
+  outline: 1px solid var(--text-secondary);
+  outline-offset: -1px;
+}
+
+.edit-hint {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-primary);
+  margin-left: 8px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-hint kbd {
+  background: var(--bg-secondary);
+  border: 1px solid var(--text-secondary);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .move-overlay {
@@ -647,6 +677,10 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.task-content.editing {
+  overflow: visible;
 }
 
 .task-source-list {
