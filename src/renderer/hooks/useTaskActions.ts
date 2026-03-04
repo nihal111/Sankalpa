@@ -85,11 +85,12 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       const descendantIds = getDescendantIds(task.id, tasks);
       if (descendantIds.length > 0 && task.status !== 'COMPLETED') {
         onCascadeComplete?.(task, descendantIds.length, async () => {
-          const allIds = [task.id, ...descendantIds];
-          for (const id of allIds) await window.api.tasksToggleCompleted(id);
+          const taskMap = new Map(tasks.map(t => [t.id, t]));
+          const idsToComplete = [task.id, ...descendantIds].filter(id => taskMap.get(id)?.status !== 'COMPLETED');
+          for (const id of idsToComplete) await window.api.tasksToggleCompleted(id);
           undoPush({
-            undo: async () => { for (const id of allIds) await window.api.tasksToggleCompleted(id); },
-            redo: async () => { for (const id of allIds) await window.api.tasksToggleCompleted(id); },
+            undo: async () => { for (const id of idsToComplete) await window.api.tasksToggleCompleted(id); },
+            redo: async () => { for (const id of idsToComplete) await window.api.tasksToggleCompleted(id); },
           });
           await reloadTasks();
         });
