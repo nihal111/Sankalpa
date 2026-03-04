@@ -9,6 +9,7 @@
   --border-pane: #262626;
   --text-primary: #e8e8e8;
   --text-secondary: #888888;
+  --text-selected: #ffffff;
   --accent-cursor: #d8b131;
   --accent-move: #d8b131;
   --bg-flash: #4a4530;
@@ -19,36 +20,38 @@
 /* Light theme */
 [data-theme="light"] {
   --bg-primary: #ffffff;
-  --bg-secondary: #e0e0e0;
-  --bg-selected-unfocused: #b8b8b8;
-  --bg-selected: #f5eaa3;
-  --bg-multi-selected: #ece0a0;
-  --border-pane: #d0d0d0;
-  --text-primary: #0d0d0d;
-  --text-secondary: #555555;
-  --accent-cursor: #ce983b;
-  --accent-move: #ce983b;
-  --bg-flash: #f0e6b0;
-  --accent-complete: #d4762a;
-  --accent-complete-light: #e8a855;
+  --bg-secondary: #efefef;
+  --bg-selected-unfocused: #efefef;
+  --bg-selected: #f9e78e;
+  --bg-multi-selected: #fbeeae;
+  --border-pane: #efefef;
+  --text-primary: #171717;
+  --text-secondary: #737373;
+  --text-selected: #171717;
+  --accent-cursor: #d4a82a;
+  --accent-move: #d4a82a;
+  --bg-flash: #fbeeae;
+  --accent-complete: #e8922a;
+  --accent-complete-light: #f0b060;
 }
 
 /* System theme - follows OS preference */
 @media (prefers-color-scheme: light) {
   [data-theme="system"] {
     --bg-primary: #ffffff;
-    --bg-secondary: #e0e0e0;
-    --bg-selected-unfocused: #b8b8b8;
-    --bg-selected: #f5eaa3;
-    --bg-multi-selected: #ece0a0;
-    --border-pane: #d0d0d0;
-    --text-primary: #0d0d0d;
-    --text-secondary: #555555;
-    --accent-cursor: #ce983b;
-    --accent-move: #ce983b;
-    --bg-flash: #f0e6b0;
-    --accent-complete: #d4762a;
-    --accent-complete-light: #e8a855;
+    --bg-secondary: #efefef;
+    --bg-selected-unfocused: #efefef;
+    --bg-selected: #f9e78e;
+    --bg-multi-selected: #fbeeae;
+    --border-pane: #efefef;
+    --text-primary: #171717;
+    --text-secondary: #737373;
+    --text-selected: #171717;
+    --accent-cursor: #d4a82a;
+    --accent-move: #d4a82a;
+    --bg-flash: #fbeeae;
+    --accent-complete: #e8922a;
+    --accent-complete-light: #f0b060;
   }
 }
 
@@ -153,11 +156,16 @@ h2 {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border: 1.5px solid #fff;
+  border: 1.5px solid var(--text-primary);
   border-radius: 3px;
   background: transparent;
   cursor: default;
   flex-shrink: 0;
+}
+
+.pane.focused .item.selected input[type="checkbox"],
+.pane.focused .item.multi-selected input[type="checkbox"] {
+  border-color: var(--text-selected);
 }
 
 .item input[type="checkbox"]:checked {
@@ -232,12 +240,12 @@ h2 {
 
 .pane.focused .item.selected {
   background: var(--bg-selected);
-  color: #ffffff;
+  color: var(--text-selected);
 }
 
 .pane.focused .item.multi-selected {
   background: var(--bg-multi-selected);
-  color: #ffffff;
+  color: var(--text-selected);
 }
 
 .pane.focused .item.cursor {
