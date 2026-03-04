@@ -765,8 +765,9 @@ h2 {
 }
 
 .confirmation-buttons button:first-child {
-  background: var(--accent-cursor);
-  border-color: var(--accent-cursor);
+  background: var(--bg-selected);
+  border-color: var(--bg-selected);
+  color: var(--text-selected);
 }
 
 /* Context menu */
@@ -888,7 +889,7 @@ h2 {
 }
 
 .hotkey-badge + .hotkey-badge {
-  margin-left: -6px;
+  margin-left: 1px;
 }
 
 .keycap-badge {
