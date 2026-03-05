@@ -62,7 +62,10 @@ function toggleWindow(): void {
 
 function showQuickAdd(): void {
   if (quickAddWindow && !quickAddWindow.isDestroyed()) {
-    quickAddWindow.focus();
+    quickAddWindow.show();
+    quickAddWindow.once('show', () => {
+      quickAddWindow?.webContents.focus();
+    });
     return;
   }
 
@@ -80,6 +83,7 @@ function showQuickAdd(): void {
     height: winH,
     x,
     y,
+    show: false,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -104,11 +108,17 @@ function showQuickAdd(): void {
     app.dock?.show();
   });
 
+  quickAddWindow.once('show', () => {
+    quickAddWindow?.webContents.focus();
+  });
+
   if (process.env.NODE_ENV === 'development') {
     quickAddWindow.loadURL('http://localhost:5173/quickadd.html');
   } else {
     quickAddWindow.loadFile(path.join(__dirname, '../../renderer/quickadd.html'));
   }
+
+  quickAddWindow.show();
 }
 
 app.whenReady().then(async () => {

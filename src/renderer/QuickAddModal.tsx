@@ -178,6 +178,7 @@ export function QuickAddModal({ isOpen, lists, onSubmit, onClose }: QuickAddModa
         <input
           ref={titleRef}
           type="text"
+          autoFocus={isOpen}
           className={`quick-add-title${dropdown === null ? '' : ' unfocused'}`}
           placeholder="Task title"
           value={title}
