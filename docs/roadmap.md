@@ -6,22 +6,7 @@ Feature tracker for Sankalpa — what's next after the POC.
 
 Bugs and improvements that need immediate attention. Sorted by complexity (smallest first).
 
-| Item | Type | Description | Status |
-|------|------|-------------|--------|
-| ~~Hardcore mode default~~ | Fix | Should be OFF by default | ✅ |
-| ~~Overdue list nav bug~~ | Fix | Down arrow from Inbox skips hidden Overdue | ✅ |
-| ~~Multi-select complete~~ | Fix | Cmd+Enter should mark all selected tasks | ✅ |
-| ~~Command palette scroll~~ | Fix | Auto-scroll to follow cursor | ✅ |
-| ~~Due date autocomplete~~ | Fix | "tom", "tm", "tomo" → "tomorrow" | ✅ |
-| ~~Due date relative display~~ | Fix | Show Today/Tomorrow/weekday within 7 days | ✅ |
-| ~~Today badge~~ | Fix | Show two badges: red (overdue) + black (today) | ✅ |
-| ~~Smart list task origin~~ | Fix | Today/Overdue/Upcoming show source list name | ✅ |
-| ~~Local search~~ | Feature | Cmd+F searches within current list only | ✅ |
-| ~~Cut/Paste tasks~~ | Feature | Cmd+X / Cmd+V with markdown format | ✅ |
-| ~~Create from clipboard~~ | Feature | Cmd+Shift+V parses markdown list into tasks | ✅ |
-| Notes editor UX | Fix | Large modal with edit/preview toggle | ✅ |
 
-- marking a task(s) as complete / incomplete should register in the undo stack
 
 ## High
 
@@ -39,7 +24,6 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 |---------|-------------|-------|------------|--------|
 | Trash retention | Auto-purge trash after configurable period; setting in preferences | Task Lifecycle | Medium | |
 | Someday/Maybe list | Smart list as a parking lot for non-actionable ideas | Task Organization | Low | |
-| App logo | Design and add an app logo | UI Polish | Low | |
 | Headings / sections | Lightweight grouping of tasks within a list | Task Organization | Medium | |
 | Contextual hotkey bar | Show available keybindings in bottom bar on all main screens | UI Polish | Medium | |
 

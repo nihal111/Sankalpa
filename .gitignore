@@ -10,3 +10,8 @@ src/**/*.js
 .kiro/test-results/
 test-recordings/
 test-results/
+
+# Cloud sync
+supabase/
+.supabase/
+.env.cloud-sync
