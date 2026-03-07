@@ -443,7 +443,7 @@ h2 {
 }
 
 .settings-categories {
-  width: 120px;
+  width: 160px;
   border-right: 1px solid var(--border-pane);
   padding: 8px;
   flex-shrink: 0;
