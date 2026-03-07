@@ -31,7 +31,7 @@ function mockTable(data: unknown[]): void {
 
 describe('cloud', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('testConnection', () => {
@@ -67,15 +67,6 @@ describe('cloud', () => {
   });
 
   describe('syncToCloud', () => {
-    function mockEmptyCloudRead(): void {
-      // readCloudData reads 4 tables — all empty means no snapshot
-      for (let i = 0; i < 4; i++) {
-        mockFrom.mockReturnValueOnce({
-          select: () => Promise.resolve({ data: [], error: null }),
-        });
-      }
-    }
-
     it('syncs tables and returns summary', async () => {
       const db = {
         exec: vi.fn((sql: string) => {
@@ -88,8 +79,14 @@ describe('cloud', () => {
         }),
       } as unknown as Database;
 
-      // readCloudData: 4 selects (empty cloud = no snapshot)
-      mockEmptyCloudRead();
+      // snapshot insert (local has data)
+      mockFrom.mockReturnValueOnce({ insert: () => Promise.resolve({ error: null }) });
+      // rotateSnapshots: 3 tiers
+      for (let i = 0; i < 3; i++) {
+        mockFrom.mockReturnValueOnce({
+          select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [] }) }) }),
+        });
+      }
       // 4 deletes (reverse order) + 3 inserts
       for (let i = 0; i < 7; i++) {
         mockFrom.mockReturnValueOnce({
@@ -105,16 +102,16 @@ describe('cloud', () => {
       expect(result.message).toContain('1 tasks');
     });
 
-    it('creates snapshot of existing cloud data before overwriting', async () => {
+    it('creates snapshot of local data before overwriting', async () => {
       const db = {
-        exec: vi.fn(() => []),
+        exec: vi.fn((sql: string) => {
+          if (sql === 'SELECT * FROM folders') return [{ columns: ['id'], values: [['f1']] }];
+          if (sql === 'SELECT * FROM lists') return [];
+          if (sql === 'SELECT * FROM tasks') return [{ columns: ['id'], values: [['t1']] }];
+          if (sql === 'SELECT * FROM settings') return [];
+          return [];
+        }),
       } as unknown as Database;
-
-      // readCloudData: cloud has data
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [{ id: 'f1' }], error: null }) }); // folders
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [], error: null }) }); // lists
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [{ id: 't1' }], error: null }) }); // tasks
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [], error: null }) }); // settings
 
       // snapshot insert
       const insertedSnapshot: Record<string, unknown>[] = [];
@@ -129,10 +126,11 @@ describe('cloud', () => {
         });
       }
 
-      // 4 deletes
-      for (let i = 0; i < 4; i++) {
+      // 4 deletes + 2 inserts (folders, tasks have data)
+      for (let i = 0; i < 6; i++) {
         mockFrom.mockReturnValueOnce({
           delete: () => ({ gte: () => Promise.resolve({ error: null }) }),
+          insert: () => Promise.resolve({ error: null }),
         });
       }
 
@@ -145,30 +143,8 @@ describe('cloud', () => {
       expect(insertedSnapshot[0].tier).toBe('daily');
     });
 
-    it('skips snapshot when readCloudData fails', async () => {
+    it('skips snapshot when local DB is empty', async () => {
       const db = { exec: vi.fn(() => []) } as unknown as Database;
-
-      // readCloudData: first table returns error
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: null, error: { message: 'fail' } }) });
-
-      // No snapshot insert or rotation — goes straight to deletes
-      for (let i = 0; i < 4; i++) {
-        mockFrom.mockReturnValueOnce({
-          delete: () => ({ gte: () => Promise.resolve({ error: null }) }),
-        });
-      }
-
-      const result = await syncToCloud(db, 'https://x.supabase.co', 'key');
-      expect(result.success).toBe(true);
-    });
-
-    it('skips snapshot when cloud has no data (all tables empty)', async () => {
-      const db = { exec: vi.fn(() => []) } as unknown as Database;
-
-      // readCloudData: all tables empty
-      for (let i = 0; i < 4; i++) {
-        mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [], error: null }) });
-      }
 
       // No snapshot — straight to deletes
       for (let i = 0; i < 4; i++) {
@@ -181,44 +157,13 @@ describe('cloud', () => {
       expect(result.success).toBe(true);
     });
 
-    it('handles null rows from readCloudData gracefully', async () => {
-      const db = { exec: vi.fn(() => []) } as unknown as Database;
-
-      // readCloudData: first table returns null data (no error), rest have data
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: null, error: null }) }); // folders: null
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [{ id: 'l1' }], error: null }) }); // lists: has data
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: null, error: null }) }); // tasks: null
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [], error: null }) }); // settings: empty
-
-      // Snapshot insert (hasData=true because lists has data)
-      mockFrom.mockReturnValueOnce({ insert: () => Promise.resolve({ error: null }) });
-
-      // rotateSnapshots: 3 tiers
-      for (let i = 0; i < 3; i++) {
-        mockFrom.mockReturnValueOnce({
-          select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [] }) }) }),
-        });
-      }
-
-      // 4 deletes
-      for (let i = 0; i < 4; i++) {
-        mockFrom.mockReturnValueOnce({
-          delete: () => ({ gte: () => Promise.resolve({ error: null }) }),
-        });
-      }
-
-      const result = await syncToCloud(db, 'https://x.supabase.co', 'key');
-      expect(result.success).toBe(true);
-    });
-
     it('rotateSnapshots deletes excess snapshots', async () => {
-      const db = { exec: vi.fn(() => []) } as unknown as Database;
-
-      // readCloudData: has data
-      mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [{ id: 'f1' }], error: null }) });
-      for (let i = 0; i < 3; i++) {
-        mockFrom.mockReturnValueOnce({ select: () => Promise.resolve({ data: [], error: null }) });
-      }
+      const db = {
+        exec: vi.fn((sql: string) => {
+          if (sql === 'SELECT * FROM folders') return [{ columns: ['id'], values: [['f1']] }];
+          return [];
+        }),
+      } as unknown as Database;
 
       // snapshot insert
       mockFrom.mockReturnValueOnce({ insert: () => Promise.resolve({ error: null }) });
@@ -246,10 +191,11 @@ describe('cloud', () => {
         select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [{ id: 'm1' }] }) }) }),
       });
 
-      // 4 deletes
-      for (let i = 0; i < 4; i++) {
+      // 4 deletes + 1 insert (folders has data)
+      for (let i = 0; i < 5; i++) {
         mockFrom.mockReturnValueOnce({
           delete: () => ({ gte: () => Promise.resolve({ error: null }) }),
+          insert: () => Promise.resolve({ error: null }),
         });
       }
 
@@ -270,7 +216,14 @@ describe('cloud', () => {
         }),
       } as unknown as Database;
 
-      mockEmptyCloudRead();
+      // snapshot insert (local has data)
+      mockFrom.mockReturnValueOnce({ insert: () => Promise.resolve({ error: null }) });
+      // rotateSnapshots: 3 tiers
+      for (let i = 0; i < 3; i++) {
+        mockFrom.mockReturnValueOnce({
+          select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [] }) }) }),
+        });
+      }
       // 4 deletes + 2 inserts (lists + tasks)
       const insertedRows: Record<string, unknown>[] = [];
       for (let i = 0; i < 6; i++) {
@@ -290,7 +243,14 @@ describe('cloud', () => {
         exec: vi.fn(() => [{ columns: ['id'], values: [['f1']] }]),
       } as unknown as Database;
 
-      mockEmptyCloudRead();
+      // snapshot insert (local has data)
+      mockFrom.mockReturnValueOnce({ insert: () => Promise.resolve({ error: null }) });
+      // rotateSnapshots: 3 tiers
+      for (let i = 0; i < 3; i++) {
+        mockFrom.mockReturnValueOnce({
+          select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [] }) }) }),
+        });
+      }
       // 4 deletes succeed
       for (let i = 0; i < 4; i++) {
         mockFrom.mockReturnValueOnce({
@@ -311,7 +271,7 @@ describe('cloud', () => {
         exec: vi.fn(() => []),
       } as unknown as Database;
 
-      mockEmptyCloudRead();
+      // No snapshot (empty local DB) — straight to deletes
       // First table (settings, reverse order): id-delete fails, key-delete succeeds
       const deleteByIdFails = { gte: () => Promise.resolve({ error: { message: 'no id' } }) };
       const deleteByKeyOk = { gte: () => Promise.resolve({ error: null }) };
@@ -333,7 +293,7 @@ describe('cloud', () => {
         exec: vi.fn(() => []),
       } as unknown as Database;
 
-      mockEmptyCloudRead();
+      // No snapshot (empty local DB) — straight to deletes
       const deleteByIdFails = { gte: () => Promise.resolve({ error: { message: 'no id' } }) };
       const deleteByKeyFails = { gte: () => Promise.resolve({ error: { message: 'no key either' } }) };
       mockFrom.mockReturnValueOnce({ delete: vi.fn().mockReturnValueOnce(deleteByIdFails) });

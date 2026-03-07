@@ -35,14 +35,17 @@ export async function testConnection(url: string, key: string): Promise<CloudRes
   }
 }
 
-async function readCloudData(client: SupabaseClient): Promise<Record<string, unknown[]> | null> {
-  const data: Record<string, unknown[]> = {};
+function readLocalData(db: SqlJsDatabase): Record<string, Record<string, SqlValue>[]> | null {
+  const data: Record<string, Record<string, SqlValue>[]> = {};
   let hasData = false;
   for (const table of TABLES) {
-    const { data: rows, error } = await client.from(table).select('*');
-    if (error) return null;
-    data[table] = rows ?? [];
-    if (rows && rows.length > 0) hasData = true;
+    const result = db.exec(`SELECT * FROM ${table}`);
+    if (!result[0] || result[0].values.length === 0) { data[table] = []; continue; }
+    const columns = result[0].columns;
+    data[table] = result[0].values.map(row =>
+      Object.fromEntries(columns.map((col, i) => [col, row[i]])) as Record<string, SqlValue>
+    );
+    hasData = true;
   }
   return hasData ? data : null;
 }
@@ -65,16 +68,16 @@ async function rotateSnapshots(client: SupabaseClient): Promise<void> {
 export async function syncToCloud(db: SqlJsDatabase, url: string, key: string): Promise<CloudResult> {
   const client = makeClient(url, key);
 
-  // Snapshot current cloud state before overwriting
-  const cloudData = await readCloudData(client);
-  if (cloudData) {
+  // Snapshot local state being uploaded
+  const localData = readLocalData(db);
+  if (localData) {
     const now = new Date();
     const tier = getTier(now);
     await client.from('snapshots').insert({
       id: generateId(),
       tier,
       created_at: now.getTime(),
-      data: cloudData,
+      data: localData,
     } as never);
     await rotateSnapshots(client);
   }
