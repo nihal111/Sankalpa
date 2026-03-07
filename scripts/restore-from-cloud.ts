@@ -57,7 +57,7 @@ async function restore(): Promise<void> {
   fs.writeFileSync(DB_PATH, Buffer.from(exported));
 
   console.log(`\n✓ Restore complete! Database saved to ${DB_PATH}`);
-  console.log('⚠️  Please restart the Sankalpa app to load the restored data.');
+  console.log('The app will automatically reload if running.');
 }
 
 restore().catch(err => {

@@ -11,6 +11,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('tasks:created', handler);
     return () => ipcRenderer.removeListener('tasks:created', handler);
   },
+  onDbReloaded: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('db:reloaded', handler);
+    return () => ipcRenderer.removeListener('db:reloaded', handler);
+  },
 
   // Folders
   foldersGetAll: () => ipcRenderer.invoke('folders:getAll'),

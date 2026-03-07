@@ -138,6 +138,13 @@ export function useAppState() {
   }, []);
 
   useEffect(() => {
+    return window.api.onDbReloaded(async () => {
+      await reloadData();
+      await reloadTasks();
+    });
+  }, [reloadData, reloadTasks]);
+
+  useEffect(() => {
     return window.api.onTaskCreated(async (data) => {
       await reloadTasks();
       // Navigate to the list containing the new task

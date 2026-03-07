@@ -46,3 +46,11 @@ export function closeDb(): void {
     db = null;
   }
 }
+
+export async function reloadDb(): Promise<Database> {
+  if (db) {
+    db.close();
+    db = null;
+  }
+  return getDb();
+}

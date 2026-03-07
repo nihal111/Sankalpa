@@ -18,6 +18,7 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
   const defaultMocks = {
     onQuickAdd: vi.fn().mockReturnValue(() => {}),
     onTaskCreated: vi.fn().mockReturnValue(() => {}),
+    onDbReloaded: vi.fn().mockReturnValue(() => {}),
     foldersGetAll: vi.fn().mockResolvedValue(mockFolders),
     foldersToggleExpanded: vi.fn().mockResolvedValue(undefined),
     foldersUpdate: vi.fn().mockResolvedValue(undefined),

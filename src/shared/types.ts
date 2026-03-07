@@ -37,6 +37,7 @@ export interface Task {
 
 export interface Api {
   onQuickAdd: (callback: () => void) => () => void;
+  onDbReloaded: (callback: () => void) => () => void;
 
   foldersGetAll: () => Promise<Folder[]>;
   foldersCreate: (id: string, name: string) => Promise<Folder>;
