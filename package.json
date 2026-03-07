@@ -23,7 +23,10 @@
     "test:e2e:record": "npm run build && RECORD=1 playwright test",
     "pack": "electron-builder --dir",
     "dist": "npm run build && electron-builder",
-    "setup:supabase": "bash scripts/supabase-setup.sh"
+    "setup:supabase": "bash scripts/supabase-setup.sh",
+    "sync:cloud": "tsx scripts/sync-to-cloud.ts",
+    "restore:cloud": "tsx scripts/restore-from-cloud.ts",
+    "nuke:cloud": "tsx scripts/nuke-supabase.ts"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +53,7 @@
     "@leeoniya/ufuzzy": "^1.0.19",
     "@supabase/supabase-js": "^2.98.0",
     "chrono-node": "^2.9.0",
+    "dotenv": "^17.3.1",
     "marked": "^17.0.3",
     "pg": "^8.20.0",
     "react": "^19.2.4",
