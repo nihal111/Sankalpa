@@ -144,6 +144,18 @@ export default function App(): ReactNode {
           hardcoreMode={state.hardcoreMode}
           trashRetentionIndex={state.trashRetentionIndex}
           retentionOptions={state.retentionOptions}
+          cloud={state.cloud}
+          onCategoryClick={state.setSettingsCategory}
+          onThemeClick={state.setThemeIndex}
+          onHardcoreToggle={state.toggleHardcore}
+          onRetentionClick={state.setTrashRetentionIndex}
+          onCloudUrlChange={(url) => state.setCloudField('url', url)}
+          onCloudKeyChange={(key) => state.setCloudField('serviceKey', key)}
+          onCloudFocusChange={state.setCloudFocus}
+          onCloudSave={state.cloudSave}
+          onCloudSync={state.cloudSync}
+          onCloudConfirmRestore={state.cloudConfirmRestore}
+          onCloudDisconnect={state.cloudDisconnect}
         />
       )}
       {state.confirmationDialog && (

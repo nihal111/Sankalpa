@@ -205,6 +205,45 @@ describe('preload', () => {
     expect(mockInvoke).toHaveBeenCalledWith('lists:restore', 'l1', null, 'My List', 5, 100, 200);
   });
 
+  it('remaining methods invoke correct IPC channels', async () => {
+    await import('./preload');
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+
+    api.foldersReorder('f1', 2);
+    expect(mockInvoke).toHaveBeenCalledWith('folders:reorder', 'f1', 2);
+    api.listsUpdateNotes('l1', 'notes');
+    expect(mockInvoke).toHaveBeenCalledWith('lists:updateNotes', 'l1', 'notes');
+    api.tasksSetDuration('t1', 60);
+    expect(mockInvoke).toHaveBeenCalledWith('tasks:setDuration', 't1', 60);
+    api.normalizeListSortKeys();
+    expect(mockInvoke).toHaveBeenCalledWith('util:normalizeListSortKeys');
+    api.normalizeTaskSortKeys('l1');
+    expect(mockInvoke).toHaveBeenCalledWith('util:normalizeTaskSortKeys', 'l1');
+    api.cloudTestConnection('url', 'key');
+    expect(mockInvoke).toHaveBeenCalledWith('cloud:testConnection', 'url', 'key');
+    api.cloudSync();
+    expect(mockInvoke).toHaveBeenCalledWith('cloud:sync');
+    api.cloudRestore();
+    expect(mockInvoke).toHaveBeenCalledWith('cloud:restore');
+    api.trashPurge(30);
+    expect(mockInvoke).toHaveBeenCalledWith('trash:purge', 30);
+    api.openExternal('https://example.com');
+    expect(mockInvoke).toHaveBeenCalledWith('shell:openExternal', 'https://example.com');
+  });
+
+  it('onDbReloaded registers and unregisters listener', async () => {
+    await import('./preload');
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    const callback = vi.fn();
+    const unsubscribe = api.onDbReloaded(callback);
+    expect(mockOn).toHaveBeenCalledWith('db:reloaded', expect.any(Function));
+    const handler = mockOn.mock.calls.find((c: unknown[]) => c[0] === 'db:reloaded')![1];
+    handler();
+    expect(callback).toHaveBeenCalled();
+    unsubscribe();
+    expect(mockRemoveListener).toHaveBeenCalledWith('db:reloaded', handler);
+  });
+
   it('onTaskCreated registers and unregisters listener', async () => {
     await import('./preload');
     const api = mockExposeInMainWorld.mock.calls[0][1];

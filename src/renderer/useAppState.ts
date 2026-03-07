@@ -35,7 +35,7 @@ export function useAppState() {
   const [multiSelect, multiSelectActions] = useMultiSelect();
   const { selectedIndices: selectedTaskIndices, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld } = multiSelect;
   const [settings, settingsActions] = useSettingsState();
-  const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions } = settings;
+  const { settingsOpen, settingsThemeIndex, themes, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions, cloud } = settings;
   const { flashIds, flash } = useFlash();
   const { flashIds: throbIds, flash: throb } = useFlash();
   const { flashIds: completeIds, flash: completeFlash } = useFlash(500);
@@ -293,7 +293,10 @@ export function useAppState() {
     sidebarItems, selectedSidebarIndex, focusedPane, moveMode, moveTargetIndex, editMode, editValue, setEditValue, setEditMode,
     handleInputKeyDown: editActions.handleInputKeyDown, handleEditBlur: editActions.commit, inputRef, taskCounts, tasks, selectedTaskIndex,
     selectedTaskIndices, shiftHeld, cmdHeld, boundaryCursor, settingsOpen, settingsThemeIndex, settingsCategory, themes, hardcoreMode,
-    trashRetentionIndex, retentionOptions, getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
+    trashRetentionIndex, retentionOptions, cloud, setCloudField: settingsActions.setCloudField, setSettingsCategory: settingsActions.setCategory,
+    setThemeIndex: settingsActions.setThemeIndex, toggleHardcore: settingsActions.toggleHardcore, setTrashRetentionIndex: settingsActions.setTrashRetentionIndex, setCloudFocus: settingsActions.setCloudFocus,
+    cloudSave: settingsActions.cloudSave, cloudSync: settingsActions.cloudSync, cloudConfirmRestore: settingsActions.cloudConfirmRestore, cloudDisconnect: settingsActions.cloudDisconnect,
+    getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
     handleFolderToggle, handleToggleExpand, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu, flashIds, throbIds, completeIds, uncompleteIds, moveIds,
     evaporateIds, flatTasks: filteredFlatTasks, listNames, isCompletedView, showSourceList, dueDateIndex, commitDueDate: dueDateActions.commit, cancelDueDate: dueDateActions.cancel,

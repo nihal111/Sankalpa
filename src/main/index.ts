@@ -14,6 +14,7 @@ import {
   normalizeListSortKeys, normalizeTaskSortKeys,
 } from './db';
 import { parseRetentionDays } from '../shared/trashRetention';
+import { testConnection, syncToCloud, restoreFromCloud } from './cloud';
 
 app.setName('Sankalpa');
 
@@ -232,6 +233,32 @@ app.whenReady().then(async () => {
   // Settings IPC handlers
   ipcMain.handle('settings:getAll', () => getAllSettings(db()));
   ipcMain.handle('settings:set', (_, key: string, value: string) => { setSetting(db(), key, value); wrappedSaveDb(); });
+
+  // Cloud sync IPC handlers
+  ipcMain.handle('cloud:testConnection', (_, url: string, key: string) => testConnection(url, key));
+  ipcMain.handle('cloud:sync', async () => {
+    const url = getSetting(db(), 'supabase_url');
+    const key = getSetting(db(), 'supabase_service_role_key');
+    if (!url || !key) return { success: false, message: 'Not configured' };
+    return syncToCloud(db(), url, key);
+  });
+  ipcMain.handle('cloud:restore', async () => {
+    const url = getSetting(db(), 'supabase_url');
+    const key = getSetting(db(), 'supabase_service_role_key');
+    if (!url || !key) return { success: false, message: 'Not configured' };
+    const initSqlJs = (await import('sql.js')).default;
+    const SQL = await initSqlJs();
+    const { result, exportedDb } = await restoreFromCloud(SQL, url, key);
+    if (result.success && exportedDb) {
+      fs.writeFileSync(dbPath, Buffer.from(exportedDb));
+      await triggerReload();
+      // Re-save credentials so they survive the restore
+      setSetting(db(), 'supabase_url', url);
+      setSetting(db(), 'supabase_service_role_key', key);
+      wrappedSaveDb();
+    }
+    return result;
+  });
 
   // Trash purge
   ipcMain.handle('trash:purge', (_, retentionDays: number | null) => { purgeExpiredTrash(db(), retentionDays); wrappedSaveDb(); });
