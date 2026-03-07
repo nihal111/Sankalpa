@@ -93,6 +93,8 @@ export interface Api {
   cloudTestConnection: (url: string, key: string) => Promise<{ success: boolean; message: string }>;
   cloudSync: () => Promise<{ success: boolean; message: string }>;
   cloudRestore: () => Promise<{ success: boolean; message: string }>;
+  cloudListSnapshots: () => Promise<{ result: { success: boolean; message: string }; snapshots: { id: string; tier: string; created_at: number }[] }>;
+  cloudRestoreSnapshot: (snapshotId: string) => Promise<{ success: boolean; message: string }>;
 
   trashPurge: (retentionDays: number | null) => Promise<void>;
 

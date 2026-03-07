@@ -78,6 +78,8 @@ contextBridge.exposeInMainWorld('api', {
   cloudTestConnection: (url: string, key: string) => ipcRenderer.invoke('cloud:testConnection', url, key),
   cloudSync: () => ipcRenderer.invoke('cloud:sync'),
   cloudRestore: () => ipcRenderer.invoke('cloud:restore'),
+  cloudListSnapshots: () => ipcRenderer.invoke('cloud:listSnapshots'),
+  cloudRestoreSnapshot: (snapshotId: string) => ipcRenderer.invoke('cloud:restoreSnapshot', snapshotId),
 
   // Trash purge
   trashPurge: (retentionDays: number | null) => ipcRenderer.invoke('trash:purge', retentionDays),

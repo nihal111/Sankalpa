@@ -156,6 +156,8 @@ export default function App(): ReactNode {
           onCloudSync={state.cloudSync}
           onCloudConfirmRestore={state.cloudConfirmRestore}
           onCloudDisconnect={state.cloudDisconnect}
+          onCloudBrowseBackups={state.cloudBrowseBackups}
+          onCloudConfirmBackupRestore={state.cloudConfirmBackupRestore}
         />
       )}
       {state.confirmationDialog && (

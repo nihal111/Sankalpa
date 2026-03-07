@@ -27,10 +27,12 @@ export interface SettingsActions {
   cloudSync: () => void;
   cloudConfirmRestore: () => void;
   cloudDisconnect: () => void;
+  cloudBrowseBackups: () => void;
+  cloudConfirmBackupRestore: () => void;
 }
 
-export type CloudStatus = 'unconfigured' | 'connected' | 'loading' | 'confirming-restore';
-export type CloudFocus = 'url' | 'key' | 'save' | 'sync' | 'restore' | 'disconnect';
+export type CloudStatus = 'unconfigured' | 'connected' | 'loading' | 'confirming-restore' | 'browsing-backups' | 'confirming-backup-restore';
+export type CloudFocus = 'url' | 'key' | 'save' | 'sync' | 'restore' | 'disconnect' | 'backup';
 
 export interface CloudState {
   status: CloudStatus;
@@ -39,6 +41,8 @@ export interface CloudState {
   focus: CloudFocus;
   message: string;
   messageType: 'success' | 'error' | '';
+  snapshots: { id: string; tier: string; created_at: number }[];
+  selectedSnapshotIndex: number;
 }
 
 export function useSettingsState(): [
@@ -57,6 +61,7 @@ export function useSettingsState(): [
   const [trashRetentionIndex, setTrashRetentionIndex] = useState(0);
   const [cloud, setCloud] = useState<CloudState>({
     status: 'unconfigured', url: '', serviceKey: '', focus: 'url', message: '', messageType: '',
+    snapshots: [], selectedSnapshotIndex: 0,
   });
 
   // Load settings from DB on mount
@@ -150,15 +155,45 @@ export function useSettingsState(): [
   const cloudDisconnect = useCallback(async (): Promise<void> => {
     await window.api.settingsSet('supabase_url', '');
     await window.api.settingsSet('supabase_service_role_key', '');
-    setCloud({ status: 'unconfigured', url: '', serviceKey: '', focus: 'url', message: '', messageType: '' });
+    setCloud({ status: 'unconfigured', url: '', serviceKey: '', focus: 'url', message: '', messageType: '', snapshots: [], selectedSnapshotIndex: 0 });
   }, []);
+
+  const cloudBrowseBackups = useCallback(async (): Promise<void> => {
+    setCloud(c => ({ ...c, status: 'loading', message: 'Loading backups...', messageType: '' }));
+    const { result, snapshots } = await window.api.cloudListSnapshots();
+    if (!result.success) {
+      setCloud(c => ({ ...c, status: 'connected', focus: 'backup', message: `✗ ${result.message}`, messageType: 'error' }));
+      return;
+    }
+    if (snapshots.length === 0) {
+      setCloud(c => ({ ...c, status: 'connected', focus: 'backup', message: 'No backups yet — backups are created automatically when you sync', messageType: 'success' }));
+      return;
+    }
+    setCloud(c => ({ ...c, status: 'browsing-backups', snapshots, selectedSnapshotIndex: 0, message: '', messageType: '' }));
+  }, []);
+
+  const cloudRestoreSnapshot = useCallback(async (): Promise<void> => {
+    const snap = cloud.snapshots[cloud.selectedSnapshotIndex];
+    if (!snap) return;
+    setCloud(c => ({ ...c, status: 'loading', message: 'Restoring backup...', messageType: '' }));
+    const result = await window.api.cloudRestoreSnapshot(snap.id);
+    setCloud(c => ({
+      ...c, status: 'connected', focus: 'backup',
+      message: result.success ? `✓ Restored ${result.message}` : `✗ ${result.message}`,
+      messageType: result.success ? 'success' : 'error',
+    }));
+  }, [cloud.snapshots, cloud.selectedSnapshotIndex]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent): boolean => {
     if (!settingsOpen) return false;
     if (e.key === 'Escape') {
       e.preventDefault();
-      if (cloud.status === 'confirming-restore') {
-        setCloud(c => ({ ...c, status: 'connected', focus: 'restore', message: '', messageType: '' }));
+      if (cloud.status === 'confirming-restore' || cloud.status === 'confirming-backup-restore') {
+        setCloud(c => ({ ...c, status: 'connected', focus: 'restore', message: '', messageType: '', snapshots: [], selectedSnapshotIndex: 0 }));
+        return true;
+      }
+      if (cloud.status === 'browsing-backups') {
+        setCloud(c => ({ ...c, status: 'connected', focus: 'backup', message: '', messageType: '', snapshots: [], selectedSnapshotIndex: 0 }));
         return true;
       }
       setSettingsOpen(false);
@@ -218,6 +253,30 @@ export function useSettingsState(): [
         return true; // Esc handled above
       }
 
+      if (cloud.status === 'confirming-backup-restore') {
+        if (e.key === 'Enter') { e.preventDefault(); cloudRestoreSnapshot(); return true; }
+        return true;
+      }
+
+      if (cloud.status === 'browsing-backups') {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setCloud(c => ({ ...c, selectedSnapshotIndex: Math.max(0, c.selectedSnapshotIndex - 1) }));
+          return true;
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setCloud(c => ({ ...c, selectedSnapshotIndex: Math.min(c.snapshots.length - 1, c.selectedSnapshotIndex + 1) }));
+          return true;
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          setCloud(c => ({ ...c, status: 'confirming-backup-restore' }));
+          return true;
+        }
+        return true;
+      }
+
       // Let native key combos (Cmd+V, Cmd+A, Cmd+C, Cmd+X) through to inputs
       if (e.metaKey || e.ctrlKey) return false;
 
@@ -252,7 +311,7 @@ export function useSettingsState(): [
       }
 
       if (cloud.status === 'connected') {
-        const buttons: CloudFocus[] = ['sync', 'restore', 'disconnect'];
+        const buttons: CloudFocus[] = ['sync', 'restore', 'backup', 'disconnect'];
         if (e.key === 'ArrowUp') {
           e.preventDefault();
           const idx = buttons.indexOf(cloud.focus as CloudFocus);
@@ -269,6 +328,7 @@ export function useSettingsState(): [
           e.preventDefault();
           if (cloud.focus === 'sync') cloudDoSync();
           else if (cloud.focus === 'restore') setCloud(c => ({ ...c, status: 'confirming-restore', message: '', messageType: '' }));
+          else if (cloud.focus === 'backup') cloudBrowseBackups();
           else if (cloud.focus === 'disconnect') cloudDisconnect();
           return true;
         }
@@ -276,7 +336,7 @@ export function useSettingsState(): [
       return true;
     }
     return true;
-  }, [settingsOpen, settingsCategory, settingsThemeIndex, applyAndClose, toggleHardcore, trashRetentionIndex, cloud, cloudSaveAndConnect, cloudDoSync, cloudDoRestore, cloudDisconnect]);
+  }, [settingsOpen, settingsCategory, settingsThemeIndex, applyAndClose, toggleHardcore, trashRetentionIndex, cloud, cloudSaveAndConnect, cloudDoSync, cloudDoRestore, cloudDisconnect, cloudBrowseBackups, cloudRestoreSnapshot]);
 
   const setCloudField = useCallback((field: 'url' | 'serviceKey', value: string): void => {
     setCloud(c => ({ ...c, [field]: value }));
@@ -297,9 +357,13 @@ export function useSettingsState(): [
     setCloud(c => ({ ...c, status: 'confirming-restore', message: '', messageType: '' }));
   }, []);
 
+  const cloudConfirmBackupRestore = useCallback((): void => {
+    setCloud(c => ({ ...c, status: 'confirming-backup-restore' }));
+  }, []);
+
   return [
     { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions: RETENTION_OPTIONS, cloud },
     { open, handleKeyDown, setCloudField, setCategory, setThemeIndex: setSettingsThemeIndex, toggleHardcore, setTrashRetentionIndex, setCloudFocus,
-      cloudSave: cloudSaveAndConnect, cloudSync: cloudDoSync, cloudConfirmRestore, cloudDisconnect }
+      cloudSave: cloudSaveAndConnect, cloudSync: cloudDoSync, cloudConfirmRestore, cloudDisconnect, cloudBrowseBackups, cloudConfirmBackupRestore }
   ];
 }

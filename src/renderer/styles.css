@@ -712,6 +712,59 @@ h2 {
   color: var(--text-secondary);
 }
 
+.cloud-backups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cloud-backups-title {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.cloud-backups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.cloud-backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--bg-secondary);
+}
+
+.cloud-backup-item.selected {
+  background: var(--accent-cursor);
+  color: var(--text-primary);
+}
+
+.cloud-backup-tier {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.cloud-backup-item.selected .cloud-backup-tier {
+  color: var(--text-primary);
+}
+
+.cloud-backups-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
 /* Flash animation for reorder/move/add */
 @keyframes flash {
   0% { background: var(--accent-cursor); }

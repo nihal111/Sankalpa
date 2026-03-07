@@ -14,7 +14,7 @@ import {
   normalizeListSortKeys, normalizeTaskSortKeys,
 } from './db';
 import { parseRetentionDays } from '../shared/trashRetention';
-import { testConnection, syncToCloud, restoreFromCloud } from './cloud';
+import { testConnection, syncToCloud, restoreFromCloud, listSnapshots, restoreFromSnapshot } from './cloud';
 
 app.setName('Sankalpa');
 
@@ -253,6 +253,28 @@ app.whenReady().then(async () => {
       fs.writeFileSync(dbPath, Buffer.from(exportedDb));
       await triggerReload();
       // Re-save credentials so they survive the restore
+      setSetting(db(), 'supabase_url', url);
+      setSetting(db(), 'supabase_service_role_key', key);
+      wrappedSaveDb();
+    }
+    return result;
+  });
+  ipcMain.handle('cloud:listSnapshots', async () => {
+    const url = getSetting(db(), 'supabase_url');
+    const key = getSetting(db(), 'supabase_service_role_key');
+    if (!url || !key) return { result: { success: false, message: 'Not configured' }, snapshots: [] };
+    return listSnapshots(url, key);
+  });
+  ipcMain.handle('cloud:restoreSnapshot', async (_, snapshotId: string) => {
+    const url = getSetting(db(), 'supabase_url');
+    const key = getSetting(db(), 'supabase_service_role_key');
+    if (!url || !key) return { success: false, message: 'Not configured' };
+    const initSqlJs = (await import('sql.js')).default;
+    const SQL = await initSqlJs();
+    const { result, exportedDb } = await restoreFromSnapshot(SQL, url, key, snapshotId);
+    if (result.success && exportedDb) {
+      fs.writeFileSync(dbPath, Buffer.from(exportedDb));
+      await triggerReload();
       setSetting(db(), 'supabase_url', url);
       setSetting(db(), 'supabase_service_role_key', key);
       wrappedSaveDb();

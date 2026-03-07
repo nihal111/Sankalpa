@@ -296,6 +296,7 @@ export function useAppState() {
     trashRetentionIndex, retentionOptions, cloud, setCloudField: settingsActions.setCloudField, setSettingsCategory: settingsActions.setCategory,
     setThemeIndex: settingsActions.setThemeIndex, toggleHardcore: settingsActions.toggleHardcore, setTrashRetentionIndex: settingsActions.setTrashRetentionIndex, setCloudFocus: settingsActions.setCloudFocus,
     cloudSave: settingsActions.cloudSave, cloudSync: settingsActions.cloudSync, cloudConfirmRestore: settingsActions.cloudConfirmRestore, cloudDisconnect: settingsActions.cloudDisconnect,
+    cloudBrowseBackups: settingsActions.cloudBrowseBackups, cloudConfirmBackupRestore: settingsActions.cloudConfirmBackupRestore,
     getSelectedListName, getMoveTargetName, handleSidebarClick, handleTaskClick, handleTaskToggle,
     handleFolderToggle, handleToggleExpand, handleTaskContextMenu: ctxMenu.handleTaskContextMenu, handleSidebarContextMenu: ctxMenu.handleSidebarContextMenu,
     contextMenu: ctxMenu.contextMenu, closeContextMenu: ctxMenu.closeContextMenu, flashIds, throbIds, completeIds, uncompleteIds, moveIds,

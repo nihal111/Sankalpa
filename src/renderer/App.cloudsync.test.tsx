@@ -214,6 +214,7 @@ describe('Cloud Sync settings', () => {
     fireEvent.keyDown(window, { key: 'ArrowUp' });
     fireEvent.keyDown(window, { key: 'ArrowDown' }); // reset focus to sync
     fireEvent.keyDown(window, { key: 'ArrowDown' }); // Restore
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // Backup
     fireEvent.keyDown(window, { key: 'ArrowDown' }); // Disconnect
     fireEvent.keyDown(window, { key: 'Enter' });
     await waitFor(() => expect(screen.getByPlaceholderText('https://xxx.supabase.co')).toBeDefined());
@@ -363,5 +364,121 @@ describe('Cloud Sync settings', () => {
     // Settings modal should still be open (not closed or disrupted)
     expect(screen.getByText('Settings')).toBeDefined();
     expect(screen.getByPlaceholderText('https://xxx.supabase.co')).toBeDefined();
+  });
+
+  it('Restore from Backup shows snapshot list', async () => {
+    const snapshots = [
+      { id: 's1', tier: 'daily', created_at: new Date('2026-03-07T10:00:00').getTime() },
+      { id: 's2', tier: 'weekly', created_at: new Date('2026-03-01T09:00:00').getTime() },
+    ];
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '2 backups' }, snapshots }),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    fireEvent.click(screen.getByText('⟲ Restore from Backup'));
+    await waitFor(() => expect(screen.getByText('Select a backup to restore')).toBeDefined());
+    expect(document.querySelectorAll('.cloud-backup-item')).toHaveLength(2);
+    expect(document.querySelector('.cloud-backup-item.selected')).toBeDefined();
+    expect(screen.getByText('daily')).toBeDefined();
+    expect(screen.getByText('weekly')).toBeDefined();
+  });
+
+  it('keyboard navigates snapshots and restores selected', async () => {
+    const snapshots = [
+      { id: 's1', tier: 'daily', created_at: 1000 },
+      { id: 's2', tier: 'weekly', created_at: 2000 },
+    ];
+    const restoreSnap = vi.fn().mockResolvedValue({ success: true, message: '10 tasks' });
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '2 backups' }, snapshots }),
+      cloudRestoreSnapshot: restoreSnap,
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    // Navigate to Backup button via keyboard
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // sync
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // restore
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // backup
+    fireEvent.keyDown(window, { key: 'Enter' }); // browse backups
+    await waitFor(() => expect(screen.getByText('Select a backup to restore')).toBeDefined());
+    // First item selected by default, navigate down
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    const items = document.querySelectorAll('.cloud-backup-item');
+    expect(items[1]?.classList.contains('selected')).toBe(true);
+    // Enter to confirm
+    fireEvent.keyDown(window, { key: 'Enter' });
+    expect(screen.getByText(/Restore backup from/)).toBeDefined();
+    // Confirm restore
+    fireEvent.keyDown(window, { key: 'Enter' });
+    await waitFor(() => expect(restoreSnap).toHaveBeenCalledWith('s2'));
+    await waitFor(() => expect(screen.getByText('✓ Restored 10 tasks')).toBeDefined());
+  });
+
+  it('Esc from backup list returns to connected state', async () => {
+    const snapshots = [{ id: 's1', tier: 'daily', created_at: 1000 }];
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '1 backups' }, snapshots }),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    fireEvent.click(screen.getByText('⟲ Restore from Backup'));
+    await waitFor(() => expect(screen.getByText('Select a backup to restore')).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByText('Connected to Supabase')).toBeDefined();
+  });
+
+  it('Esc from backup restore confirmation returns to connected state', async () => {
+    const snapshots = [{ id: 's1', tier: 'daily', created_at: 1000 }];
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '1 backups' }, snapshots }),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    fireEvent.click(screen.getByText('⟲ Restore from Backup'));
+    await waitFor(() => expect(screen.getByText('Select a backup to restore')).toBeDefined());
+    fireEvent.keyDown(window, { key: 'Enter' }); // confirm dialog
+    expect(screen.getByText(/Restore backup from/)).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByText('Connected to Supabase')).toBeDefined();
+  });
+
+  it('shows message when no backups exist', async () => {
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '0 backups' }, snapshots: [] }),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    fireEvent.click(screen.getByText('⟲ Restore from Backup'));
+    await waitFor(() => expect(screen.getByText('No backups yet — backups are created automatically when you sync')).toBeDefined());
+  });
+
+  it('shows error when listing backups fails', async () => {
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({ supabase_url: 'https://x.supabase.co', supabase_service_role_key: 'k' }),
+      cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: false, message: 'Network error' }, snapshots: [] }),
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    fireEvent.click(screen.getByText('⟲ Restore from Backup'));
+    await waitFor(() => expect(screen.getByText('✗ Network error')).toBeDefined());
   });
 });

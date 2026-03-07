@@ -62,6 +62,8 @@ export function setupMockApi(overrides: Record<string, unknown> = {}): void {
     cloudTestConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
     cloudSync: vi.fn().mockResolvedValue({ success: true, message: '36 tasks' }),
     cloudRestore: vi.fn().mockResolvedValue({ success: true, message: '36 tasks' }),
+    cloudListSnapshots: vi.fn().mockResolvedValue({ result: { success: true, message: '0 backups' }, snapshots: [] }),
+    cloudRestoreSnapshot: vi.fn().mockResolvedValue({ success: true, message: '36 tasks' }),
     trashPurge: vi.fn().mockResolvedValue(undefined),
     openExternal: vi.fn().mockResolvedValue(undefined),
   };
