@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { Database } from 'sql.js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Database as SqlJsDatabase, SqlValue } from 'sql.js';
 import { initSchema } from './db/schema';
 
 const TABLES = ['folders', 'lists', 'tasks', 'settings'] as const;
@@ -16,7 +16,7 @@ export interface Snapshot {
   created_at: number;
 }
 
-function makeClient(url: string, key: string): ReturnType<typeof createClient> {
+function makeClient(url: string, key: string): SupabaseClient {
   return createClient(url, key);
 }
 
@@ -35,7 +35,7 @@ export async function testConnection(url: string, key: string): Promise<CloudRes
   }
 }
 
-async function readCloudData(client: ReturnType<typeof createClient>): Promise<Record<string, unknown[]> | null> {
+async function readCloudData(client: SupabaseClient): Promise<Record<string, unknown[]> | null> {
   const data: Record<string, unknown[]> = {};
   let hasData = false;
   for (const table of TABLES) {
@@ -53,16 +53,16 @@ export function getTier(now: Date): 'daily' | 'weekly' | 'monthly' {
   return 'daily';
 }
 
-async function rotateSnapshots(client: ReturnType<typeof createClient>): Promise<void> {
+async function rotateSnapshots(client: SupabaseClient): Promise<void> {
   for (const tier of ['daily', 'weekly', 'monthly'] as const) {
     const { data } = await client.from('snapshots').select('id').eq('tier', tier).order('created_at', { ascending: false });
     if (!data || data.length <= GFS_LIMITS[tier]) continue;
-    const toDelete = data.slice(GFS_LIMITS[tier]).map(r => r.id);
+    const toDelete = (data as { id: string }[]).slice(GFS_LIMITS[tier]).map(r => r.id);
     await client.from('snapshots').delete().in('id', toDelete);
   }
 }
 
-export async function syncToCloud(db: Database, url: string, key: string): Promise<CloudResult> {
+export async function syncToCloud(db: SqlJsDatabase, url: string, key: string): Promise<CloudResult> {
   const client = makeClient(url, key);
 
   // Snapshot current cloud state before overwriting
@@ -75,7 +75,7 @@ export async function syncToCloud(db: Database, url: string, key: string): Promi
       tier,
       created_at: now.getTime(),
       data: cloudData,
-    });
+    } as never);
     await rotateSnapshots(client);
   }
 
@@ -119,7 +119,7 @@ export async function syncToCloud(db: Database, url: string, key: string): Promi
 }
 
 export async function restoreFromCloud(
-  SQL: { Database: new () => Database },
+  SQL: { Database: new () => SqlJsDatabase },
   url: string,
   key: string,
 ): Promise<{ result: CloudResult; exportedDb?: Uint8Array }> {
@@ -139,7 +139,7 @@ export async function restoreFromCloud(
     const sql = `${verb} INTO ${table} (${columns.join(',')}) VALUES (${placeholders})`;
 
     for (const row of data) {
-      db.run(sql, columns.map(col => row[col]));
+      db.run(sql, columns.map(col => (row as Record<string, SqlValue>)[col]));
     }
 
     if (summary) summary += ', ';
@@ -160,7 +160,7 @@ export async function listSnapshots(url: string, key: string): Promise<{ result:
 }
 
 export async function restoreFromSnapshot(
-  SQL: { Database: new () => Database },
+  SQL: { Database: new () => SqlJsDatabase },
   url: string,
   key: string,
   snapshotId: string,
@@ -169,7 +169,7 @@ export async function restoreFromSnapshot(
   const { data, error } = await client.from('snapshots').select('data').eq('id', snapshotId).single();
   if (error || !data) return { result: { success: false, message: error?.message ?? 'Snapshot not found' } };
 
-  const snapshotData = data.data as Record<string, Record<string, unknown>[]>;
+  const snapshotData = (data as Record<string, unknown>).data as Record<string, Record<string, SqlValue>[]>;
   const db = new SQL.Database();
   initSchema(db);
 
