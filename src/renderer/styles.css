@@ -759,6 +759,28 @@ h2 {
   color: var(--text-primary);
 }
 
+.cloud-backup-latest {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.cloud-backup-latest.selected {
+  color: var(--text-primary);
+}
+
+.cloud-backups-section {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px 2px;
+}
+
+.cloud-icon {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
 .cloud-backups-hint {
   font-size: 12px;
   color: var(--text-secondary);

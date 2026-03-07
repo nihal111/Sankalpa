@@ -26,16 +26,15 @@ interface SettingsModalProps {
   onCloudSync: () => void;
   onCloudConfirmRestore: () => void;
   onCloudDisconnect: () => void;
-  onCloudBrowseBackups: () => void;
   onCloudConfirmBackupRestore: () => void;
 }
 
 function formatSnapshotDate(ts: number): string {
   const d = new Date(ts);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' });
 }
 
-function CloudSyncContent({ cloud, onCloudUrlChange, onCloudKeyChange, onCloudFocusChange, onCloudSave, onCloudSync, onCloudConfirmRestore, onCloudDisconnect, onCloudBrowseBackups, onCloudConfirmBackupRestore }: Pick<SettingsModalProps, 'cloud' | 'onCloudUrlChange' | 'onCloudKeyChange' | 'onCloudFocusChange' | 'onCloudSave' | 'onCloudSync' | 'onCloudConfirmRestore' | 'onCloudDisconnect' | 'onCloudBrowseBackups' | 'onCloudConfirmBackupRestore'>): ReactNode {
+function CloudSyncContent({ cloud, onCloudUrlChange, onCloudKeyChange, onCloudFocusChange, onCloudSave, onCloudSync, onCloudConfirmRestore, onCloudDisconnect, onCloudConfirmBackupRestore }: Pick<SettingsModalProps, 'cloud' | 'onCloudUrlChange' | 'onCloudKeyChange' | 'onCloudFocusChange' | 'onCloudSave' | 'onCloudSync' | 'onCloudConfirmRestore' | 'onCloudDisconnect' | 'onCloudConfirmBackupRestore'>): ReactNode {
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
 
@@ -72,10 +71,14 @@ function CloudSyncContent({ cloud, onCloudUrlChange, onCloudKeyChange, onCloudFo
   if (cloud.status === 'browsing-backups') {
     return (
       <div className="cloud-backups">
-        <div className="cloud-backups-title">Select a backup to restore</div>
+        <div className="cloud-backups-title">Restore from Cloud</div>
         <div className="cloud-backups-list">
+          <div className={`cloud-backup-item cloud-backup-latest ${cloud.selectedSnapshotIndex === 0 ? 'selected' : ''}`} onClick={() => onCloudConfirmBackupRestore()}>
+            <span className="cloud-backup-date">Restore Latest</span>
+          </div>
+          {cloud.snapshots.length > 0 && <div className="cloud-backups-section">Restore from Backup</div>}
           {cloud.snapshots.map((snap, i) => (
-            <div key={snap.id} className={`cloud-backup-item ${i === cloud.selectedSnapshotIndex ? 'selected' : ''}`} onClick={() => onCloudConfirmBackupRestore()}>
+            <div key={snap.id} className={`cloud-backup-item ${i + 1 === cloud.selectedSnapshotIndex ? 'selected' : ''}`} onClick={() => onCloudConfirmBackupRestore()}>
               <span className="cloud-backup-date">{formatSnapshotDate(snap.created_at)}</span>
               <span className="cloud-backup-tier">{snap.tier}</span>
             </div>
@@ -119,6 +122,8 @@ function CloudSyncContent({ cloud, onCloudUrlChange, onCloudKeyChange, onCloudFo
 
   // connected
   const truncatedUrl = cloud.url.length > 40 ? cloud.url.slice(0, 40) + '…' : cloud.url;
+  const uploadIcon = <svg className="cloud-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M20 16.7A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>;
+  const downloadIcon = <svg className="cloud-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v12m0 0l4-4m-4 4l-4-4"/><path d="M20 16.7A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>;
   return (
     <div className="cloud-connected">
       <div className="cloud-status-row">
@@ -126,12 +131,10 @@ function CloudSyncContent({ cloud, onCloudUrlChange, onCloudKeyChange, onCloudFo
         <span>Connected to Supabase</span>
       </div>
       <div className="cloud-url">{truncatedUrl}</div>
-      <div className={`cloud-button ${cloud.focus === 'sync' ? 'focused' : ''}`} onClick={onCloudSync}>▲ Sync to Cloud</div>
+      <div className={`cloud-button ${cloud.focus === 'sync' ? 'focused' : ''}`} onClick={onCloudSync}>{uploadIcon} Sync to Cloud</div>
       <div className="cloud-button-hint">Push local database to cloud</div>
-      <div className={`cloud-button ${cloud.focus === 'restore' ? 'focused' : ''}`} onClick={onCloudConfirmRestore}>▼ Restore from Cloud</div>
-      <div className="cloud-button-hint">Replace local database from cloud</div>
-      <div className={`cloud-button ${cloud.focus === 'backup' ? 'focused' : ''}`} onClick={onCloudBrowseBackups}>⟲ Restore from Backup</div>
-      <div className="cloud-button-hint">Browse previous cloud snapshots</div>
+      <div className={`cloud-button ${cloud.focus === 'restore' ? 'focused' : ''}`} onClick={onCloudConfirmRestore}>{downloadIcon} Restore from Cloud</div>
+      <div className="cloud-button-hint">Restore from cloud or previous backups</div>
       <div className={`cloud-button danger ${cloud.focus === 'disconnect' ? 'focused' : ''}`} onClick={onCloudDisconnect}>✕ Disconnect</div>
       <div className="cloud-button-hint">Remove credentials</div>
       {cloud.message && <div className={`cloud-message ${cloud.messageType}`}>{cloud.message}</div>}
@@ -149,7 +152,7 @@ function getFooterText(category: SettingsCategory, cloud: CloudState): string {
   return '↑↓ buttons · Enter execute · Esc close';
 }
 
-export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode, trashRetentionIndex, retentionOptions, cloud, onCategoryClick, onThemeClick, onHardcoreToggle, onRetentionClick, onCloudUrlChange, onCloudKeyChange, onCloudFocusChange, onCloudSave, onCloudSync, onCloudConfirmRestore, onCloudDisconnect, onCloudBrowseBackups, onCloudConfirmBackupRestore }: SettingsModalProps): ReactNode {
+export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMode, trashRetentionIndex, retentionOptions, cloud, onCategoryClick, onThemeClick, onHardcoreToggle, onRetentionClick, onCloudUrlChange, onCloudKeyChange, onCloudFocusChange, onCloudSave, onCloudSync, onCloudConfirmRestore, onCloudDisconnect, onCloudConfirmBackupRestore }: SettingsModalProps): ReactNode {
   return (
     <div className="settings-overlay">
       <div className="settings-modal">
@@ -207,7 +210,7 @@ export function SettingsModal({ settingsThemeIndex, settingsCategory, hardcoreMo
               </div>
             )}
             {settingsCategory === 'Cloud Sync' && (
-              <CloudSyncContent cloud={cloud} onCloudUrlChange={onCloudUrlChange} onCloudKeyChange={onCloudKeyChange} onCloudFocusChange={onCloudFocusChange} onCloudSave={onCloudSave} onCloudSync={onCloudSync} onCloudConfirmRestore={onCloudConfirmRestore} onCloudDisconnect={onCloudDisconnect} onCloudBrowseBackups={onCloudBrowseBackups} onCloudConfirmBackupRestore={onCloudConfirmBackupRestore} />
+              <CloudSyncContent cloud={cloud} onCloudUrlChange={onCloudUrlChange} onCloudKeyChange={onCloudKeyChange} onCloudFocusChange={onCloudFocusChange} onCloudSave={onCloudSave} onCloudSync={onCloudSync} onCloudConfirmRestore={onCloudConfirmRestore} onCloudDisconnect={onCloudDisconnect} onCloudConfirmBackupRestore={onCloudConfirmBackupRestore} />
             )}
           </div>
         </div>
