@@ -9,6 +9,7 @@ export interface ActionContext {
   hasSelectedTask: boolean;
   hasSelection: boolean;
   canEdit: boolean;
+  isSmartListNonInbox: boolean;
 }
 
 export interface Action {
@@ -34,6 +35,7 @@ export const actions: Action[] = [
   { id: 'setDueDate', name: 'Set Due Date', hotkey: 'd', hotkeyDisplay: 'D', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && !ctx.hasSelection },
   { id: 'setDuration', name: 'Set Duration', hotkey: 'alt+d', hotkeyDisplay: '⌥ D', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && !ctx.hasSelection },
   { id: 'editNotes', name: 'Edit Notes', hotkey: 'n', hotkeyDisplay: 'N', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask },
+  { id: 'openInActualList', name: 'Open in Actual List', hotkey: 'alt+o', hotkeyDisplay: '⌥ O', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && ctx.hasSelectedTask && ctx.isSmartListNonInbox },
   { id: 'indent', name: 'Indent', hotkey: 'Tab', hotkeyDisplay: 'Tab', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'outdent', name: 'Outdent', hotkey: 'shift+Tab', hotkeyDisplay: '⇧ Tab', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },
   { id: 'toggleCollapse', name: 'Collapse/Expand', hotkey: 'c', hotkeyDisplay: 'C', isAvailable: (ctx) => ctx.focusedPane === 'tasks' },

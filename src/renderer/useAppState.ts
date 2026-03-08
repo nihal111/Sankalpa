@@ -48,7 +48,7 @@ export function useAppState() {
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [data, dataActions] = useDataState(selectedSidebarIndex, selectedTaskIndex, setSelectedTaskIndex);
   const { lists, tasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks, folders } = data;
-  const { reloadData, reloadTasks: reloadTasksBase, setTasks, setFolders, setLists, setCompletedFilter } = dataActions;
+  const { reloadData, reloadTasks: reloadTasksBase, setTasks, setFolders, setLists, setCompletedFilter, setCursorForList } = dataActions;
   const listNames = useMemo(() => Object.fromEntries(lists.map(l => [l.id, l.name])), [lists]);
   const isCompletedView = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'completed';
   const isTrashView = useMemo(() => selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'trash', [selectedSidebarItem]);
@@ -202,6 +202,26 @@ export function useAppState() {
   const handleDetailEditTitle = useCallback(() => { if (selectedTask) { setFocusedPane('tasks'); editActions.start(); } }, [selectedTask, editActions, setFocusedPane]);
   const handleDetailEditDueDate = useCallback(() => { if (selectedTask) dueDateActions.start(); }, [selectedTask, dueDateActions]);
   const handleDetailEditDuration = useCallback(() => { if (selectedTask) durationActions.start(); }, [selectedTask, durationActions]);
+  const openInActualList = useCallback(async (): Promise<void> => {
+    if (selectedSidebarItem?.type !== 'smart' || selectedSidebarItem.smartList.id === 'inbox') return;
+    if (!selectedTask) return;
+    const targetListKey = selectedTask.list_id ?? 'inbox';
+    const targetSidebarIndex = selectedTask.list_id
+      ? sidebarItems.findIndex((item) => item.type === 'list' && item.list.id === selectedTask.list_id)
+      : sidebarItems.findIndex((item) => item.type === 'smart' && item.smartList.id === 'inbox');
+    if (targetSidebarIndex < 0) return;
+    const targetTasks = selectedTask.list_id
+      ? await window.api.tasksGetByList(selectedTask.list_id)
+      : await window.api.tasksGetInbox();
+    const targetTaskIndex = targetTasks.findIndex((task) => task.id === selectedTask.id);
+    const safeTaskIndex = targetTaskIndex >= 0 ? targetTaskIndex : 0;
+    setCursorForList(targetListKey, safeTaskIndex);
+    setTasks(targetTasks);
+    setSelectedSidebarIndex(targetSidebarIndex);
+    setSelectedTaskIndex(safeTaskIndex);
+    setFocusedPane('tasks');
+    multiSelectActions.clear();
+  }, [selectedSidebarItem, selectedTask, sidebarItems, setCursorForList, setTasks, setSelectedSidebarIndex, setSelectedTaskIndex, setFocusedPane, multiSelectActions]);
   const { notesEditing, handleStartNotesEdit, handleNotesCommit, handleNotesCancelEdit } = useNotesState({ selectedTask, reloadTasks });
 
   const paletteState = usePaletteState({
@@ -238,7 +258,7 @@ export function useAppState() {
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
-    handleRestoreTask: trashActions.handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+    handleRestoreTask: trashActions.handleRestoreTask, openInActualList, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,
     duplicateTask, copyTasks, cutTasks, createFromClipboard, cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,

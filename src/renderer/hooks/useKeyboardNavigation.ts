@@ -30,6 +30,7 @@ export interface KeyboardActions {
   undo: Command;
   redo: Command;
   restoreTask: Command;
+  openInActualList: Command;
   openSearch: Command;
   startNotes: Command;
   indentTask: Command;
@@ -66,6 +67,7 @@ export interface KeyboardState {
   cmdHeld: boolean;
   hasSelection: boolean;
   canEdit: boolean;
+  isSmartListNonInbox: boolean;
   isTrashView: boolean;
   hasSelectedTask: boolean;
   isSearchOpen: boolean;
@@ -110,6 +112,7 @@ export function useKeyboardNavigation(
       hasSelectedTask: state.hasSelectedTask,
       hasSelection: state.hasSelection,
       canEdit: state.canEdit,
+      isSmartListNonInbox: state.isSmartListNonInbox,
     };
 
     if (matches(e, 'openSettings')) { e.preventDefault(); actions.openSettings(); return; }
@@ -190,6 +193,7 @@ export function useKeyboardNavigation(
     if (matches(e, 'setDueDate') && getAction('setDueDate').isAvailable(ctx)) { e.preventDefault(); actions.startDueDate(); return; }
     if (matches(e, 'setDuration') && getAction('setDuration').isAvailable(ctx)) { e.preventDefault(); actions.startDuration(); return; }
     if (matches(e, 'editNotes') && !e.metaKey && !e.shiftKey && getAction('editNotes').isAvailable(ctx)) { e.preventDefault(); actions.startNotes(); return; }
+    if (matches(e, 'openInActualList') && getAction('openInActualList').isAvailable(ctx)) { e.preventDefault(); actions.openInActualList(); return; }
     if (matches(e, 'restoreFromTrash') && getAction('restoreFromTrash').isAvailable(ctx)) { e.preventDefault(); actions.restoreTask(); return; }
   }, [actions, state, focusNextFilter]);
 

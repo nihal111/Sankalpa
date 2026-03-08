@@ -206,6 +206,106 @@ describe('App navigation', () => {
     expect(window.api.tasksGetCompleted).toHaveBeenCalled();
   });
 
+  it('Option+O opens selected smart-list task in its source list', async () => {
+    const todayTask = { id: 'today-1', list_id: '2', title: 'Today Work Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: 1, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    const workTasks = [todayTask];
+    setupMockApi({
+      tasksGetDueBetween: vi.fn().mockResolvedValue([todayTask]),
+      tasksGetByList: vi.fn().mockResolvedValue(workTasks),
+      listsGetTaskCount: vi.fn().mockResolvedValue(1),
+    });
+    render(<App />);
+    await navigateToItem('Today');
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Today Work Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'o', altKey: true, code: 'KeyO' });
+    await waitFor(() => expect(window.api.tasksGetByList).toHaveBeenCalledWith('2'));
+    await waitFor(() => {
+      const selectedList = document.querySelector('.lists-pane .item.selected');
+      expect(selectedList?.textContent).toContain('Work');
+      const selectedTask = document.querySelector('.tasks-pane .item.selected .task-content');
+      expect(selectedTask?.textContent).toBe('Today Work Task');
+    });
+  });
+
+  it('Option+O opens Inbox when selected smart-list task belongs to inbox', async () => {
+    const inboxTask = { id: 'done-inbox-1', list_id: null, title: 'Inbox Done Task', status: 'COMPLETED', created_timestamp: 0, completed_timestamp: 1, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({
+      tasksGetCompleted: vi.fn().mockResolvedValue([inboxTask]),
+      tasksGetInbox: vi.fn().mockResolvedValue([inboxTask]),
+    });
+    render(<App />);
+    await navigateToItem('Completed');
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Inbox Done Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'o', altKey: true, code: 'KeyO' });
+    await waitFor(() => {
+      const selectedList = document.querySelector('.lists-pane .item.selected');
+      expect(selectedList?.textContent).toContain('Inbox');
+      const selectedTask = document.querySelector('.tasks-pane .item.selected .task-content');
+      expect(selectedTask?.textContent).toBe('Inbox Done Task');
+    });
+  });
+
+  it('Option+O does nothing on smart Inbox', async () => {
+    const inboxTask = { id: 'inbox-1', list_id: null, title: 'Inbox Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({
+      tasksGetInbox: vi.fn().mockResolvedValue([inboxTask]),
+    });
+    render(<App />);
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Inbox Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'o', altKey: true, code: 'KeyO' });
+    await waitFor(() => {
+      const selectedList = document.querySelector('.lists-pane .item.selected');
+      expect(selectedList?.textContent).toContain('Inbox');
+      const selectedTask = document.querySelector('.tasks-pane .item.selected .task-content');
+      expect(selectedTask?.textContent).toBe('Inbox Task');
+    });
+    expect(window.api.tasksGetByList).not.toHaveBeenCalled();
+  });
+
+  it('Option+O falls back to first task when target list does not contain selected task', async () => {
+    const todayTask = { id: 'today-missing', list_id: '2', title: 'Today Missing Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: 1, duration: null, notes: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    const existingTask = { id: 'work-1', list_id: '2', title: 'Existing Work Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({
+      tasksGetDueBetween: vi.fn().mockResolvedValue([todayTask]),
+      tasksGetByList: vi.fn().mockResolvedValue([existingTask]),
+      listsGetTaskCount: vi.fn().mockResolvedValue(1),
+    });
+    render(<App />);
+    await navigateToItem('Today');
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Today Missing Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'o', altKey: true, code: 'KeyO' });
+    await waitFor(() => {
+      const selectedList = document.querySelector('.lists-pane .item.selected');
+      expect(selectedList?.textContent).toContain('Work');
+      const selectedTask = document.querySelector('.tasks-pane .item.selected .task-content');
+      expect(selectedTask?.textContent).toBe('Existing Work Task');
+    });
+  });
+
+  it('Option+O does nothing when source list no longer exists', async () => {
+    const todayTask = { id: 'today-orphan', list_id: '999', title: 'Orphaned Source Task', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: 1, duration: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, parent_id: null, is_expanded: 1 };
+    setupMockApi({
+      tasksGetDueBetween: vi.fn().mockResolvedValue([todayTask]),
+      listsGetTaskCount: vi.fn().mockResolvedValue(1),
+    });
+    render(<App />);
+    await navigateToItem('Today');
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await waitFor(() => expect(screen.getByText('Orphaned Source Task', { selector: '.task-content' })).toBeDefined());
+    fireEvent.keyDown(window, { key: 'o', altKey: true, code: 'KeyO' });
+    await waitFor(() => {
+      const selectedList = document.querySelector('.lists-pane .item.selected');
+      expect(selectedList?.textContent).toContain('Today');
+      const selectedTask = document.querySelector('.tasks-pane .item.selected .task-content');
+      expect(selectedTask?.textContent).toBe('Orphaned Source Task');
+    });
+    expect(window.api.tasksGetByList).not.toHaveBeenCalled();
+  });
+
   it('Cmd+Enter toggles task completion from tasks pane', async () => {
     render(<App />);
     await navigateToUserList();

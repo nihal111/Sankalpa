@@ -26,6 +26,7 @@ interface DataActions {
   setFolders: (folders: Folder[]) => void;
   setLists: (lists: List[]) => void;
   setCompletedFilter: (filter: CompletedFilter) => void;
+  setCursorForList: (listKey: string, index: number) => void;
 }
 
 export function useDataState(
@@ -177,6 +178,16 @@ export function useDataState(
 
   return [
     { folders, lists, tasks: filteredTasks, taskCounts, sidebarItems, selectedSidebarItem, selectedListId, trashIndex, completedFilter, listsWithCompletedTasks },
-    { reloadData, reloadTasks, setTasks, setFolders, setLists, setCompletedFilter },
+    {
+      reloadData,
+      reloadTasks,
+      setTasks,
+      setFolders,
+      setLists,
+      setCompletedFilter,
+      setCursorForList: (listKey: string, index: number): void => {
+        cursorMap.current.set(listKey, index);
+      },
+    },
   ];
 }

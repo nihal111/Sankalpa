@@ -27,6 +27,7 @@ interface UseKeyboardActionsParams {
   undo: () => Promise<boolean>;
   redo: () => Promise<boolean>;
   handleRestoreTask: () => Promise<void>;
+  openInActualList: () => Promise<void>;
   focusedPane: Pane;
   openSearch: () => void;
   handleStartNotesEdit: () => void;
@@ -60,7 +61,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
-    handleRestoreTask, focusedPane, openSearch, handleStartNotesEdit,
+    handleRestoreTask, openInActualList, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev,
     startMoveList, handleMoveListKeyDown,
@@ -98,6 +99,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     undo,
     redo,
     restoreTask: handleRestoreTask,
+    openInActualList,
     openSearch,
     startNotes: handleStartNotesEdit,
     indentTask,
@@ -126,7 +128,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
     editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
-    startMove, undo, redo, handleRestoreTask, openSearch, handleStartNotesEdit,
+    startMove, undo, redo, handleRestoreTask, openInActualList, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
     cycleSidebarNext, cycleSidebarPrev, startMoveList, handleMoveListKeyDown,
     indentList, outdentList, showListInfo, closeListInfo, selectSidebarByListNumber, toggleLocalSearch,
@@ -173,6 +175,7 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     cmdHeld,
     hasSelection: selectedTaskIndicesSize > 0,
     canEdit: selectedSidebarItem?.type !== 'smart',
+    isSmartListNonInbox: selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id !== 'inbox',
     isTrashView,
     hasSelectedTask: selectedTask !== null,
     isSearchOpen,
@@ -183,5 +186,5 @@ export function useKeyboardState(params: UseKeyboardStateParams): KeyboardState 
     moveListMode,
     listInfoOpen,
     quickAddOpen,
-  }), [editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem?.type, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen, quickAddOpen]);
+  }), [editMode, dueDateIndex, durationIndex, notesEditing, moveMode, focusedPane, shiftHeld, cmdHeld, selectedTaskIndicesSize, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView, confirmationDialogOpen, moveListMode, listInfoOpen, quickAddOpen]);
 }
