@@ -132,6 +132,11 @@ export function useMoveListState({ folders, lists, selectedSidebarItem, sidebarI
   }, [sidebarItemsLength, sidebarItems, isHidden, setSelectedSidebarIndex]);
 
   const selectSidebarByListNumber = useCallback((n: number) => {
+    if (n === 0) {
+      const inboxIndex = sidebarItems.findIndex((item) => item.type === 'smart' && item.smartList.id === 'inbox');
+      if (inboxIndex >= 0) setSelectedSidebarIndex(() => inboxIndex);
+      return;
+    }
     let count = 0;
     for (let i = 0; i < sidebarItems.length; i++) {
       if (sidebarItems[i].type === 'list') { count++; if (count === n) { setSelectedSidebarIndex(() => i); return; } }

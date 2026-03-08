@@ -122,9 +122,10 @@ export function useKeyboardNavigation(
     if (actions.handleSettingsKeyDown(e)) return;
     if (state.settingsOpen) return; // settings is open but key wasn't consumed — let browser handle natively
     const metaActions: Record<string, Command> = { i: actions.showListInfo };
-    if (e.metaKey && (metaActions[e.key] || (e.key >= '1' && e.key <= '9'))) {
+    const isSidebarNumberHotkey = e.key === '0' || (e.key >= '1' && e.key <= '9');
+    if (e.metaKey && (metaActions[e.key] || isSidebarNumberHotkey)) {
       e.preventDefault();
-      if (metaActions[e.key]) metaActions[e.key](); else actions.selectSidebarByListNumber(parseInt(e.key));
+      if (metaActions[e.key]) metaActions[e.key](); else actions.selectSidebarByListNumber(parseInt(e.key, 10));
       return;
     }
     if (matches(e, 'duplicateTask')) { e.preventDefault(); actions.duplicateTask(); return; }

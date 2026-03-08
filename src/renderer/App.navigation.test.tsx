@@ -57,6 +57,16 @@ describe('App navigation', () => {
     expect(items[2]?.classList.contains('selected')).toBe(true);
   });
 
+  it('Cmd+0 selects Inbox', async () => {
+    render(<App />);
+    await navigateToItem('Today');
+    fireEvent.keyDown(window, { key: '0', metaKey: true });
+    await waitFor(() => {
+      const selected = document.querySelector('.lists-pane .item.selected');
+      expect(selected?.textContent).toContain('Inbox');
+    });
+  });
+
   it('navigates tasks with arrow keys when tasks pane focused', async () => {
     render(<App />);
     await navigateToUserList();
