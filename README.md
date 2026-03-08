@@ -41,7 +41,7 @@ The Inbox holds intentions as they arise, so your mind doesn't have to. Clear yo
 | **Duplicate** | <details><summary>Deep copy tasks and entire subtrees with `⌃D`</summary><br>![](docs/gifs/gif-duplicate.gif)</details> | [Docs](docs/features/duplicate.md) |
 | **Global hotkeys** | <details><summary>Quick capture from any app with `⌘⌥⇧Space`</summary><br>![](docs/gifs/gif-quick-add.gif)</details> | [Docs](docs/features/global-hotkeys.md) |
 | **Hardcore mode** | <details><summary>Disable mouse completely for pure keyboard flow</summary><br>![](docs/gifs/gif-settings.gif)</details> | [Docs](docs/features/settings.md) |
-| **Cloud sync** | Sync to Supabase with GFS backup snapshots and one-click restore | [Docs](docs/features/cloud-sync.md) |
+| **Cloud sync** | <details><summary>Sync to Supabase with GFS backup snapshots and one-click restore</summary><br>![](docs/gifs/gif-cloud-restore.gif)</details> | [Docs](docs/features/cloud-sync.md) |
 | **Local-first** | SQLite database — your data stays on your machine | |
 
 ## Stack

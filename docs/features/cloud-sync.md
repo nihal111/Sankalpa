@@ -2,6 +2,8 @@
 
 Sync your local database to Supabase for cross-device backup and restore.
 
+![Cloud restore demo](../gifs/gif-cloud-restore.gif)
+
 ## Setup
 
 See [Cloud Sync Setup Guide](../cloud-sync-setup.md) for Supabase project creation and credential configuration.
