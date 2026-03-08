@@ -4,7 +4,7 @@ import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
 import type { UndoEntry } from './useUndoStack';
 import type { TaskWithDepth } from '../utils/taskTree';
-import { getDescendantIds } from '../utils/taskTree';
+import { flattenWithDepth, getDescendantIds } from '../utils/taskTree';
 import { computeDuplicate } from '../utils/taskTreeOps';
 
 interface UseTaskActionsParams {
@@ -53,11 +53,13 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
 
   const finishCreateTask = useCallback(async (taskId: string, isInbox: boolean, listId: string | null): Promise<void> => {
     const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(listId!);
-    const newIndex = newTasks.findIndex((t) => t.id === taskId);
+    const newFlatTasks = flattenWithDepth(newTasks);
+    const newIndex = newFlatTasks.findIndex((t) => t.task.id === taskId);
+    const safeIndex = newIndex >= 0 ? newIndex : Math.max(0, newTasks.findIndex((t) => t.id === taskId));
     setTasks(newTasks);
-    setSelectedTaskIndex(newIndex);
+    setSelectedTaskIndex(safeIndex);
     setFocusedPane('tasks');
-    setEditMode({ type: 'task', index: newIndex });
+    setEditMode({ type: 'task', index: safeIndex });
     setEditValue('');
     onFlash?.(taskId);
   }, [setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
