@@ -62,6 +62,12 @@ describe('Sidebar badges', () => {
     expect(overdue).toBeDefined();
   });
 
+  it('shows Inbox keycap badge 0 on the smart list icon', () => {
+    render(<Sidebar {...mockProps} />);
+    const inboxIcon = document.querySelector('.item.smart-list .item-icon[data-keycap="0"]');
+    expect(inboxIcon).toBeDefined();
+  });
+
   it('shows Cmd keycap badges only for list numbers 1 through 9', () => {
     const smartItems = [
       { type: 'smart' as const, smartList: { id: 'inbox' as SmartListId, name: 'Inbox', icon: '<svg></svg>' } },

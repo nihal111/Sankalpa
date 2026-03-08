@@ -126,6 +126,7 @@ export function Sidebar({
           const smartItem = item as { type: 'smart'; smartList: SmartList };
           const isSelected = i === selectedSidebarIndex;
           const smartId = smartItem.smartList.id;
+          const smartKeycap = smartId === 'inbox' ? '0' : undefined;
           const count = taskCounts[smartId] ?? 0;
           const overdueCount = smartId === 'today' ? (taskCounts['today_overdue'] ?? 0) : 0;
           const todayOnlyCount = smartId === 'today' ? count - overdueCount : 0;
@@ -133,7 +134,7 @@ export function Sidebar({
           const hasItems = count > 0;
           return (
             <li key={smartId} className={`item smart-list ${hasItems ? 'has-items' : ''} ${isSelected ? 'selected' : ''}`} style={isOverdueList && !hasItems ? { display: 'none' } : undefined} onClick={() => onItemClick(i)}>
-              <span className="item-icon" dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
+              <span className="item-icon" data-keycap={smartKeycap} dangerouslySetInnerHTML={{ __html: smartItem.smartList.icon }} />
               <span className="item-name">{smartItem.smartList.name}</span>
               {(smartId === 'today' && overdueCount > 0) && <span className="item-badge overdue">{overdueCount}</span>}
               {(isOverdueList ? count > 0 : todayOnlyCount > 0 || (count > 0 && overdueCount === 0)) && <span className={`item-badge ${isOverdueList ? 'overdue' : ''}`}>{smartId === 'today' ? todayOnlyCount : count}</span>}
