@@ -177,6 +177,7 @@ export function Sidebar({
 
           const listItem = item as { type: 'list'; list: List };
           listNum++;
+          const keycapBadge = listNum <= 9 ? String(listNum) : undefined;
           const isEditing = editMode?.type === 'list' && editMode.id === listItem.list.id;
           const isNested = listItem.list.folder_id !== null;
           const count = taskCounts[listItem.list.id] ?? 0;
@@ -184,7 +185,7 @@ export function Sidebar({
           const isDragTarget = sidebarDropTarget === listItem.list.id;
           return (
             <li key={listItem.list.id} className={`item list ${isSelected ? 'selected' : ''} ${isMoveTarget ? 'move-target' : ''} ${isNested ? 'nested' : ''} ${flashIds.has(listItem.list.id) ? 'flash' : ''} ${isDragTarget ? 'drag-drop-target' : ''}`} onClick={() => onItemClick(i)} onContextMenu={(e) => { e.preventDefault(); onItemContextMenu(i, e.clientX, e.clientY); }} {...drop}>
-              <span className="item-icon" data-keycap={listNum} dangerouslySetInnerHTML={{ __html: Icons.list }} />
+              <span className="item-icon" data-keycap={keycapBadge} dangerouslySetInnerHTML={{ __html: Icons.list }} />
               <EditableItemName
                 isEditing={isEditing}
                 name={listItem.list.name}

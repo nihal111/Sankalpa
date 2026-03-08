@@ -61,4 +61,28 @@ describe('Sidebar badges', () => {
     const overdue = screen.queryByText('Overdue');
     expect(overdue).toBeDefined();
   });
+
+  it('shows Cmd keycap badges only for list numbers 1 through 9', () => {
+    const smartItems = [
+      { type: 'smart' as const, smartList: { id: 'inbox' as SmartListId, name: 'Inbox', icon: '<svg></svg>' } },
+      { type: 'smart' as const, smartList: { id: 'today' as SmartListId, name: 'Today', icon: '<svg></svg>' } },
+      { type: 'smart' as const, smartList: { id: 'upcoming' as SmartListId, name: 'Upcoming', icon: '<svg></svg>' } },
+      { type: 'smart' as const, smartList: { id: 'completed' as SmartListId, name: 'Completed', icon: '<svg></svg>' } },
+      { type: 'smart' as const, smartList: { id: 'overdue' as SmartListId, name: 'Overdue', icon: '<svg></svg>' } },
+    ];
+    const listItems = Array.from({ length: 12 }, (_, i) => ({
+      type: 'list' as const,
+      list: { id: `l${i + 1}`, folder_id: null, name: `List ${i + 1}`, notes: null, sort_key: i + 1, created_at: 0, updated_at: 0 },
+    }));
+    render(
+      <Sidebar
+        {...mockProps}
+        sidebarItems={[...smartItems, ...listItems, { type: 'smart', smartList: { id: 'trash' as SmartListId, name: 'Trash', icon: '<svg></svg>' } }]}
+        trashIndex={smartItems.length + listItems.length}
+      />,
+    );
+    const keycapIcons = document.querySelectorAll('.item.list .item-icon[data-keycap]');
+    expect(keycapIcons.length).toBe(9);
+    expect(Array.from(keycapIcons).some((el) => (el as HTMLElement).dataset.keycap === '10')).toBe(false);
+  });
 });
