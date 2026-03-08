@@ -35,6 +35,7 @@ interface UseTaskActionsParams {
 
 interface TaskActions {
   createTask: () => Promise<void>;
+  createTaskBelow: () => Promise<void>;
   toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
   duplicateTask: () => Promise<void>;
@@ -50,6 +51,17 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear, showToast,
   } = params;
 
+  const finishCreateTask = useCallback(async (taskId: string, isInbox: boolean, listId: string | null): Promise<void> => {
+    const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(listId!);
+    const newIndex = newTasks.findIndex((t) => t.id === taskId);
+    setTasks(newTasks);
+    setSelectedTaskIndex(newIndex);
+    setFocusedPane('tasks');
+    setEditMode({ type: 'task', index: newIndex });
+    setEditValue('');
+    onFlash?.(taskId);
+  }, [setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
+
   const createTask = useCallback(async () => {
     const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
     const isList = selectedSidebarItem?.type === 'list';
@@ -57,19 +69,44 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     const id = crypto.randomUUID();
     const listId = isList ? selectedListId : null;
     const newTask = await window.api.tasksCreate(id, listId, '');
-    const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(selectedListId!);
-    const newIndex = newTasks.findIndex((t) => t.id === newTask.id);
-    setTasks(newTasks);
-    setSelectedTaskIndex(newIndex);
-    setFocusedPane('tasks');
-    setEditMode({ type: 'task', index: newIndex });
-    setEditValue('');
-    onFlash?.(newTask.id);
+    await finishCreateTask(newTask.id, isInbox, listId);
     undoPush({
       undo: async () => { await window.api.tasksDelete(newTask.id); },
       redo: async () => { await window.api.tasksRestore(newTask.id, listId, '', 'PENDING', newTask.created_timestamp, null, newTask.sort_key, newTask.created_at, newTask.updated_at); },
     });
-  }, [selectedListId, selectedSidebarItem, setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, undoPush]);
+  }, [selectedListId, selectedSidebarItem, finishCreateTask, undoPush]);
+
+  const createTaskBelow = useCallback(async () => {
+    if (focusedPane !== 'tasks') return;
+    if (!selectedTask) return;
+    const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
+    const isList = selectedSidebarItem?.type === 'list';
+    if (!isInbox && !isList) return;
+
+    const selectedFlatTask = flatTasks[selectedTaskIndex];
+    if (!selectedFlatTask) return;
+
+    const listId = isList ? selectedListId : null;
+    const siblingParentId = selectedFlatTask.effectiveParentId;
+    const nextSibling = flatTasks.slice(selectedTaskIndex + 1).find((taskWithDepth) => taskWithDepth.effectiveParentId === siblingParentId);
+    const nextSortKey = nextSibling?.task.sort_key ?? null;
+    const sortKey = await window.api.calcSortKey(selectedTask.sort_key, nextSortKey);
+    if (sortKey === null) throw new Error('Failed to calculate sort key for task insertion');
+
+    const newTaskId = crypto.randomUUID();
+    const newTask = await window.api.tasksCreate(newTaskId, listId, '');
+    if (siblingParentId) await window.api.tasksSetParentId(newTaskId, siblingParentId);
+    await window.api.tasksReorder(newTaskId, sortKey);
+    await finishCreateTask(newTaskId, isInbox, listId);
+
+    undoPush({
+      undo: async () => { await window.api.tasksDelete(newTaskId); },
+      redo: async () => {
+        await window.api.tasksRestore(newTaskId, listId, '', 'PENDING', newTask.created_timestamp, null, sortKey, newTask.created_at, newTask.updated_at);
+        if (siblingParentId) await window.api.tasksSetParentId(newTaskId, siblingParentId);
+      },
+    });
+  }, [focusedPane, selectedTask, selectedSidebarItem, flatTasks, selectedTaskIndex, selectedListId, finishCreateTask, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask) return;
@@ -249,5 +286,5 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
   }, [isTrashView, selectedSidebarItem, reloadTasks, showToast, undoPush]);
 
-  return { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
+  return { createTask, createTaskBelow, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
 }

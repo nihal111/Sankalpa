@@ -131,6 +131,34 @@ describe('App create and reorder', () => {
     });
   });
 
+  it('Cmd+Opt+N creates a sibling task below at same nesting level', async () => {
+    let createdId: string | null = null;
+    const nestedTasks = [
+      { id: 'p1', list_id: '1', title: 'Parent', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, sort_key: 1, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 },
+      { id: 'c1', list_id: '1', title: 'Child 1', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, sort_key: 2, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: 'p1', is_expanded: 1 },
+      { id: 'c2', list_id: '1', title: 'Child 2', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, duration: null, sort_key: 4, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: 'p1', is_expanded: 1 },
+    ];
+    setupMockApi({
+      tasksGetByList: vi.fn().mockImplementation(async () => {
+        if (!createdId) return nestedTasks;
+        return [...nestedTasks, { id: createdId, list_id: '1', title: '', status: 'PENDING', created_timestamp: 1, completed_timestamp: null, due_date: null, duration: null, sort_key: 2.5, created_at: 1, updated_at: 1, deleted_at: null, notes: null, parent_id: 'p1', is_expanded: 1 }];
+      }),
+      tasksCreate: vi.fn().mockImplementation(async (id: string, listId: string | null, title: string) => {
+        createdId = id;
+        return { id, list_id: listId, title, status: 'PENDING', created_timestamp: 1, completed_timestamp: null, due_date: null, duration: null, sort_key: 99, created_at: 1, updated_at: 1, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
+      }),
+      calcSortKey: vi.fn().mockResolvedValue(2.5),
+    });
+    render(<App />);
+    await navigateToTasksPane();
+    fireEvent.keyDown(window, { key: 'ArrowDown' }); // select Child 1
+    fireEvent.keyDown(window, { key: 'n', metaKey: true, altKey: true, code: 'KeyN' });
+    await waitFor(() => expect(window.api.tasksCreate).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(window.api.tasksSetParentId).toHaveBeenCalledWith(createdId, 'p1'));
+    await waitFor(() => expect(window.api.calcSortKey).toHaveBeenCalledWith(2, 4));
+    await waitFor(() => expect(window.api.tasksReorder).toHaveBeenCalledWith(createdId, 2.5));
+  });
+
   it('committing empty new task evaporates it', async () => {
     const newTask = { id: 'new', list_id: '1', title: '', status: 'PENDING', created_timestamp: 0, completed_timestamp: null, due_date: null, sort_key: 3, created_at: 0, updated_at: 0, deleted_at: null, notes: null, parent_id: null, is_expanded: 1 };
     setupMockApi({

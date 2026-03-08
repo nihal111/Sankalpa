@@ -26,6 +26,7 @@ export const actions: Action[] = [
   { id: 'undo', name: 'Undo', hotkey: 'meta+z', hotkeyDisplay: '⌘ Z', isAvailable: () => true },
   { id: 'redo', name: 'Redo', hotkey: 'meta+shift+z', hotkeyDisplay: '⌘ ⇧ Z', isAvailable: () => true },
   { id: 'newTask', name: 'New Task', hotkey: 'meta+n', hotkeyDisplay: '⌘ N', isAvailable: () => true },
+  { id: 'newTaskBelow', name: 'New Task Below', hotkey: 'meta+alt+n', hotkeyDisplay: '⌘ ⌥ N', isAvailable: (ctx) => ctx.focusedPane === 'tasks' && !ctx.isTrashView },
   { id: 'newList', name: 'New List', hotkey: 'meta+shift+n', hotkeyDisplay: '⌘ ⇧ N', isAvailable: () => true },
   { id: 'newFolder', name: 'New Folder', hotkey: '', hotkeyDisplay: '', isAvailable: () => true },
   { id: 'delete', name: 'Delete', hotkey: 'Backspace', hotkeyDisplay: '⌫', isAvailable: (ctx) => !ctx.editMode },

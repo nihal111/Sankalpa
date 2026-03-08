@@ -19,6 +19,7 @@ export interface KeyboardActions {
   toggleTaskCompleted: Command;
   createList: Command;
   createTask: Command;
+  createTaskBelow: Command;
   deleteTask: Command;
   deleteList: Command;
   handleArrowNavigation: (e: KeyboardEvent) => void;
@@ -164,6 +165,7 @@ export function useKeyboardNavigation(
     if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
     if (matches(e, 'clearSelection') && !state.cmdHeld && getAction('clearSelection').isAvailable(ctx)) { e.preventDefault(); actions.clearSelection(); return; }
     if (matches(e, 'newList')) { e.preventDefault(); actions.createList(); return; }
+    if (matches(e, 'newTaskBelow') && getAction('newTaskBelow').isAvailable(ctx)) { e.preventDefault(); actions.createTaskBelow(); return; }
     if (matches(e, 'newTask')) { e.preventDefault(); actions.createTask(); return; }
     if ((e.key === 'Delete' || e.key === 'Backspace') && !state.confirmationDialogOpen) { e.preventDefault(); if (state.focusedPane === 'lists') actions.deleteList(); else actions.deleteTask(); return; }
     if (e.key === 'Tab') {

@@ -176,7 +176,7 @@ export function useAppState() {
 
   const closeQuickAdd = useCallback(() => setQuickAddOpen(false), []);
 
-  const { createTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
+  const { createTask, createTaskBelow, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
@@ -256,7 +256,7 @@ export function useAppState() {
 
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
-    selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
+    selectedTaskIndex, toggleTaskCompleted, createList, createTask, createTaskBelow, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, openInActualList, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,
