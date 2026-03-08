@@ -36,7 +36,7 @@ Bugs and improvements that need immediate attention. Sorted by complexity (small
 | Snooze | Snooze a task to reappear later (hotkey S) | Task Properties | High | |
 | Recurring tasks | Set tasks to repeat on a schedule (hotkey R) | Task Properties | High | |
 | Attachments | Attach files to tasks (hotkey A) | Task Properties | High | |
-| Cloud sync | Cloud-based persistence for cross-device data sync | Platform | Very High | |
+| Cloud sync | Cloud-based persistence for cross-device data sync | Platform | Very High | ✅ Done |
 
 ## Discussion Items
 

@@ -65,17 +65,32 @@ This will:
 Check that tables were created in Supabase dashboard:
 1. Go to your Supabase project
 2. Click **Table Editor**
-3. You should see: `lists`, `tasks`, `sync_metadata`
+3. You should see: `folders`, `lists`, `tasks`, `settings`, `snapshots`
+
+## In-App Configuration
+
+You can also configure cloud sync from within the app:
+
+1. Open **Settings** (`Cmd+,`)
+2. Navigate to **Cloud Sync**
+3. Enter your Supabase URL and Service Role Key
+4. Click **Save & Connect**
+
+Credentials are stored in the app's settings database. See [Cloud Sync feature docs](features/cloud-sync.md) for usage details.
 
 ## What Gets Created
 
 ### Tables
+- **folders**: Folder data for list grouping
+  - `id`, `name`, `sort_key`, `is_expanded`, `created_at`, `updated_at`
 - **lists**: List/folder data with hierarchy support
-  - `id`, `name`, `order`, `parent_id`, `created_at`, `updated_at`, `deleted_at`
+  - `id`, `name`, `sort_key`, `folder_id`, `notes`, `created_at`, `updated_at`
 - **tasks**: Task data with timestamps and soft deletes
-  - `id`, `list_id`, `title`, `completed`, `due_date`, `duration`, `notes`, `order`, `parent_id`, `created_at`, `updated_at`, `deleted_at`
-- **sync_metadata**: Tracks sync state per device
-  - `device_id`, `last_sync`, `created_at`
+  - `id`, `list_id`, `title`, `completed`, `due_date`, `duration`, `notes`, `sort_key`, `parent_id`, `created_at`, `updated_at`, `deleted_at`
+- **settings**: Key-value app preferences
+  - `key`, `value`
+- **snapshots**: GFS backup snapshots (auto-created on each sync)
+  - `id`, `tier` (daily/weekly/monthly), `created_at`, `data` (JSON blob)
 
 ### Indexes
 - `idx_tasks_list_id` - Fast lookups by list
@@ -99,3 +114,6 @@ Make sure you're using the **Service Role Key**, not the Anon Key.
 - `.env.cloud-sync` - Your actual credentials (gitignored, never commit)
 - `supabase/migrations/` - Database migrations
 - `scripts/supabase-setup.sh` - Setup script
+- `scripts/sync-to-cloud.ts` - Manual sync to cloud
+- `scripts/restore-from-cloud.ts` - Manual restore from cloud
+- `scripts/nuke-supabase.ts` - Delete all cloud data

@@ -10,7 +10,13 @@ Configure app behavior.
 |-----|--------|
 | `Cmd+,` | Open settings |
 
-## Options
+## Categories
+
+The settings modal has a side panel with four categories:
+
+### Theme
+
+Choose between Light, Dark, or System theme. Use `←→` to cycle, `Enter` to apply.
 
 ### Hardcore Mode
 
@@ -20,6 +26,20 @@ Disables mouse interaction for pure keyboard flow.
 - When enabled, clicking has no effect
 - All navigation must use keyboard
 
-### Other Settings
+### Trash
 
-*Additional settings to be documented as added.*
+Configure automatic trash purge retention: 7, 14, 30, 90 days, or Never. Use `←→` to cycle, `Enter` to apply.
+
+### Cloud Sync
+
+Connect to Supabase for cloud backup and restore. See [Cloud Sync](cloud-sync.md) for full details.
+
+## Keyboard Navigation
+
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Navigate categories |
+| `←` `→` | Cycle options (theme, retention) |
+| `Enter` / `Space` | Apply selection / toggle |
+| `Tab` | Cycle fields (Cloud Sync) |
+| `Esc` | Close settings |

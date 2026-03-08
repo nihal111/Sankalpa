@@ -94,7 +94,20 @@ Provides TypeScript types for `window.api`.
 | `invoke` / `handle` | Request-response (returns Promise) |
 | `send` / `on` | Fire-and-forget (no response) |
 
-We use `invoke`/`handle` for all DB operations since we need the results.
+We use `invoke`/`handle` for all DB operations since we need the results. The `send`/`on` pattern is used for main→renderer notifications like `db:reloaded`.
+
+## Cloud Sync & DB Reload Channels
+
+Added for cloud sync and database hot-reload:
+
+| Channel | Pattern | Direction | Description |
+|---------|---------|-----------|-------------|
+| `db:reloaded` | `send`/`on` | Main → Renderer | Notifies renderer to refresh after db file changes |
+| `cloud:testConnection` | `invoke`/`handle` | Renderer → Main | Test Supabase connection with URL and key |
+| `cloud:sync` | `invoke`/`handle` | Renderer → Main | Push local database to cloud (with GFS snapshot) |
+| `cloud:restore` | `invoke`/`handle` | Renderer → Main | Replace local db with current cloud data |
+| `cloud:listSnapshots` | `invoke`/`handle` | Renderer → Main | List available GFS backup snapshots |
+| `cloud:restoreSnapshot` | `invoke`/`handle` | Renderer → Main | Restore local db from a specific snapshot |
 
 ## File Locations
 
