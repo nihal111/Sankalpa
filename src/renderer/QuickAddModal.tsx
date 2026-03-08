@@ -166,7 +166,7 @@ export function QuickAddModal({ isOpen, lists, onSubmit, onClose }: QuickAddModa
       else if (dropdown === 'duration') setDuration(null);
       else if (dropdown === 'list') setListId(null);
     }
-  }, [dropdown, filteredLists, dueSuggestions, durationSuggestions, dropdownIndex, selectAndAdvance, dropdownQuery]);
+  }, [dropdown, filteredLists, dueSuggestions, durationSuggestions, selectAndAdvance, dropdownQuery, selectAndGoBack]);
 
   useEffect(() => { setDropdownIndex(0); }, [dropdownQuery]);
 

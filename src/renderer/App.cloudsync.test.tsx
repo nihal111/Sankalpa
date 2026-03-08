@@ -111,6 +111,24 @@ describe('Cloud Sync settings', () => {
     await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
   });
 
+  it('auto-connects using local .env.cloud-sync credentials when DB settings are empty', async () => {
+    const testConn = vi.fn().mockResolvedValue({ success: true, message: 'Connected' });
+    const settingsSet = vi.fn().mockResolvedValue(undefined);
+    setupMockApi({
+      settingsGetAll: () => Promise.resolve({}),
+      cloudGetLocalCredentials: () => Promise.resolve({ url: 'https://env.supabase.co', key: 'env-key' }),
+      cloudTestConnection: testConn,
+      settingsSet,
+    });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText('Work')).toBeDefined());
+    openSettingsToCloudSync();
+    await waitFor(() => expect(screen.getByText('Connected to Supabase')).toBeDefined());
+    expect(testConn).toHaveBeenCalledWith('https://env.supabase.co', 'env-key');
+    expect(settingsSet).toHaveBeenCalledWith('supabase_url', 'https://env.supabase.co');
+    expect(settingsSet).toHaveBeenCalledWith('supabase_service_role_key', 'env-key');
+  });
+
   it('arrow keys navigate between Sync, Restore, Disconnect buttons', async () => {
     setupMockApi({
       settingsGetAll: () => Promise.resolve({

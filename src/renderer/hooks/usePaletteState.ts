@@ -67,6 +67,7 @@ export function usePaletteState(
     hasSelectedTask: !!params.selectedTask,
     hasSelection: params.selectedTaskIndicesSize > 0,
     canEdit: params.selectedSidebarItem?.type === 'list' || params.selectedSidebarItem?.type === 'folder',
+    isSmartListNonInbox: params.selectedSidebarItem?.type === 'smart' && params.selectedSidebarItem.smartList.id !== 'inbox',
   }), [params.focusedPane, params.editMode, params.moveMode, params.settingsOpen, params.isSearchOpen, isPaletteOpen, params.isTrashView, params.selectedTask, params.selectedTaskIndicesSize, params.selectedSidebarItem]);
 
   const executePaletteAction = useCallback((actionId: string) => {

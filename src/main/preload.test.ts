@@ -221,6 +221,8 @@ describe('preload', () => {
     expect(mockInvoke).toHaveBeenCalledWith('util:normalizeTaskSortKeys', 'l1');
     api.cloudTestConnection('url', 'key');
     expect(mockInvoke).toHaveBeenCalledWith('cloud:testConnection', 'url', 'key');
+    api.cloudGetLocalCredentials();
+    expect(mockInvoke).toHaveBeenCalledWith('cloud:getLocalCredentials');
     api.cloudSync();
     expect(mockInvoke).toHaveBeenCalledWith('cloud:sync');
     api.cloudRestore();

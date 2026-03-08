@@ -25,6 +25,7 @@ export interface SettingsActions {
   setCloudFocus: (focus: CloudFocus) => void;
   cloudSave: () => void;
   cloudSync: () => void;
+  cloudBrowseBackups: () => void;
   cloudConfirmRestore: () => void;
   cloudDisconnect: () => void;
   cloudConfirmBackupRestore: () => void;
@@ -63,9 +64,26 @@ export function useSettingsState(): [
     snapshots: [], selectedSnapshotIndex: 0,
   });
 
+  const connectCloud = useCallback(async (url: string, serviceKey: string, message: string): Promise<void> => {
+    if (!url.trim() || !serviceKey.trim()) {
+      setCloud(c => ({ ...c, status: 'unconfigured', message: 'Both fields are required', messageType: 'error' }));
+      return;
+    }
+    setCloud(c => ({ ...c, url: url.trim(), serviceKey: serviceKey.trim(), status: 'loading', message: 'Connecting...', messageType: '' }));
+    const result = await window.api.cloudTestConnection(url.trim(), serviceKey.trim());
+    if (result.success) {
+      await window.api.settingsSet('supabase_url', url.trim());
+      await window.api.settingsSet('supabase_service_role_key', serviceKey.trim());
+      setCloud(c => ({ ...c, url: url.trim(), serviceKey: serviceKey.trim(), status: 'connected', focus: 'sync', message, messageType: 'success' }));
+    } else {
+      setCloud(c => ({ ...c, url: url.trim(), serviceKey: serviceKey.trim(), status: 'unconfigured', focus: 'save', message: result.message, messageType: 'error' }));
+    }
+  }, []);
+
   // Load settings from DB on mount
   useEffect(() => {
-    window.api.settingsGetAll().then((settings: Record<string, string>) => {
+    void (async () => {
+      const settings = await window.api.settingsGetAll();
       if (settings.theme && THEMES.includes(settings.theme as Theme)) {
         setTheme(settings.theme as Theme);
       }
@@ -81,9 +99,14 @@ export function useSettingsState(): [
         setCloud(c => ({
           ...c, status: 'connected', url: settings.supabase_url, serviceKey: settings.supabase_service_role_key, focus: 'sync',
         }));
+        return;
       }
-    });
-  }, []);
+      const envCreds = await window.api.cloudGetLocalCredentials();
+      if (envCreds) {
+        await connectCloud(envCreds.url, envCreds.key, 'Connected');
+      }
+    })();
+  }, [connectCloud]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -116,20 +139,8 @@ export function useSettingsState(): [
   }, [hardcoreMode]);
 
   const cloudSaveAndConnect = useCallback(async (): Promise<void> => {
-    if (!cloud.url.trim() || !cloud.serviceKey.trim()) {
-      setCloud(c => ({ ...c, message: 'Both fields are required', messageType: 'error' }));
-      return;
-    }
-    setCloud(c => ({ ...c, status: 'loading', message: 'Connecting...', messageType: '' }));
-    const result = await window.api.cloudTestConnection(cloud.url.trim(), cloud.serviceKey.trim());
-    if (result.success) {
-      await window.api.settingsSet('supabase_url', cloud.url.trim());
-      await window.api.settingsSet('supabase_service_role_key', cloud.serviceKey.trim());
-      setCloud(c => ({ ...c, status: 'connected', focus: 'sync', message: 'Connected', messageType: 'success' }));
-    } else {
-      setCloud(c => ({ ...c, status: 'unconfigured', focus: 'save', message: result.message, messageType: 'error' }));
-    }
-  }, [cloud.url, cloud.serviceKey]);
+    await connectCloud(cloud.url, cloud.serviceKey, 'Connected');
+  }, [cloud.url, cloud.serviceKey, connectCloud]);
 
   const cloudDoSync = useCallback(async (): Promise<void> => {
     setCloud(c => ({ ...c, status: 'loading', message: 'Syncing...', messageType: '' }));
@@ -338,7 +349,7 @@ export function useSettingsState(): [
       return true;
     }
     return true;
-  }, [settingsOpen, settingsCategory, settingsThemeIndex, applyAndClose, toggleHardcore, trashRetentionIndex, cloud, cloudSaveAndConnect, cloudDoSync, cloudDoRestore, cloudDisconnect, cloudBrowseBackups, cloudRestoreSnapshot]);
+  }, [settingsOpen, settingsCategory, applyAndClose, toggleHardcore, trashRetentionIndex, cloud, cloudSaveAndConnect, cloudDoSync, cloudDoRestore, cloudDisconnect, cloudBrowseBackups, cloudRestoreSnapshot]);
 
   const setCloudField = useCallback((field: 'url' | 'serviceKey', value: string): void => {
     setCloud(c => ({ ...c, [field]: value }));
@@ -366,6 +377,6 @@ export function useSettingsState(): [
   return [
     { settingsOpen, settingsThemeIndex, themes: THEMES, hardcoreMode, settingsCategory, trashRetentionIndex, retentionOptions: RETENTION_OPTIONS, cloud },
     { open, handleKeyDown, setCloudField, setCategory, setThemeIndex: setSettingsThemeIndex, toggleHardcore, setTrashRetentionIndex, setCloudFocus,
-      cloudSave: cloudSaveAndConnect, cloudSync: cloudDoSync, cloudConfirmRestore, cloudDisconnect, cloudConfirmBackupRestore }
+      cloudSave: cloudSaveAndConnect, cloudSync: cloudDoSync, cloudBrowseBackups, cloudConfirmRestore, cloudDisconnect, cloudConfirmBackupRestore }
   ];
 }

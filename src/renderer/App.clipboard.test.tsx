@@ -1,7 +1,7 @@
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
-import { setupMockApi, navigateToTasksPane, mockTasks } from './test-utils';
+import { setupMockApi, navigateToTasksPane } from './test-utils';
 
 beforeEach(() => {
   setupMockApi();

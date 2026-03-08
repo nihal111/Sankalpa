@@ -75,6 +75,7 @@ contextBridge.exposeInMainWorld('api', {
   settingsSet: (key: string, value: string) => ipcRenderer.invoke('settings:set', key, value),
 
   // Cloud sync
+  cloudGetLocalCredentials: () => ipcRenderer.invoke('cloud:getLocalCredentials'),
   cloudTestConnection: (url: string, key: string) => ipcRenderer.invoke('cloud:testConnection', url, key),
   cloudSync: () => ipcRenderer.invoke('cloud:sync'),
   cloudRestore: () => ipcRenderer.invoke('cloud:restore'),

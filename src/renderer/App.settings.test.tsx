@@ -156,7 +156,6 @@ describe('App settings', () => {
     fireEvent.keyDown(window, { key: 'ArrowDown' }); // Hardcore
     fireEvent.keyDown(window, { key: 'ArrowDown' }); // Trash
     await waitFor(() => {
-      const options = document.querySelectorAll('.retention-option');
       const selected = document.querySelector('.retention-option.selected');
       expect(selected?.textContent).toBe('30 days');
     });

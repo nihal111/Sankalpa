@@ -85,14 +85,20 @@ describe('useTaskActions', () => {
     const child1 = makeTask({ id: 'c1', parent_id: 'p1', status: 'COMPLETED' });
     const child2 = makeTask({ id: 'c2', parent_id: 'p1', status: 'PENDING' });
     const tasks = [parent, child1, child2];
-    const flatTasks = tasks.map((task, i) => ({ task, depth: task.parent_id ? 1 : 0, index: i }));
+    const flatTasks: TaskWithDepth[] = tasks.map((task, i) => ({
+      task,
+      depth: task.parent_id ? 1 : 0,
+      isLastChild: i === tasks.length - 1,
+      ancestorIsLast: [],
+      effectiveParentId: task.parent_id,
+    }));
 
     let capturedOnConfirm: (() => void) | null = null;
     const onCascadeComplete = vi.fn((_task, _count, onConfirm) => { capturedOnConfirm = onConfirm; });
 
     const { result } = renderHook(() => useTaskActions({
       focusedPane: 'tasks',
-      selectedSidebarItem: { type: 'list', list: { id: 'l1', name: 'List', folder_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date() } },
+      selectedSidebarItem: { type: 'list', list: { id: 'l1', name: 'List', folder_id: null, notes: null, sort_key: 0, created_at: 0, updated_at: 0 } },
       selectedListId: 'l1',
       selectedTask: parent,
       tasks,

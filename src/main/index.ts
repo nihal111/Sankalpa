@@ -1,6 +1,7 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen, shell } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import dotenv from 'dotenv';
 import {
   getDb, closeDb, saveDb, reloadDb, getDbPath,
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded, reorderFolder,
@@ -22,6 +23,29 @@ let mainWindow: BrowserWindow | null = null;
 let quickAddWindow: BrowserWindow | null = null;
 const isTestHeadless = process.argv.includes('--test-headless');
 const iconPath = path.join(__dirname, '../../../assets/icon.png');
+
+interface CloudCredentials {
+  url: string;
+  key: string;
+}
+
+function getCloudSyncEnvCredentials(): CloudCredentials | null {
+  const candidatePaths = [
+    path.join(process.cwd(), '.env.cloud-sync'),
+    path.join(app.getAppPath(), '.env.cloud-sync'),
+  ];
+  const seen = new Set<string>();
+  for (const envPath of candidatePaths) {
+    if (seen.has(envPath)) continue;
+    seen.add(envPath);
+    if (!fs.existsSync(envPath)) continue;
+    const parsed = dotenv.parse(fs.readFileSync(envPath));
+    const url = (parsed.SUPABASE_URL ?? '').trim();
+    const key = (parsed.SERVICE_ROLE_KEY ?? parsed.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+    if (url && key) return { url, key };
+  }
+  return null;
+}
 
 function createWindow(): void {
   const cursor = screen.getCursorScreenPoint();
@@ -235,6 +259,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('settings:set', (_, key: string, value: string) => { setSetting(db(), key, value); wrappedSaveDb(); });
 
   // Cloud sync IPC handlers
+  ipcMain.handle('cloud:getLocalCredentials', () => getCloudSyncEnvCredentials());
   ipcMain.handle('cloud:testConnection', (_, url: string, key: string) => testConnection(url, key));
   ipcMain.handle('cloud:sync', async () => {
     const url = getSetting(db(), 'supabase_url');

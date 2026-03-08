@@ -4,12 +4,11 @@ import { useListActions } from './useListActions';
 
 describe('useListActions', () => {
   it('deleteList shows confirmation dialog', () => {
-    const list = { id: '1', name: 'Test List', folder_id: null, created_at: new Date(), updated_at: new Date() };
+    const list = { id: '1', name: 'Test List', folder_id: null, notes: null, sort_key: 1, created_at: 0, updated_at: 0 };
     const sidebarItem = { type: 'list' as const, list };
     
     const { result } = renderHook(() => useListActions({
       selectedSidebarIndex: 0,
-      sidebarItems: [sidebarItem],
       selectedSidebarItem: sidebarItem,
       taskCounts: { '1': 5 },
       setSelectedSidebarIndex: vi.fn(),

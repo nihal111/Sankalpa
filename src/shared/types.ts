@@ -37,6 +37,7 @@ export interface Task {
 
 export interface Api {
   onQuickAdd: (callback: () => void) => () => void;
+  onTaskCreated: (callback: (data: { id: string; listId: string | null }) => void) => () => void;
   onDbReloaded: (callback: () => void) => () => void;
 
   foldersGetAll: () => Promise<Folder[]>;
@@ -90,6 +91,7 @@ export interface Api {
   settingsGetAll: () => Promise<Record<string, string>>;
   settingsSet: (key: string, value: string) => Promise<void>;
 
+  cloudGetLocalCredentials: () => Promise<{ url: string; key: string } | null>;
   cloudTestConnection: (url: string, key: string) => Promise<{ success: boolean; message: string }>;
   cloudSync: () => Promise<{ success: boolean; message: string }>;
   cloudRestore: () => Promise<{ success: boolean; message: string }>;

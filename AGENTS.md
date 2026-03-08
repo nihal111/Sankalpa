@@ -86,5 +86,4 @@ try {
 Read these files:
 - `README.md` - Project overview and keybindings
 - `DEVELOPING.md` - Setup instructions
-- `docs/POC_plan.md` - Implementation plan and data model
 - `docs/adr/` - Architecture Decision Records (must be followed)

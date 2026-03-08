@@ -1,6 +1,35 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTrashActions } from './useTrashActions';
+import type { Task } from '../../shared/types';
+import type { TaskWithDepth } from '../utils/taskTree';
+
+const makeTask = (overrides: Partial<Task> = {}): Task => ({
+  id: '1',
+  list_id: null,
+  title: 'Test',
+  status: 'PENDING',
+  parent_id: null,
+  sort_key: 0,
+  created_at: 0,
+  updated_at: 0,
+  created_timestamp: 0,
+  notes: '',
+  due_date: null,
+  duration: null,
+  completed_timestamp: null,
+  deleted_at: null,
+  is_expanded: 1,
+  ...overrides,
+});
+
+const makeFlatTask = (task: Task, depth = 0): TaskWithDepth => ({
+  task,
+  depth,
+  isLastChild: true,
+  ancestorIsLast: [],
+  effectiveParentId: task.parent_id,
+});
 
 describe('useTrashActions', () => {
   it('handleCascadeComplete shows confirmation dialog', () => {
@@ -17,7 +46,7 @@ describe('useTrashActions', () => {
       undoPush: vi.fn(),
     }));
 
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const onConfirm = vi.fn();
 
     act(() => {
@@ -42,7 +71,7 @@ describe('useTrashActions', () => {
       undoPush: vi.fn(),
     }));
 
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const onConfirm = vi.fn();
 
     act(() => {
@@ -67,7 +96,7 @@ describe('useTrashActions', () => {
       undoPush: vi.fn(),
     }));
 
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     act(() => {
       result.current.handleCascadeDelete(task, 1, vi.fn());
     });
@@ -80,11 +109,11 @@ describe('useTrashActions', () => {
   });
 
   it('handlePermanentDeleteRequest shows confirmation for single task', () => {
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task],
-      flatTasks: [{ task, depth: 0 }],
+      flatTasks: [makeFlatTask(task)],
       lists: [],
       selectedTaskIndex: 0,
       selectedTaskIndices: new Set(),
@@ -103,20 +132,20 @@ describe('useTrashActions', () => {
   });
 
   it('handlePermanentDeleteRequest executes delete action', async () => {
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const reloadTasks = vi.fn().mockResolvedValue(undefined);
     let capturedUndo: (() => Promise<void>) | null = null;
-    const undoPush = vi.fn().mockImplementation((entry) => { capturedUndo = entry.undo; });
+    const undoPush = vi.fn().mockImplementation((entry: { undo: () => Promise<void> }) => { capturedUndo = entry.undo; });
 
     window.api = {
       tasksDelete: vi.fn().mockResolvedValue(undefined),
       tasksRestore: vi.fn().mockResolvedValue(undefined),
-    } as any;
+    } as unknown as typeof window.api;
 
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task],
-      flatTasks: [{ task, depth: 0 }],
+      flatTasks: [makeFlatTask(task)],
       lists: [],
       selectedTaskIndex: 0,
       selectedTaskIndices: new Set(),
@@ -130,14 +159,12 @@ describe('useTrashActions', () => {
       result.current.handlePermanentDeleteRequest(task);
     });
 
-    // Execute the delete action from the dialog
     await act(async () => {
       await result.current.confirmationDialog?.options[0].action();
     });
 
     expect(window.api.tasksDelete).toHaveBeenCalledWith('1');
 
-    // Execute the undo callback
     if (capturedUndo) {
       await act(async () => {
         await capturedUndo!();
@@ -147,7 +174,7 @@ describe('useTrashActions', () => {
   });
 
   it('handleRestoreTask restores task from trash', async () => {
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: new Date() };
+    const task = makeTask({ deleted_at: 123 });
     const reloadTasks = vi.fn().mockResolvedValue(undefined);
     const multiSelectClear = vi.fn();
     const setSelectedTaskIndex = vi.fn();
@@ -156,12 +183,12 @@ describe('useTrashActions', () => {
     window.api = {
       tasksRestoreFromTrash: vi.fn().mockResolvedValue(undefined),
       tasksSoftDelete: vi.fn().mockResolvedValue(undefined),
-    } as any;
+    } as unknown as typeof window.api;
 
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task],
-      flatTasks: [{ task, depth: 0 }],
+      flatTasks: [makeFlatTask(task)],
       lists: [],
       selectedTaskIndex: 0,
       selectedTaskIndices: new Set(),
@@ -180,21 +207,21 @@ describe('useTrashActions', () => {
   });
 
   it('handlePermanentDeleteRequest shows confirmation for multiple tasks', async () => {
-    const task1 = { id: '1', list_id: null, title: 'Test 1', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
-    const task2 = { id: '2', list_id: null, title: 'Test 2', status: 'PENDING', parent_id: null, sort_key: '1', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task1 = makeTask({ id: '1', title: 'Test 1', sort_key: 0 });
+    const task2 = makeTask({ id: '2', title: 'Test 2', sort_key: 1 });
     const reloadTasks = vi.fn().mockResolvedValue(undefined);
     let capturedUndo: (() => Promise<void>) | null = null;
-    const undoPush = vi.fn().mockImplementation((entry) => { capturedUndo = entry.undo; });
+    const undoPush = vi.fn().mockImplementation((entry: { undo: () => Promise<void> }) => { capturedUndo = entry.undo; });
 
     window.api = {
       tasksDelete: vi.fn().mockResolvedValue(undefined),
       tasksRestore: vi.fn().mockResolvedValue(undefined),
-    } as any;
+    } as unknown as typeof window.api;
 
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task1, task2],
-      flatTasks: [{ task: task1, depth: 0 }, { task: task2, depth: 0 }],
+      flatTasks: [makeFlatTask(task1), makeFlatTask(task2)],
       lists: [],
       selectedTaskIndex: 0,
       selectedTaskIndices: new Set([0, 1]),
@@ -210,12 +237,10 @@ describe('useTrashActions', () => {
 
     expect(result.current.confirmationDialog?.message).toContain('2 selected tasks');
 
-    // Execute the delete action
     await act(async () => {
       await result.current.confirmationDialog?.options[0].action();
     });
 
-    // Execute the undo callback
     if (capturedUndo) {
       await act(async () => {
         await capturedUndo!();
@@ -225,7 +250,7 @@ describe('useTrashActions', () => {
   });
 
   it('handlePermanentDeleteRequest does nothing with empty tasks', () => {
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [],
@@ -269,11 +294,11 @@ describe('useTrashActions', () => {
   });
 
   it('handlePermanentDeleteRequest shows Untitled for task without title', () => {
-    const task = { id: '1', list_id: null, title: '', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask({ title: '' });
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task],
-      flatTasks: [{ task, depth: 0 }],
+      flatTasks: [makeFlatTask(task)],
       lists: [],
       selectedTaskIndex: 0,
       selectedTaskIndices: new Set(),
@@ -291,12 +316,12 @@ describe('useTrashActions', () => {
   });
 
   it('handleRestoreTask does nothing when selected indices are out of bounds', async () => {
-    const task = { id: '1', list_id: null, title: 'Test', status: 'PENDING', parent_id: null, sort_key: '0', created_at: new Date(), updated_at: new Date(), created_timestamp: 0, notes: '', due_date: null, duration_minutes: null, completed_timestamp: null, deleted_at: null };
+    const task = makeTask();
     const reloadTasks = vi.fn();
     const { result } = renderHook(() => useTrashActions({
       isTrashView: true,
       tasks: [task],
-      flatTasks: [{ task, depth: 0 }],
+      flatTasks: [makeFlatTask(task)],
       lists: [],
       selectedTaskIndex: 5,
       selectedTaskIndices: new Set([5, 6]),
