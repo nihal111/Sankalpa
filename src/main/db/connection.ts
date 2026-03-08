@@ -6,7 +6,7 @@ import { initSchema, seed } from './schema';
 
 let db: Database | null = null;
 
-function getDbPath(): string {
+export function getDbPath(): string {
   if (process.env.SANKALPA_DB_PATH) {
     return process.env.SANKALPA_DB_PATH;
   }

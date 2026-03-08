@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain, nativeImage, screen, shell
 import path from 'path';
 import fs from 'fs';
 import {
-  getDb, closeDb, saveDb, reloadDb,
+  getDb, closeDb, saveDb, reloadDb, getDbPath,
   getAllFolders, createFolder, updateFolder, deleteFolder, toggleFolderExpanded, reorderFolder,
   getAllLists, createList, updateList, updateListNotes, deleteList, reorderList, moveList, getTaskCount,
   getInboxTasks, getCompletedTasks, getInboxTaskCount, getTasksByList, createTask, updateTask, toggleTaskCompleted, reorderTask, moveTask, deleteTask,
@@ -138,7 +138,7 @@ app.whenReady().then(async () => {
   createWindow();
 
   // Reload db from disk and notify renderer
-  const dbPath = path.join(app.getPath('userData'), 'sankalpa.db');
+  const dbPath = getDbPath();
   const triggerReload = async (): Promise<void> => {
     currentDb = await reloadDb();
     mainWindow?.webContents.send('db:reloaded');
