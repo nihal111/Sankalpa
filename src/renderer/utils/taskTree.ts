@@ -20,7 +20,7 @@ export function getTaskDepth(task: Task, taskMap: Map<string, Task>): number {
   return depth;
 }
 
-export function flattenWithDepth(tasks: Task[]): TaskWithDepth[] {
+export function flattenWithDepth(tasks: Task[], preserveOrder = false): TaskWithDepth[] {
   const taskIds = new Set(tasks.map(t => t.id));
   const childrenMap = new Map<string | null, Task[]>();
 
@@ -30,9 +30,11 @@ export function flattenWithDepth(tasks: Task[]): TaskWithDepth[] {
     childrenMap.get(parentId)!.push(task);
   }
 
-  // Sort children by sort_key within each parent group
-  for (const children of childrenMap.values()) {
-    children.sort((a, b) => a.sort_key - b.sort_key);
+  if (!preserveOrder) {
+    // Sort children by sort_key within each parent group
+    for (const children of childrenMap.values()) {
+      children.sort((a, b) => a.sort_key - b.sort_key);
+    }
   }
 
   const result: TaskWithDepth[] = [];

@@ -57,7 +57,12 @@ export function useAppState() {
     const id = selectedSidebarItem.smartList.id;
     return id === 'trash' || id === 'today' || id === 'overdue' || id === 'upcoming';
   }, [selectedSidebarItem]);
-  const flatTasks = useMemo(() => flattenWithDepth(tasks), [tasks]);
+  const preserveTaskOrder = useMemo(() => {
+    if (selectedSidebarItem?.type !== 'smart') return false;
+    const id = selectedSidebarItem.smartList.id;
+    return id === 'today' || id === 'overdue' || id === 'upcoming';
+  }, [selectedSidebarItem]);
+  const flatTasks = useMemo(() => flattenWithDepth(tasks, preserveTaskOrder), [tasks, preserveTaskOrder]);
   const filteredFlatTasks = useMemo(() => {
     if (!localSearchOpen || !localSearchQuery.trim()) return flatTasks;
     const q = localSearchQuery.toLowerCase();
