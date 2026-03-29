@@ -181,7 +181,7 @@ export function useAppState() {
 
   const closeQuickAdd = useCallback(() => setQuickAddOpen(false), []);
 
-  const { createTask, createTaskBelow, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
+  const { createTask, createTaskBelow, createChildTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
@@ -233,7 +233,7 @@ export function useAppState() {
     focusedPane, editMode: !!editMode, moveMode, settingsOpen, isSearchOpen, isTrashView,
     selectedTask, selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem,
   }, {
-    settingsOpen: settingsActions.open, openSearch, undo, redo, createTask, createList, createFolder,
+    settingsOpen: settingsActions.open, openSearch, undo, redo, createTask, createChildTask, createList, createFolder,
     deleteTask, toggleTaskCompleted, startEdit: editActions.start, startMove: moveActions.start,
     startDueDate: dueDateActions.start, handleStartNotesEdit, indentTask, outdentTask, toggleCollapse,
     handleRestoreTask: trashActions.handleRestoreTask, clearSelection: multiSelectActions.clear,
@@ -261,7 +261,7 @@ export function useAppState() {
 
   const keyboardActions = useKeyboardActions({
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
-    selectedTaskIndex, toggleTaskCompleted, createList, createTask, createTaskBelow, deleteTask,
+    selectedTaskIndex, toggleTaskCompleted, createList, createTask, createTaskBelow, createChildTask, deleteTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask: trashActions.handleRestoreTask, openInActualList, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette,

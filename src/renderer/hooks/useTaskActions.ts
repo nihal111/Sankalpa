@@ -36,6 +36,7 @@ interface UseTaskActionsParams {
 interface TaskActions {
   createTask: () => Promise<void>;
   createTaskBelow: () => Promise<void>;
+  createChildTask: () => Promise<void>;
   toggleTaskCompleted: () => Promise<void>;
   deleteTask: () => Promise<void>;
   duplicateTask: () => Promise<void>;
@@ -109,6 +110,32 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
       },
     });
   }, [focusedPane, selectedTask, selectedSidebarItem, flatTasks, selectedTaskIndex, selectedListId, finishCreateTask, undoPush]);
+
+  const createChildTask = useCallback(async () => {
+    if (focusedPane !== 'tasks' || !selectedTask) return;
+    const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
+    const isList = selectedSidebarItem?.type === 'list';
+    if (!isInbox && !isList) return;
+
+    const listId = isList ? selectedListId : null;
+    const parentId = selectedTask.id;
+
+    // Expand parent if collapsed so the new child is visible
+    if (!selectedTask.is_expanded) await window.api.tasksToggleExpanded(parentId);
+
+    const newTaskId = crypto.randomUUID();
+    const newTask = await window.api.tasksCreate(newTaskId, listId, '');
+    await window.api.tasksSetParentId(newTaskId, parentId);
+    await finishCreateTask(newTaskId, isInbox, listId);
+
+    undoPush({
+      undo: async () => { await window.api.tasksDelete(newTaskId); },
+      redo: async () => {
+        await window.api.tasksRestore(newTaskId, listId, '', 'PENDING', newTask.created_timestamp, null, newTask.sort_key, newTask.created_at, newTask.updated_at);
+        await window.api.tasksSetParentId(newTaskId, parentId);
+      },
+    });
+  }, [focusedPane, selectedTask, selectedSidebarItem, selectedListId, finishCreateTask, undoPush]);
 
   const toggleTaskCompleted = useCallback(async () => {
     if (focusedPane !== 'tasks' || !selectedTask) return;
@@ -288,5 +315,5 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
     }
   }, [isTrashView, selectedSidebarItem, reloadTasks, showToast, undoPush]);
 
-  return { createTask, createTaskBelow, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
+  return { createTask, createTaskBelow, createChildTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard };
 }

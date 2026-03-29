@@ -21,6 +21,7 @@ interface PaletteActions {
   undo: () => void;
   redo: () => void;
   createTask: () => void;
+  createChildTask: () => void;
   createList: () => void;
   createFolder: () => void;
   deleteTask: () => void;
@@ -77,6 +78,7 @@ export function usePaletteState(
       undo: actions.undo,
       redo: actions.redo,
       newTask: actions.createTask,
+      newChildTask: actions.createChildTask,
       newList: actions.createList,
       newFolder: actions.createFolder,
       delete: actions.deleteTask,

@@ -22,6 +22,7 @@ interface UseKeyboardActionsParams {
   createList: () => Promise<void>;
   createTask: () => void;
   createTaskBelow: () => void;
+  createChildTask: () => void;
   deleteTask: () => void;
   handleArrowNavigation: (e: KeyboardEvent) => void;
   handleHorizontalArrow: (dir: 'left' | 'right') => void;
@@ -61,7 +62,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
   const {
     settingsActions, moveActions, multiSelectActions, editActions, dueDateActions, durationActions,
     selectedTaskIndex, toggleTaskCompleted, createList, createTask, deleteTask,
-    createTaskBelow,
+    createTaskBelow, createChildTask,
     handleArrowNavigation, handleHorizontalArrow, undo, redo,
     handleRestoreTask, openInActualList, focusedPane, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
@@ -91,6 +92,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     createList,
     createTask,
     createTaskBelow,
+    createChildTask,
     deleteTask,
     deleteList,
     handleArrowNavigation,
@@ -129,7 +131,7 @@ export function useKeyboardActions(params: UseKeyboardActionsParams): KeyboardAc
     reorderListDown,
   }), [
     settingsActions, moveActions, multiSelectActions, selectedTaskIndex,
-    editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask, createTaskBelow,
+    editActions, dueDateActions, durationActions, toggleTaskCompleted, createList, createTask, createTaskBelow, createChildTask,
     deleteTask, handleArrowNavigation, handleHorizontalArrow,
     startMove, undo, redo, handleRestoreTask, openInActualList, openSearch, handleStartNotesEdit,
     indentTask, outdentTask, toggleCollapse, toggleFolderCollapse, deleteList, togglePalette, duplicateTask, copyTasks, cutTasks, createFromClipboard,
