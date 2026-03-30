@@ -57,6 +57,7 @@ export interface KeyboardActions {
   selectAllTasks: Command;
   reorderListUp: Command;
   reorderListDown: Command;
+  toggleCompletedSection: Command;
 }
 
 export interface KeyboardState {
@@ -80,6 +81,8 @@ export interface KeyboardState {
   moveListMode: boolean;
   listInfoOpen: boolean;
   quickAddOpen: boolean;
+  completedDividerIndex: number | null;
+  selectedTaskIndex: number;
 }
 
 function getAction(id: string): Action {
@@ -164,6 +167,10 @@ export function useKeyboardNavigation(
     if (e.key === 'Escape' && state.hasSelection) { e.preventDefault(); actions.clearSelection(); return; }
     if (matches(e, 'toggleCompleted') && getAction('toggleCompleted').isAvailable(ctx)) { e.preventDefault(); actions.toggleTaskCompleted(); return; }
     if (state.cmdHeld && e.key === 'Enter' && state.focusedPane === 'tasks') { e.preventDefault(); actions.toggleAtCursor(); return; }
+    // Enter on completed divider toggles section
+    if (e.key === 'Enter' && !e.metaKey && !e.altKey && !e.shiftKey && state.focusedPane === 'tasks' && state.completedDividerIndex !== null && state.selectedTaskIndex === state.completedDividerIndex) {
+      e.preventDefault(); actions.toggleCompletedSection(); return;
+    }
     if (matches(e, 'clearSelection') && !state.cmdHeld && getAction('clearSelection').isAvailable(ctx)) { e.preventDefault(); actions.clearSelection(); return; }
     if (matches(e, 'newList')) { e.preventDefault(); actions.createList(); return; }
     if (matches(e, 'newTaskBelow') && getAction('newTaskBelow').isAvailable(ctx)) { e.preventDefault(); actions.createTaskBelow(); return; }

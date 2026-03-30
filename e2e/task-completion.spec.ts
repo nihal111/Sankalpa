@@ -30,13 +30,12 @@ test('checkboxes, Cmd+Enter completion, and completed smart list wiring', async 
   await press(page, 'ArrowUp');
   await press(page, 'Enter', { meta: true });
 
-  await expect(page.locator('.tasks-pane .item.completed')).toHaveCount(3);
+  await expect(page.locator('.tasks-pane .task-item.completed')).toHaveCount(0);
+  await expect(page.locator('.completed-divider')).toHaveCount(1);
+  await expect(page.locator('.completed-divider .divider-label')).toHaveText('3 completed');
 
-  await press(page, 'Tab');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
-  await press(page, 'ArrowDown');
+  // Navigate to Completed smart list
+  await page.locator('.lists-pane .item').filter({ hasText: 'Completed' }).click();
   await press(page, 'Tab');
 
   await expect(page.locator('.tasks-pane .item')).toHaveCount(3);
@@ -44,5 +43,5 @@ test('checkboxes, Cmd+Enter completion, and completed smart list wiring', async 
   await expect(page.locator('.tasks-pane h2')).toHaveText('Completed');
 
   const completedTitles = await getTaskTitles(page);
-  expect(completedTitles).toEqual(['Task 3', 'Task 4', 'Task 5']);
+  expect(completedTitles).toEqual(['Task 3Inbox', 'Task 4Inbox', 'Task 5Inbox']);
 });

@@ -287,6 +287,36 @@ h2 {
   color: var(--text-secondary);
 }
 
+.completed-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.completed-divider.selected {
+  background: var(--bg-selected-unfocused);
+}
+
+.pane.focused .completed-divider.selected {
+  background: var(--bg-selected);
+  color: var(--text-selected);
+}
+
+.divider-chevron {
+  font-size: 10px;
+}
+
+.divider-label {
+  font-weight: 500;
+}
+
 .task-origin {
   flex-shrink: 0;
   margin-left: auto;

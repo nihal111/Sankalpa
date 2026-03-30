@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useMultiSelect } from './useMultiSelect';
 import type { Pane } from './types';
 import { useSettingsState } from './hooks/useSettingsState';
@@ -20,7 +20,7 @@ import { useListActions, useMoveCommit } from './hooks/useListActions';
 import { usePaletteState } from './hooks/usePaletteState';
 import { useSearchState } from './hooks/useSearchState';
 import { useContextMenu } from './hooks/useContextMenu';
-import { flattenWithDepth } from './utils/taskTree';
+import { flattenWithDepth, partitionByCompletion } from './utils/taskTree';
 import { useMoveListState } from './hooks/useMoveListState';
 import { useDragDrop } from './hooks/useDragDrop';
 import { useMetaKey } from './hooks/useMetaKey';
@@ -63,20 +63,51 @@ export function useAppState() {
     return id === 'today' || id === 'overdue' || id === 'upcoming';
   }, [selectedSidebarItem]);
   const flatTasks = useMemo(() => flattenWithDepth(tasks, preserveTaskOrder), [tasks, preserveTaskOrder]);
+  const [completedSectionCollapsed, setCompletedSectionCollapsed] = useState(true);
+  const shouldPartition = useMemo(() => {
+    if (selectedSidebarItem?.type === 'smart') {
+      const id = selectedSidebarItem.smartList.id;
+      return id !== 'completed' && id !== 'trash';
+    }
+    return selectedSidebarItem?.type === 'list' || selectedSidebarItem?.type === 'smart';
+  }, [selectedSidebarItem]);
+  const partition = useMemo(() => shouldPartition ? partitionByCompletion(flatTasks, tasks) : null, [shouldPartition, flatTasks, tasks]);
+  const completedDividerIndex = useMemo(() => partition && partition.completed.length > 0 ? partition.incomplete.length : null, [partition]);
+  const displayFlatTasks = useMemo(() => {
+    if (!partition || completedDividerIndex === null) return flatTasks;
+    return completedSectionCollapsed ? partition.incomplete : [...partition.incomplete, ...partition.completed];
+  }, [flatTasks, partition, completedDividerIndex, completedSectionCollapsed]);
+  const completedCount = partition?.completed.length ?? 0;
+  const toggleCompletedSection = useCallback(() => setCompletedSectionCollapsed(v => !v), []);
   const filteredFlatTasks = useMemo(() => {
-    if (!localSearchOpen || !localSearchQuery.trim()) return flatTasks;
+    if (!localSearchOpen || !localSearchQuery.trim()) return displayFlatTasks;
     const q = localSearchQuery.toLowerCase();
-    return flatTasks.filter(ft => ft.task.title.toLowerCase().includes(q) || (ft.task.notes?.toLowerCase().includes(q) ?? false));
-  }, [flatTasks, localSearchOpen, localSearchQuery]);
-  const selectedTask = useMemo(() => flatTasks[selectedTaskIndex]?.task ?? null, [flatTasks, selectedTaskIndex]);
+    return displayFlatTasks.filter(ft => ft.task.title.toLowerCase().includes(q) || (ft.task.notes?.toLowerCase().includes(q) ?? false));
+  }, [displayFlatTasks, localSearchOpen, localSearchQuery]);
+  const selectedTask = useMemo(() => {
+    if (completedDividerIndex !== null && selectedTaskIndex === completedDividerIndex) return null;
+    const idx = completedDividerIndex !== null && selectedTaskIndex > completedDividerIndex ? selectedTaskIndex - 1 : selectedTaskIndex;
+    return displayFlatTasks[idx]?.task ?? null;
+  }, [displayFlatTasks, selectedTaskIndex, completedDividerIndex]);
   const isFolder = selectedSidebarItem?.type === 'folder';
   const folderView = useFolderView(selectedSidebarItem, lists);
-  const effectiveTasksLength = isFolder ? folderView.rows.length : flatTasks.length;
+  // +1 for the divider row when it exists
+  const displayLength = useMemo(() => completedDividerIndex !== null ? displayFlatTasks.length + 1 : displayFlatTasks.length, [displayFlatTasks, completedDividerIndex]);
+  const effectiveTasksLength = isFolder ? folderView.rows.length : displayLength;
+  // Convert display index (which may include divider) to displayFlatTasks index
+  const toTaskIndex = useCallback((i: number): number => {
+    if (completedDividerIndex === null || i < completedDividerIndex) return i;
+    if (i === completedDividerIndex) return -1; // divider itself
+    return i - 1;
+  }, [completedDividerIndex]);
+  const adjustedTaskIndex = Math.max(0, toTaskIndex(selectedTaskIndex));
   const reloadTasks = useCallback(async () => { await reloadTasksBase(); if (isFolder) folderView.reload(); }, [reloadTasksBase, isFolder, folderView]);
   // For drag/drop: map row index to task info
   const getTaskAtIndex = useCallback((i: number) => {
     if (!isFolder) {
-      const t = flatTasks[i]?.task;
+      const ti = toTaskIndex(i);
+      if (ti < 0) return undefined;
+      const t = displayFlatTasks[ti]?.task;
       return t ? { id: t.id, sort_key: t.sort_key, list_id: t.list_id } : undefined;
     }
     const row = folderView.rows[i];
@@ -85,16 +116,18 @@ export function useAppState() {
       return { id: t.id, sort_key: t.sort_key, list_id: t.list_id };
     }
     return undefined;
-  }, [isFolder, flatTasks, folderView.rows]);
+  }, [isFolder, displayFlatTasks, folderView.rows, toTaskIndex]);
   // For drag/drop: find adjacent sibling (same parent_id) for sort key calculation
   const getAdjacentSibling = useCallback((index: number, direction: 'before' | 'after') => {
     if (!isFolder) {
-      const current = flatTasks[index];
+      const ti = toTaskIndex(index);
+      if (ti < 0) return undefined;
+      const current = displayFlatTasks[ti];
       if (!current) return undefined;
       const parentId = current.effectiveParentId;
       const step = direction === 'before' ? -1 : 1;
-      for (let j = index + step; j >= 0 && j < flatTasks.length; j += step) {
-        const candidate = flatTasks[j];
+      for (let j = ti + step; j >= 0 && j < displayFlatTasks.length; j += step) {
+        const candidate = displayFlatTasks[j];
         if (candidate.effectiveParentId === parentId) {
           return { id: candidate.task.id, sort_key: candidate.task.sort_key, list_id: candidate.task.list_id };
         }
@@ -114,10 +147,10 @@ export function useAppState() {
       }
     }
     return undefined;
-  }, [isFolder, flatTasks, folderView.rows]);
+  }, [isFolder, displayFlatTasks, folderView.rows, toTaskIndex]);
   const afterUndo = useCallback(async () => { await reloadData(); await reloadTasks(); }, [reloadData, reloadTasks]);
   const { push: undoPush, undo, redo } = useUndoStack(afterUndo);
-  const trashActions = useTrashActions({ isTrashView, tasks, flatTasks, lists, selectedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
+  const trashActions = useTrashActions({ isTrashView, tasks, flatTasks: displayFlatTasks, lists, selectedTaskIndex: adjustedTaskIndex, selectedTaskIndices, setSelectedTaskIndex, multiSelectClear: multiSelectActions.clear, reloadTasks, undoPush });
   const [dueDateIndex, dueDateActions] = useDueDateState({ focusedPane, selectedTask, selectedTaskIndex, reloadTasks });
   const [durationIndex, durationActions] = useDurationState({ focusedPane, selectedTask, selectedTaskIndex, reloadTasks });
   const [edit, editActions, editSetters] = useEditState({ focusedPane, selectedSidebarItem, selectedTask, selectedTaskIndex, reloadData, reloadTasks, undoPush, onEvaporate: evaporateFlash });
@@ -125,7 +158,7 @@ export function useAppState() {
   const { setEditMode, setEditValue } = editSetters;
   const handleMoveCommit = useMoveCommit({ sidebarItems, tasks, multiSelectActions, setSelectedSidebarIndex, setFocusedPane, reloadData, flash: moveFlash, undoPush });
   const [move, moveActions] = useMoveState({
-    sidebarItems, selectedListId, selectedTask, flatTasks, selectedTaskIndex, selectedTaskIndices, onCommit: handleMoveCommit,
+    sidebarItems, selectedListId, selectedTask, flatTasks: displayFlatTasks, selectedTaskIndex: adjustedTaskIndex, selectedTaskIndices, onCommit: handleMoveCommit,
   });
   const { moveMode, moveTargetIndex } = move;
 
@@ -137,6 +170,34 @@ export function useAppState() {
   const { isSearchOpen, lastSearchQuery, setLastSearchQuery, openSearch, closeSearch, handleSearchSelect } = searchState;
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+
+  // Reset completed section when switching lists
+  const prevSidebarRef = useRef(selectedSidebarItem);
+  const skipNextResetRef = useRef(false);
+  useEffect(() => {
+    if (prevSidebarRef.current !== selectedSidebarItem) {
+      prevSidebarRef.current = selectedSidebarItem;
+      if (skipNextResetRef.current) {
+        skipNextResetRef.current = false;
+      } else {
+        setCompletedSectionCollapsed(true);
+        // Clamp selection to incomplete section so auto-expand doesn't re-expand
+        if (completedDividerIndex !== null && selectedTaskIndex > completedDividerIndex) {
+          setSelectedTaskIndex(completedDividerIndex);
+        }
+      }
+    }
+  }, [selectedSidebarItem, completedDividerIndex, selectedTaskIndex, setSelectedTaskIndex]);
+
+  // Auto-expand completed section when an external action selects a task beyond the divider,
+  // or when there are no incomplete tasks (divider at 0) so the list isn't empty
+  useEffect(() => {
+    if (completedDividerIndex !== null && completedSectionCollapsed) {
+      if (selectedTaskIndex > completedDividerIndex || completedDividerIndex === 0) {
+        setCompletedSectionCollapsed(false);
+      }
+    }
+  }, [selectedTaskIndex, completedDividerIndex, completedSectionCollapsed]);
 
   useEffect(() => {
     return window.api.onQuickAdd(() => setQuickAddOpen(true));
@@ -182,7 +243,7 @@ export function useAppState() {
   const closeQuickAdd = useCallback(() => setQuickAddOpen(false), []);
 
   const { createTask, createTaskBelow, createChildTask, toggleTaskCompleted, deleteTask, duplicateTask, copyTasks, cutTasks, createFromClipboard } = useTaskActions({
-    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
+    focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks: displayFlatTasks, selectedTaskIndex: adjustedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
     onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete, multiSelectClear: multiSelectActions.clear,
@@ -190,13 +251,14 @@ export function useAppState() {
   });
 
   const { handleReorder, indentTask, outdentTask, toggleCollapse } = useTaskNesting({
-    focusedPane, selectedTaskIndex, tasks, flatTasks, setSelectedTaskIndex, reloadTasks, onFlash: flash, onThrob: throb, undoPush,
+    focusedPane, selectedTaskIndex: adjustedTaskIndex, tasks, flatTasks: displayFlatTasks, setSelectedTaskIndex, reloadTasks, onFlash: flash, onThrob: throb, undoPush,
   });
 
   const handleArrowNavigation = useArrowNavigation({
     focusedPane, sidebarItems, taskCounts, tasksLength: effectiveTasksLength,
     selectedTaskIndex, selectionAnchor, boundaryCursor, shiftHeld, cmdHeld, selectedTaskIndicesSize: selectedTaskIndices.size,
     setSelectedSidebarIndex: (fn) => setSelectedSidebarIndex(fn), setSelectedTaskIndex, multiSelectActions, handleReorder,
+    completedDividerIndex, completedSectionCollapsed,
   });
 
   const { handleHorizontalArrow } = useSidebarNavigation({
@@ -218,8 +280,18 @@ export function useAppState() {
     const targetTasks = selectedTask.list_id
       ? await window.api.tasksGetByList(selectedTask.list_id)
       : await window.api.tasksGetInbox();
-    const targetTaskIndex = targetTasks.findIndex((task) => task.id === selectedTask.id);
-    const safeTaskIndex = targetTaskIndex >= 0 ? targetTaskIndex : 0;
+    // Compute display index accounting for completed section partition
+    const flat = flattenWithDepth(targetTasks);
+    const part = partitionByCompletion(flat, targetTasks);
+    const allDisplay = [...part.incomplete, ...part.completed];
+    const displayIdx = allDisplay.findIndex(ft => ft.task.id === selectedTask.id);
+    // Offset by 1 if task is in completed section (divider occupies an index)
+    const inCompleted = displayIdx >= part.incomplete.length;
+    const safeTaskIndex = displayIdx >= 0 ? (inCompleted ? displayIdx + 1 : displayIdx) : 0;
+    if (inCompleted) {
+      skipNextResetRef.current = true;
+      setCompletedSectionCollapsed(false);
+    }
     setCursorForList(targetListKey, safeTaskIndex);
     setTasks(targetTasks);
     setSelectedSidebarIndex(targetSidebarIndex);
@@ -271,6 +343,7 @@ export function useAppState() {
     showListInfo, closeListInfo, selectSidebarByListNumber,
     toggleLocalSearch: () => setLocalSearchOpen(!localSearchOpen),
     selectAllTasks, reorderListUp, reorderListDown,
+    toggleCompletedSection,
   });
 
   const keyboardState = useKeyboardState({
@@ -278,6 +351,7 @@ export function useAppState() {
     selectedTaskIndicesSize: selectedTaskIndices.size, selectedSidebarItem, isTrashView, selectedTask, isSearchOpen, isPaletteOpen, settingsOpen, isCompletedView,
     confirmationDialogOpen: trashActions.confirmationDialog !== null || listConfirmationDialog !== null,
     moveListMode, listInfoOpen, quickAddOpen,
+    completedDividerIndex, selectedTaskIndex,
   });
 
   useKeyboardNavigation(keyboardActions, keyboardState, setSelectedTaskIndex);
@@ -285,7 +359,7 @@ export function useAppState() {
   const dragDrop = useDragDrop({
     hardcoreMode, getTaskAtIndex, getAdjacentSibling,
     selectedTaskIndices, sidebarItems,
-    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane, setSelectedTaskIndex, flatTasks,
+    reloadTasks, reloadData, setSelectedSidebarIndex, setFocusedPane, setSelectedTaskIndex, flatTasks: displayFlatTasks,
     flash, moveFlash, undoPush,
     multiSelectClear: multiSelectActions.clear,
   });
@@ -338,5 +412,6 @@ export function useAppState() {
     folderViewRows: folderView.rows, folderViewToggleSection: folderView.toggleSection,
     toastMessage: toast.message, localSearchOpen, setLocalSearchOpen, localSearchQuery, setLocalSearchQuery,
     quickAddOpen, handleQuickAddSubmit, closeQuickAdd,
+    completedDividerIndex, completedSectionCollapsed, completedCount, toggleCompletedSection,
   };
 }

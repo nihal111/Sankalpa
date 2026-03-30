@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import type { Task, List } from '../shared/types';
 import type { EditMode, Pane, CompletedFilter } from './types';
@@ -51,6 +52,10 @@ interface TasksPaneProps {
     onDrop: (e: React.DragEvent) => void;
     onDragEnd: () => void;
   };
+  completedDividerIndex?: number | null;
+  completedSectionCollapsed?: boolean;
+  completedCount?: number;
+  onToggleCompletedSection?: () => void;
 }
 
 export function TasksPane({
@@ -88,6 +93,10 @@ export function TasksPane({
   dragOverIndex,
   dropPosition,
   taskDragProps,
+  completedDividerIndex,
+  completedSectionCollapsed,
+  completedCount,
+  onToggleCompletedSection,
 }: TasksPaneProps): ReactNode {
   const getSourceListName = (task: Task): string | null => {
     if (!showSourceList || !lists) return null;
@@ -127,18 +136,20 @@ export function TasksPane({
         />
       )}
       <ul className="item-list">
-        {flatTasks.length === 0 && (
+        {flatTasks.length === 0 && completedDividerIndex === null && (
           <li className="empty-list-hint">
             Press <span className="hotkey-badge">⌘</span> <span className="hotkey-badge">N</span> to create a task
           </li>
         )}
         {flatTasks.map((flatTask, i) => {
+          // Display index accounts for the divider row
+          const displayIndex = completedDividerIndex !== null && i >= completedDividerIndex ? i + 1 : i;
           const task = flatTask.task;
           const sourceListName = getSourceListName(task);
           const hasKids = hasChildTasks(task.id);
           const expanded = isExpanded(task);
           const childCount = getChildCount(task);
-          const drag = taskDragProps?.(i);
+          const drag = taskDragProps?.(displayIndex);
           const isOverdue = task.due_date !== null && task.due_date < Date.now() && task.status === 'PENDING';
           // Build tree line classes for each depth level
           const treeLines: { type: 'vertical' | 'empty' | 'tee' | 'corner' }[] = [];
@@ -148,14 +159,25 @@ export function TasksPane({
           if (flatTask.depth > 0) {
             treeLines.push({ type: flatTask.isLastChild ? 'corner' : 'tee' });
           }
-          return (
+          const divider = completedDividerIndex !== null && i === completedDividerIndex ? (
             <li
-              key={task.id}
-              className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${i === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(i) ? 'multi-selected' : ''} ${shiftHeld && i === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && i === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${uncompleteIds.has(task.id) ? 'uncompleting' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === i && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === i && dropPosition === 'after' ? 'drag-over-after' : ''} ${editMode?.type === 'task' && editMode.index === i ? 'editing' : ''}`}
-              onClick={() => onTaskClick(i)}
-              onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(i, e.clientX, e.clientY); }}
-              {...drag}
+              key="__completed-divider"
+              className={`completed-divider ${completedDividerIndex === selectedTaskIndex ? 'selected' : ''}`}
+              onClick={onToggleCompletedSection}
             >
+              <span className="divider-chevron">{completedSectionCollapsed ? '▸' : '▾'}</span>
+              <span className="divider-label">{completedCount} completed</span>
+            </li>
+          ) : null;
+          return (
+            <Fragment key={task.id}>
+              {divider}
+              <li
+                className={`item task-item ${task.status === 'COMPLETED' ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${displayIndex === selectedTaskIndex && !cmdHeld ? 'selected' : ''} ${selectedTaskIndices.has(displayIndex) ? 'multi-selected' : ''} ${shiftHeld && displayIndex === selectedTaskIndex ? 'cursor' : ''} ${cmdHeld && displayIndex === boundaryCursor ? 'cursor' : ''} ${flashIds.has(task.id) ? 'flash' : ''} ${throbIds.has(task.id) ? 'throb' : ''} ${completeIds.has(task.id) ? 'completing' : ''} ${uncompleteIds.has(task.id) ? 'uncompleting' : ''} ${moveIds.has(task.id) ? 'moved' : ''} ${evaporateIds.has(task.id) ? 'evaporating' : ''} ${dragOverIndex === displayIndex && dropPosition === 'before' ? 'drag-over-before' : ''} ${dragOverIndex === displayIndex && dropPosition === 'after' ? 'drag-over-after' : ''} ${editMode?.type === 'task' && editMode.index === displayIndex ? 'editing' : ''}`}
+                onClick={() => onTaskClick(displayIndex)}
+                onContextMenu={(e) => { e.preventDefault(); onTaskContextMenu(displayIndex, e.clientX, e.clientY); }}
+                {...drag}
+              >
               <span className="task-tree-area">
                 {treeLines.map((line, idx) => (
                   <span
@@ -184,8 +206,8 @@ export function TasksPane({
                 onClick={(e) => e.stopPropagation()}
                 aria-label={`mark ${task.title || 'untitled task'} as complete`}
               />
-              <span className={`task-content${editMode?.type === 'task' && editMode.index === i ? ' editing' : ''}`}>
-                {editMode?.type === 'task' && editMode.index === i ? (
+              <span className={`task-content${editMode?.type === 'task' && editMode.index === displayIndex ? ' editing' : ''}`}>
+                {editMode?.type === 'task' && editMode.index === displayIndex ? (
                   <input
                     ref={inputRef}
                     type="text"
@@ -202,7 +224,7 @@ export function TasksPane({
                   </>
                 )}
               </span>
-              {editMode?.type === 'task' && editMode.index === i && (
+              {editMode?.type === 'task' && editMode.index === displayIndex && (
                 <span className="edit-hint"><kbd>Return</kbd> to save</span>
               )}
               {sourceListName && <span className="task-origin">{sourceListName}</span>}
@@ -213,9 +235,20 @@ export function TasksPane({
                 <span className={`task-due-date${task.due_date < Date.now() && task.status === 'PENDING' ? ' overdue' : ''}`}>{formatDueDate(task.due_date)}</span>
               ) : null}
               {listNames && <span className="task-origin">{task.list_id ? listNames[task.list_id] || 'Inbox' : 'Inbox'}</span>}
-            </li>
+              </li>
+            </Fragment>
           );
         })}
+        {completedDividerIndex !== null && completedSectionCollapsed && flatTasks.length === completedDividerIndex && (
+          <li
+            key="__completed-divider-end"
+            className={`completed-divider ${completedDividerIndex === selectedTaskIndex ? 'selected' : ''}`}
+            onClick={onToggleCompletedSection}
+          >
+            <span className="divider-chevron">▸</span>
+            <span className="divider-label">{completedCount} completed</span>
+          </li>
+        )}
       </ul>
     </div>
   );

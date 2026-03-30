@@ -115,6 +115,10 @@ export default function App(): ReactNode {
           dragOverIndex={state.dragState.dragOverIndex}
           dropPosition={state.dragState.dropPosition}
           taskDragProps={state.taskDragProps}
+          completedDividerIndex={state.completedDividerIndex}
+          completedSectionCollapsed={state.completedSectionCollapsed}
+          completedCount={state.completedCount}
+          onToggleCompletedSection={state.toggleCompletedSection}
         />
       )}
       <TaskDetailPane

@@ -94,3 +94,70 @@ export function canOutdent(taskIndex: number, flatTasks: TaskWithDepth[]): boole
 export function hasChildren(taskId: string, tasks: Task[]): boolean {
   return tasks.some(t => t.parent_id === taskId);
 }
+
+export interface CompletedSection {
+  incomplete: TaskWithDepth[];
+  completed: TaskWithDepth[];
+}
+
+/** Split flat tasks into incomplete and fully-completed root subtrees.
+ *  A root subtree is "fully completed" when the root AND every descendant has status === 'COMPLETED'.
+ *  Completed subtrees are sorted by root's completed_timestamp descending (most recent first). */
+export function partitionByCompletion(flatTasks: TaskWithDepth[], tasks: Task[]): CompletedSection {
+  // Build set of all task ids with incomplete status
+  const incompleteIds = new Set(tasks.filter(t => t.status !== 'COMPLETED').map(t => t.id));
+
+  // Build parent→children map to check descendants
+  const childrenMap = new Map<string, string[]>();
+  for (const t of tasks) {
+    if (t.parent_id) {
+      if (!childrenMap.has(t.parent_id)) childrenMap.set(t.parent_id, []);
+      childrenMap.get(t.parent_id)!.push(t.id);
+    }
+  }
+
+  // Check if a task and all descendants are completed
+  function isFullyCompleted(id: string): boolean {
+    if (incompleteIds.has(id)) return false;
+    const children = childrenMap.get(id);
+    if (!children) return true;
+    return children.every(isFullyCompleted);
+  }
+
+  // Identify which root tasks are fully completed
+  const completedRoots = new Set<string>();
+  for (const ft of flatTasks) {
+    if (ft.depth === 0 && isFullyCompleted(ft.task.id)) {
+      completedRoots.add(ft.task.id);
+    }
+  }
+
+  if (completedRoots.size === 0) return { incomplete: flatTasks, completed: [] };
+
+  // Track which root each flat task belongs to
+  const incomplete: TaskWithDepth[] = [];
+  const completed: TaskWithDepth[] = [];
+  let currentRoot: string | null = null;
+  let currentIsCompleted = false;
+
+  for (const ft of flatTasks) {
+    if (ft.depth === 0) {
+      currentRoot = ft.task.id;
+      currentIsCompleted = completedRoots.has(currentRoot);
+    }
+    (currentIsCompleted ? completed : incomplete).push(ft);
+  }
+
+  // Sort completed subtrees by root's completed_timestamp descending
+  // Group by root, sort groups, flatten
+  const groups: TaskWithDepth[][] = [];
+  let group: TaskWithDepth[] = [];
+  for (const ft of completed) {
+    if (ft.depth === 0 && group.length > 0) { groups.push(group); group = []; }
+    group.push(ft);
+  }
+  if (group.length > 0) groups.push(group);
+  groups.sort((a, b) => (b[0].task.completed_timestamp ?? 0) - (a[0].task.completed_timestamp ?? 0));
+
+  return { incomplete, completed: groups.flat() };
+}
