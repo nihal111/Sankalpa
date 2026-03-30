@@ -247,7 +247,7 @@ export function useAppState() {
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash: flash, onCompleteFlash: (id: string, wasCompleted: boolean) => wasCompleted ? uncompleteFlash(id) : completeFlash(id), undoPush,
     isTrashView, onPermanentDeleteRequest: trashActions.handlePermanentDeleteRequest,
     onCascadeComplete: trashActions.handleCascadeComplete, onCascadeDelete: trashActions.handleCascadeDelete, multiSelectClear: multiSelectActions.clear,
-    showToast: toast.show,
+    showToast: toast.show, completedDividerIndex,
   });
 
   const { handleReorder, indentTask, outdentTask, toggleCollapse } = useTaskNesting({

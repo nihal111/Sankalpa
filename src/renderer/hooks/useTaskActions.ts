@@ -4,7 +4,7 @@ import type { Pane } from '../types';
 import type { SidebarItem } from '../utils/buildSidebarItems';
 import type { UndoEntry } from './useUndoStack';
 import type { TaskWithDepth } from '../utils/taskTree';
-import { flattenWithDepth, getDescendantIds } from '../utils/taskTree';
+import { flattenWithDepth, getDescendantIds, partitionByCompletion } from '../utils/taskTree';
 import { computeDuplicate } from '../utils/taskTreeOps';
 
 interface UseTaskActionsParams {
@@ -31,6 +31,7 @@ interface UseTaskActionsParams {
   onCascadeDelete?: (task: Task, descendantCount: number, onConfirm: () => void) => void;
   multiSelectClear: () => void;
   showToast: (msg: string) => void;
+  completedDividerIndex: number | null;
 }
 
 interface TaskActions {
@@ -49,21 +50,24 @@ export function useTaskActions(params: UseTaskActionsParams): TaskActions {
   const {
     focusedPane, selectedSidebarItem, selectedListId, selectedTask, tasks, flatTasks, selectedTaskIndex, selectedTaskIndices,
     setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, reloadTasks, onFlash, onCompleteFlash, undoPush,
-    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear, showToast,
+    isTrashView, onPermanentDeleteRequest, onCascadeComplete, onCascadeDelete, multiSelectClear, showToast, completedDividerIndex,
   } = params;
 
   const finishCreateTask = useCallback(async (taskId: string, isInbox: boolean, listId: string | null): Promise<void> => {
     const newTasks = isInbox ? await window.api.tasksGetInbox() : await window.api.tasksGetByList(listId!);
     const newFlatTasks = flattenWithDepth(newTasks);
-    const newIndex = newFlatTasks.findIndex((t) => t.task.id === taskId);
-    const safeIndex = newIndex >= 0 ? newIndex : Math.max(0, newTasks.findIndex((t) => t.id === taskId));
+    // Use partitioned order to find the correct display index
+    const partition = completedDividerIndex !== null ? partitionByCompletion(newFlatTasks, newTasks) : null;
+    const displayList = partition ? partition.incomplete : newFlatTasks;
+    const newIndex = displayList.findIndex((t) => t.task.id === taskId);
+    const safeIndex = newIndex >= 0 ? newIndex : 0;
     setTasks(newTasks);
     setSelectedTaskIndex(safeIndex);
     setFocusedPane('tasks');
     setEditMode({ type: 'task', index: safeIndex });
     setEditValue('');
     onFlash?.(taskId);
-  }, [setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash]);
+  }, [setTasks, setSelectedTaskIndex, setFocusedPane, setEditMode, setEditValue, onFlash, completedDividerIndex]);
 
   const createTask = useCallback(async () => {
     const isInbox = selectedSidebarItem?.type === 'smart' && selectedSidebarItem.smartList.id === 'inbox';
